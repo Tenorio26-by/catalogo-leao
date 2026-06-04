@@ -459,6 +459,21 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
     <div id="fin-resumo" style="margin-bottom:12px;"></div>
     <div id="fin-list"><div class="loading">Carregando...</div></div>
 
+
+    <!-- Modal editar pedido -->
+    <div class="modal-overlay hidden" id="modal-edit-pedido">
+      <div class="modal" style="max-width:500px;">
+        <div class="modal-title">✏️ Editar Pedido</div>
+        <div id="edit-pedido-info" style="background:#F5F0EA;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#412402;font-weight:600;"></div>
+        <div id="edit-pedido-itens" style="max-height:300px;overflow-y:auto;margin-bottom:14px;"></div>
+        <div style="font-size:12px;color:#999;margin-bottom:12px;">💡 Altere quantidades, preços ou remova itens (qty=0)</div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal('modal-edit-pedido')">Cancelar</button>
+          <button class="btn-save" onclick="salvarEdicaoPedido()">Salvar alterações</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal registrar pagamento -->
     <div class="modal-overlay hidden" id="modal-pagamento">
       <div class="modal">
@@ -826,20 +841,17 @@ function logout(){
 }
 
 function showScreen(id){
-  const current = document.querySelector('.screen.active');
+  // Hide all screens immediately
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('active');
+    s.style.opacity='';
+    s.style.transform='';
+  });
   const next = document.getElementById(id);
-  if(current){
-    current.style.opacity='0';
-    current.style.transform='translateY(-8px)';
-    setTimeout(()=>{
-      current.classList.remove('active');
-      current.style.opacity='';
-      current.style.transform='';
-      next.classList.add('active');
-      setTimeout(()=>{next.style.opacity='1';next.style.transform='translateY(0)';},10);
-    },200);
-  } else {
+  if(next){
     next.classList.add('active');
+    next.style.opacity='1';
+    next.style.transform='translateY(0)';
   }
 }
 
@@ -1763,6 +1775,7 @@ async function loadPedidos(){
           <div class="order-meta">${o.itens} itens • ${dt}</div>
           <div class="order-total">${o.total}</div>
         </div>
+        <button class="btn-edit" onclick="abrirEditarPedido('${o.id}',this)" data-nome="${o.clienteNome||''}">✏️</button>
         <button class="btn-edit" onclick="imprimirNotinhaPedido('${o.id}')" style="flex-shrink:0;">🖨️</button>
         <button class="btn-del" onclick="deletePedido('${o.id}')" style="flex-shrink:0;">🗑</button>
       </div>
@@ -2069,7 +2082,7 @@ async function loadFinanceiro(){
   try {
     // Busca pedidos e clientes
     const [pedSnap, cliSnap] = await Promise.all([
-      db.collection('pedidos').orderBy('timestamp','desc').get(),
+      db.collection('pedidos').get(),
       db.collection('clientes').get()
     ]);
 
@@ -2082,6 +2095,7 @@ async function loadFinanceiro(){
     let pedidos = [];
     pedSnap.forEach(d=>{
       const o = {id:d.id,...d.data()};
+      if(!o.clienteId && !o.clienteNome) return; // skip invalid
       const cli = clientes[o.clienteId]||{};
       const prazo = cli.prazo||0;
       const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : new Date();
@@ -2092,6 +2106,12 @@ async function loadFinanceiro(){
       const saldo = pago ? 0 : totalNum - (o.valorPago||0);
       o._cli = cli; o._venc = venc; o._totalNum = totalNum; o._saldo = saldo;
       pedidos.push(o);
+    });
+    // Sort by timestamp desc
+    pedidos.sort((a,b)=>{
+      const ta = a.timestamp?a.timestamp.seconds:0;
+      const tb = b.timestamp?b.timestamp.seconds:0;
+      return tb-ta;
     });
 
     // Filtro
@@ -2147,6 +2167,7 @@ async function loadFinanceiro(){
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+            <button class="btn-edit" onclick="abrirEditarPedido('${o.id}',this)" data-nome="${cli.nome||o.clienteNome||''}">✏️</button>
             ${!o.pago?`<button class="btn-edit" onclick="abrirPagamento('${o.id}','${cli.nome||o.clienteNome}',${o._totalNum},${o._saldo})">💵 Pagar</button>`:''}
             <button class="btn-edit" onclick="imprimirNotinhaPedido('${o.id}')">🖨️</button>
           </div>
@@ -2213,49 +2234,7 @@ Falta: R$ ${(totalNum-novoValorPago).toFixed(2).replace('.',',')}`);
 }
 
 // ===== EXPORTAR ROTA DO MOTORISTA =====
-async function exportarRota(){
-  const [pedSnap, cliSnap] = await Promise.all([
-    db.collection('pedidos').where('pago','==',false).get().catch(()=>db.collection('pedidos').get()),
-    db.collection('clientes').get()
-  ]);
-
-  const clientes = {};
-  cliSnap.forEach(d=>{ clientes[d.id] = {id:d.id,...d.data()}; });
-
-  const diasNomes=['','Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
-  const linhas = [['Cliente','Responsável','Endereço','Bairro','Cidade','Telefone','Dia Entrega','Vencimento','Total Nota','Saldo Devedor','Status']];
-
-  pedSnap.forEach(d=>{
-    const o = d.data();
-    const cli = clientes[o.clienteId]||{};
-    const prazo = cli.prazo||0;
-    const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : new Date();
-    const venc = new Date(dt.getTime()+prazo*24*60*60*1000);
-    const totalNum = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'));
-    const saldo = totalNum - (o.valorPago||0);
-    if(saldo <= 0) return;
-    linhas.push([
-      cli.nome||o.clienteNome||'',
-      cli.responsavel||'',
-      cli.end||'',
-      cli.bairro||'',
-      cli.cidade||'',
-      cli.tel||'',
-      diasNomes[cli.diaEntrega]||'-',
-      venc.toLocaleDateString('pt-BR'),
-      'R$ '+totalNum.toFixed(2).replace('.',','),
-      'R$ '+saldo.toFixed(2).replace('.',','),
-      o.pago?'Pago':'Pendente'
-    ]);
-  });
-
-  const csv = linhas.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
-  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href=url; a.download='rota_motorista.csv'; a.click();
-  URL.revokeObjectURL(url);
-}
+// exportarRota moved to gerarRotaExcel
 
 // ===== IMPRIMIR NOTINHA AO CONFIRMAR PEDIDO =====
 // Chamado após confirmarEnvio
@@ -2305,6 +2284,198 @@ async function loadSugestaoReposicao(){
       <div style="font-size:13px;color:#412402;">${top.map(t=>`<span style="background:#fff;border-radius:20px;padding:4px 10px;margin:2px;display:inline-block;font-size:12px;">📦 ${t.nome}</span>`).join('')}</div>
     </div>`;
   } catch(e){}
+}
+
+// ===== EDITAR PEDIDO =====
+let _editandoPedidoId = null;
+let _editandoItens = [];
+
+async function abrirEditarPedido(pedidoId, elOrName){
+  const nomeCliente = typeof elOrName==='string' ? elOrName : (elOrName.dataset.nome||'');
+  _editandoPedidoId = pedidoId;
+  document.getElementById('edit-pedido-info').textContent = 'Cliente: ' + nomeCliente;
+  
+  try {
+    const doc = await db.collection('pedidos').doc(pedidoId).get();
+    if(!doc.exists){ alert('Pedido não encontrado.'); return; }
+    const o = doc.data();
+    _editandoItens = (o.itensList || []).map(i=>({...i}));
+    
+    renderEditItens();
+    document.getElementById('modal-edit-pedido').classList.remove('hidden');
+  } catch(e){ alert('Erro: '+e.message); }
+}
+
+function renderEditItens(){
+  const prods = getProdutos();
+  let html = '';
+  
+  // Itens existentes
+  _editandoItens.forEach((it,idx)=>{
+    html += `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #EEE5D8;">
+      <div style="flex:1;font-size:13px;color:#2D1A00;">${it.nome}</div>
+      <div style="font-size:12px;color:#888;">${it.un||''}</div>
+      <input type="number" value="${it.qty}" min="0" step="1" style="width:60px;padding:6px;border:2px solid #EEE5D8;border-radius:8px;font-size:13px;text-align:center;" 
+        onchange="_editandoItens[${idx}].qty=parseInt(this.value)||0; atualizarTotalEdit();" placeholder="Qty">
+      <span style="font-size:12px;color:#999;">x</span>
+      <input type="number" value="${it.unit.toFixed(2)}" min="0" step="0.01" style="width:80px;padding:6px;border:2px solid #EEE5D8;border-radius:8px;font-size:13px;text-align:center;"
+        onchange="_editandoItens[${idx}].unit=parseFloat(this.value)||0; atualizarTotalEdit();" placeholder="R$">
+      <span id="subtotal-${idx}" style="font-size:13px;font-weight:700;color:#7A3F08;min-width:70px;text-align:right;">R$ ${(it.qty*it.unit).toFixed(2).replace('.',',')}</span>
+    </div>`;
+  });
+  
+  // Adicionar produto novo
+  html += `<div style="margin-top:12px;">
+    <div style="font-size:12px;color:#633806;font-weight:700;margin-bottom:6px;text-transform:uppercase;">+ Adicionar produto</div>
+    <select id="edit-novo-prod" class="select-tag" style="width:100%;margin-bottom:6px;">
+      <option value="">Selecione um produto...</option>
+      ${prods.map(p=>`<option value="${p.id}" data-preco="${p.precoFinal}" data-un="${p.un}">${p.nome} (${p.un}) - R$ ${p.precoFinal.toFixed(2).replace('.',',')}</option>`).join('')}
+    </select>
+    <div style="display:flex;gap:8px;">
+      <input type="number" id="edit-nova-qty" placeholder="Qty" min="1" value="1" style="flex:1;padding:8px;border:2px solid #EEE5D8;border-radius:8px;font-size:13px;">
+      <button class="btn-save" style="padding:8px 16px;" onclick="adicionarItemEdit()">+ Adicionar</button>
+    </div>
+  </div>
+  <div style="text-align:right;margin-top:12px;font-size:16px;font-weight:800;color:#412402;" id="total-edit-display">Total: R$ ${_editandoItens.reduce((s,i)=>s+i.qty*i.unit,0).toFixed(2).replace('.',',')}</div>`;
+  
+  document.getElementById('edit-pedido-itens').innerHTML = html;
+}
+
+function atualizarTotalEdit(){
+  const total = _editandoItens.reduce((s,i)=>s+(i.qty||0)*(i.unit||0),0);
+  const el = document.getElementById('total-edit-display');
+  if(el) el.textContent = 'Total: R$ ' + total.toFixed(2).replace('.',',');
+  _editandoItens.forEach((it,idx)=>{
+    const el2 = document.getElementById('subtotal-'+idx);
+    if(el2) el2.textContent = 'R$ '+((it.qty||0)*(it.unit||0)).toFixed(2).replace('.',',');
+  });
+}
+
+function adicionarItemEdit(){
+  const sel = document.getElementById('edit-novo-prod');
+  const qtyEl = document.getElementById('edit-nova-qty');
+  const prodId = sel.value;
+  const qty = parseInt(qtyEl.value)||1;
+  if(!prodId){ alert('Selecione um produto.'); return; }
+  const opt = sel.options[sel.selectedIndex];
+  const preco = parseFloat(opt.dataset.preco)||0;
+  const un = opt.dataset.un||'';
+  const nome = opt.text.split(' (')[0];
+  // Check if already exists
+  const existing = _editandoItens.find(i=>i.id===prodId);
+  if(existing){ existing.qty += qty; }
+  else { _editandoItens.push({id:prodId,nome,un,qty,unit:preco}); }
+  sel.value=''; qtyEl.value='1';
+  renderEditItens();
+}
+
+async function salvarEdicaoPedido(){
+  if(!_editandoPedidoId) return;
+  const itensValidos = _editandoItens.filter(i=>i.qty>0);
+  if(!itensValidos.length){ alert('O pedido deve ter pelo menos 1 item.'); return; }
+  const total = itensValidos.reduce((s,i)=>s+i.qty*i.unit,0);
+  const totalItens = itensValidos.reduce((s,i)=>s+i.qty,0);
+  try {
+    await db.collection('pedidos').doc(_editandoPedidoId).update({
+      itensList: itensValidos,
+      itens: totalItens,
+      total: 'R$ '+total.toFixed(2).replace('.',',')
+    });
+    closeModal('modal-edit-pedido');
+    alert('✅ Pedido atualizado!');
+    loadFinanceiro();
+    loadPedidos();
+  } catch(e){ alert('Erro: '+e.message); }
+}
+
+// ===== EXPORTAR ROTA COM SELEÇÃO DE CLIENTES =====
+let _clientesSelecionados = [];
+
+async function exportarRota(){
+  // Carregar clientes para seleção
+  try {
+    const cliSnap = await db.collection('clientes').get();
+    const clientes = [];
+    cliSnap.forEach(d=>{ clientes.push({id:d.id,...d.data()}); });
+    
+    // Mostrar modal de seleção
+    const diasNomes=['','Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+    let optsHtml = clientes.map(c=>`
+      <label style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F5F0EA;cursor:pointer;">
+        <input type="checkbox" value="${c.id}" checked style="width:16px;height:16px;">
+        <span style="font-size:13px;flex:1;">${c.nome}</span>
+        <span style="font-size:11px;color:#999;">${diasNomes[c.diaEntrega]||'Sem dia'}</span>
+      </label>`).join('');
+    
+    const div = document.createElement('div');
+    div.id = 'modal-rota-overlay';
+    div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:700;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    div.innerHTML = `
+      <div style="background:#fff;border-radius:20px;padding:1.5rem;width:100%;max-width:420px;max-height:80vh;display:flex;flex-direction:column;">
+        <div style="font-size:17px;font-weight:700;color:#2D1A00;margin-bottom:4px;">🚚 Rota do Motorista</div>
+        <div style="font-size:12px;color:#999;margin-bottom:12px;">Selecione os clientes para incluir na planilha</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <button onclick="document.querySelectorAll('#rota-lista input').forEach(i=>i.checked=true)" class="btn-edit" style="flex:1;">✅ Todos</button>
+          <button onclick="document.querySelectorAll('#rota-lista input').forEach(i=>i.checked=false)" class="btn-edit" style="flex:1;">❌ Nenhum</button>
+        </div>
+        <div id="rota-lista" style="overflow-y:auto;flex:1;padding-right:4px;">${optsHtml}</div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button class="btn-cancel" onclick="document.getElementById('modal-rota-overlay').remove()" style="flex:1;">Cancelar</button>
+          <button class="btn-save" onclick="gerarRotaExcel()" style="flex:1;">📊 Exportar Excel</button>
+        </div>
+      </div>`;
+    document.body.appendChild(div);
+  } catch(e){ alert('Erro: '+e.message); }
+}
+
+async function gerarRotaExcel(){
+  const checks = document.querySelectorAll('#rota-lista input:checked');
+  const idsSel = [...checks].map(i=>i.value);
+  document.getElementById('modal-rota-overlay').remove();
+  if(!idsSel.length){ alert('Selecione pelo menos um cliente.'); return; }
+  
+  const [pedSnap, cliSnap] = await Promise.all([
+    db.collection('pedidos').get().catch(()=>({empty:true,forEach:()=>{}})),
+    db.collection('clientes').get()
+  ]);
+  
+  const clientes = {};
+  cliSnap.forEach(d=>{ clientes[d.id] = {id:d.id,...d.data()}; });
+  const diasNomes=['','Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  
+  const linhas = [['Cliente','Responsável','Endereço','Bairro','Cidade','Telefone','Dia Entrega','Vencimento','Valor da Nota','Saldo Devedor','Status']];
+  
+  pedSnap.forEach(d=>{
+    const o = d.data();
+    if(!idsSel.includes(o.clienteId)) return;
+    const cli = clientes[o.clienteId]||{};
+    const prazo = cli.prazo||0;
+    const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : new Date();
+    const venc = new Date(dt.getTime()+prazo*24*60*60*1000);
+    const totalNum = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'));
+    const saldo = totalNum - (o.valorPago||0);
+    if(saldo <= 0 && o.pago) return;
+    linhas.push([
+      cli.nome||o.clienteNome||'',
+      cli.responsavel||'',
+      cli.end||'',
+      cli.bairro||'',
+      cli.cidade||'',
+      cli.tel||'',
+      diasNomes[cli.diaEntrega]||'-',
+      venc.toLocaleDateString('pt-BR'),
+      'R$ '+totalNum.toFixed(2).replace('.',','),
+      'R$ '+saldo.toFixed(2).replace('.',','),
+      o.pago?'Pago':'Pendente'
+    ]);
+  });
+  
+  const csv = linhas.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='rota_motorista.csv'; a.click();
+  URL.revokeObjectURL(url);
 }
 
 </script>
@@ -2771,6 +2942,21 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
     <div id="fin-resumo" style="margin-bottom:12px;"></div>
     <div id="fin-list"><div class="loading">Carregando...</div></div>
 
+
+    <!-- Modal editar pedido -->
+    <div class="modal-overlay hidden" id="modal-edit-pedido">
+      <div class="modal" style="max-width:500px;">
+        <div class="modal-title">✏️ Editar Pedido</div>
+        <div id="edit-pedido-info" style="background:#F5F0EA;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#412402;font-weight:600;"></div>
+        <div id="edit-pedido-itens" style="max-height:300px;overflow-y:auto;margin-bottom:14px;"></div>
+        <div style="font-size:12px;color:#999;margin-bottom:12px;">💡 Altere quantidades, preços ou remova itens (qty=0)</div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal('modal-edit-pedido')">Cancelar</button>
+          <button class="btn-save" onclick="salvarEdicaoPedido()">Salvar alterações</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal registrar pagamento -->
     <div class="modal-overlay hidden" id="modal-pagamento">
       <div class="modal">
@@ -3138,20 +3324,17 @@ function logout(){
 }
 
 function showScreen(id){
-  const current = document.querySelector('.screen.active');
+  // Hide all screens immediately
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('active');
+    s.style.opacity='';
+    s.style.transform='';
+  });
   const next = document.getElementById(id);
-  if(current){
-    current.style.opacity='0';
-    current.style.transform='translateY(-8px)';
-    setTimeout(()=>{
-      current.classList.remove('active');
-      current.style.opacity='';
-      current.style.transform='';
-      next.classList.add('active');
-      setTimeout(()=>{next.style.opacity='1';next.style.transform='translateY(0)';},10);
-    },200);
-  } else {
+  if(next){
     next.classList.add('active');
+    next.style.opacity='1';
+    next.style.transform='translateY(0)';
   }
 }
 
@@ -4075,6 +4258,7 @@ async function loadPedidos(){
           <div class="order-meta">${o.itens} itens • ${dt}</div>
           <div class="order-total">${o.total}</div>
         </div>
+        <button class="btn-edit" onclick="abrirEditarPedido('${o.id}',this)" data-nome="${o.clienteNome||''}">✏️</button>
         <button class="btn-edit" onclick="imprimirNotinhaPedido('${o.id}')" style="flex-shrink:0;">🖨️</button>
         <button class="btn-del" onclick="deletePedido('${o.id}')" style="flex-shrink:0;">🗑</button>
       </div>
@@ -4381,7 +4565,7 @@ async function loadFinanceiro(){
   try {
     // Busca pedidos e clientes
     const [pedSnap, cliSnap] = await Promise.all([
-      db.collection('pedidos').orderBy('timestamp','desc').get(),
+      db.collection('pedidos').get(),
       db.collection('clientes').get()
     ]);
 
@@ -4394,6 +4578,7 @@ async function loadFinanceiro(){
     let pedidos = [];
     pedSnap.forEach(d=>{
       const o = {id:d.id,...d.data()};
+      if(!o.clienteId && !o.clienteNome) return; // skip invalid
       const cli = clientes[o.clienteId]||{};
       const prazo = cli.prazo||0;
       const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : new Date();
@@ -4404,6 +4589,12 @@ async function loadFinanceiro(){
       const saldo = pago ? 0 : totalNum - (o.valorPago||0);
       o._cli = cli; o._venc = venc; o._totalNum = totalNum; o._saldo = saldo;
       pedidos.push(o);
+    });
+    // Sort by timestamp desc
+    pedidos.sort((a,b)=>{
+      const ta = a.timestamp?a.timestamp.seconds:0;
+      const tb = b.timestamp?b.timestamp.seconds:0;
+      return tb-ta;
     });
 
     // Filtro
@@ -4459,6 +4650,7 @@ async function loadFinanceiro(){
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+            <button class="btn-edit" onclick="abrirEditarPedido('${o.id}',this)" data-nome="${cli.nome||o.clienteNome||''}">✏️</button>
             ${!o.pago?`<button class="btn-edit" onclick="abrirPagamento('${o.id}','${cli.nome||o.clienteNome}',${o._totalNum},${o._saldo})">💵 Pagar</button>`:''}
             <button class="btn-edit" onclick="imprimirNotinhaPedido('${o.id}')">🖨️</button>
           </div>
@@ -4525,49 +4717,7 @@ Falta: R$ ${(totalNum-novoValorPago).toFixed(2).replace('.',',')}`);
 }
 
 // ===== EXPORTAR ROTA DO MOTORISTA =====
-async function exportarRota(){
-  const [pedSnap, cliSnap] = await Promise.all([
-    db.collection('pedidos').where('pago','==',false).get().catch(()=>db.collection('pedidos').get()),
-    db.collection('clientes').get()
-  ]);
-
-  const clientes = {};
-  cliSnap.forEach(d=>{ clientes[d.id] = {id:d.id,...d.data()}; });
-
-  const diasNomes=['','Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
-  const linhas = [['Cliente','Responsável','Endereço','Bairro','Cidade','Telefone','Dia Entrega','Vencimento','Total Nota','Saldo Devedor','Status']];
-
-  pedSnap.forEach(d=>{
-    const o = d.data();
-    const cli = clientes[o.clienteId]||{};
-    const prazo = cli.prazo||0;
-    const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : new Date();
-    const venc = new Date(dt.getTime()+prazo*24*60*60*1000);
-    const totalNum = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'));
-    const saldo = totalNum - (o.valorPago||0);
-    if(saldo <= 0) return;
-    linhas.push([
-      cli.nome||o.clienteNome||'',
-      cli.responsavel||'',
-      cli.end||'',
-      cli.bairro||'',
-      cli.cidade||'',
-      cli.tel||'',
-      diasNomes[cli.diaEntrega]||'-',
-      venc.toLocaleDateString('pt-BR'),
-      'R$ '+totalNum.toFixed(2).replace('.',','),
-      'R$ '+saldo.toFixed(2).replace('.',','),
-      o.pago?'Pago':'Pendente'
-    ]);
-  });
-
-  const csv = linhas.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
-  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href=url; a.download='rota_motorista.csv'; a.click();
-  URL.revokeObjectURL(url);
-}
+// exportarRota moved to gerarRotaExcel
 
 // ===== IMPRIMIR NOTINHA AO CONFIRMAR PEDIDO =====
 // Chamado após confirmarEnvio
@@ -4617,6 +4767,198 @@ async function loadSugestaoReposicao(){
       <div style="font-size:13px;color:#412402;">${top.map(t=>`<span style="background:#fff;border-radius:20px;padding:4px 10px;margin:2px;display:inline-block;font-size:12px;">📦 ${t.nome}</span>`).join('')}</div>
     </div>`;
   } catch(e){}
+}
+
+// ===== EDITAR PEDIDO =====
+let _editandoPedidoId = null;
+let _editandoItens = [];
+
+async function abrirEditarPedido(pedidoId, elOrName){
+  const nomeCliente = typeof elOrName==='string' ? elOrName : (elOrName.dataset.nome||'');
+  _editandoPedidoId = pedidoId;
+  document.getElementById('edit-pedido-info').textContent = 'Cliente: ' + nomeCliente;
+  
+  try {
+    const doc = await db.collection('pedidos').doc(pedidoId).get();
+    if(!doc.exists){ alert('Pedido não encontrado.'); return; }
+    const o = doc.data();
+    _editandoItens = (o.itensList || []).map(i=>({...i}));
+    
+    renderEditItens();
+    document.getElementById('modal-edit-pedido').classList.remove('hidden');
+  } catch(e){ alert('Erro: '+e.message); }
+}
+
+function renderEditItens(){
+  const prods = getProdutos();
+  let html = '';
+  
+  // Itens existentes
+  _editandoItens.forEach((it,idx)=>{
+    html += `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #EEE5D8;">
+      <div style="flex:1;font-size:13px;color:#2D1A00;">${it.nome}</div>
+      <div style="font-size:12px;color:#888;">${it.un||''}</div>
+      <input type="number" value="${it.qty}" min="0" step="1" style="width:60px;padding:6px;border:2px solid #EEE5D8;border-radius:8px;font-size:13px;text-align:center;" 
+        onchange="_editandoItens[${idx}].qty=parseInt(this.value)||0; atualizarTotalEdit();" placeholder="Qty">
+      <span style="font-size:12px;color:#999;">x</span>
+      <input type="number" value="${it.unit.toFixed(2)}" min="0" step="0.01" style="width:80px;padding:6px;border:2px solid #EEE5D8;border-radius:8px;font-size:13px;text-align:center;"
+        onchange="_editandoItens[${idx}].unit=parseFloat(this.value)||0; atualizarTotalEdit();" placeholder="R$">
+      <span id="subtotal-${idx}" style="font-size:13px;font-weight:700;color:#7A3F08;min-width:70px;text-align:right;">R$ ${(it.qty*it.unit).toFixed(2).replace('.',',')}</span>
+    </div>`;
+  });
+  
+  // Adicionar produto novo
+  html += `<div style="margin-top:12px;">
+    <div style="font-size:12px;color:#633806;font-weight:700;margin-bottom:6px;text-transform:uppercase;">+ Adicionar produto</div>
+    <select id="edit-novo-prod" class="select-tag" style="width:100%;margin-bottom:6px;">
+      <option value="">Selecione um produto...</option>
+      ${prods.map(p=>`<option value="${p.id}" data-preco="${p.precoFinal}" data-un="${p.un}">${p.nome} (${p.un}) - R$ ${p.precoFinal.toFixed(2).replace('.',',')}</option>`).join('')}
+    </select>
+    <div style="display:flex;gap:8px;">
+      <input type="number" id="edit-nova-qty" placeholder="Qty" min="1" value="1" style="flex:1;padding:8px;border:2px solid #EEE5D8;border-radius:8px;font-size:13px;">
+      <button class="btn-save" style="padding:8px 16px;" onclick="adicionarItemEdit()">+ Adicionar</button>
+    </div>
+  </div>
+  <div style="text-align:right;margin-top:12px;font-size:16px;font-weight:800;color:#412402;" id="total-edit-display">Total: R$ ${_editandoItens.reduce((s,i)=>s+i.qty*i.unit,0).toFixed(2).replace('.',',')}</div>`;
+  
+  document.getElementById('edit-pedido-itens').innerHTML = html;
+}
+
+function atualizarTotalEdit(){
+  const total = _editandoItens.reduce((s,i)=>s+(i.qty||0)*(i.unit||0),0);
+  const el = document.getElementById('total-edit-display');
+  if(el) el.textContent = 'Total: R$ ' + total.toFixed(2).replace('.',',');
+  _editandoItens.forEach((it,idx)=>{
+    const el2 = document.getElementById('subtotal-'+idx);
+    if(el2) el2.textContent = 'R$ '+((it.qty||0)*(it.unit||0)).toFixed(2).replace('.',',');
+  });
+}
+
+function adicionarItemEdit(){
+  const sel = document.getElementById('edit-novo-prod');
+  const qtyEl = document.getElementById('edit-nova-qty');
+  const prodId = sel.value;
+  const qty = parseInt(qtyEl.value)||1;
+  if(!prodId){ alert('Selecione um produto.'); return; }
+  const opt = sel.options[sel.selectedIndex];
+  const preco = parseFloat(opt.dataset.preco)||0;
+  const un = opt.dataset.un||'';
+  const nome = opt.text.split(' (')[0];
+  // Check if already exists
+  const existing = _editandoItens.find(i=>i.id===prodId);
+  if(existing){ existing.qty += qty; }
+  else { _editandoItens.push({id:prodId,nome,un,qty,unit:preco}); }
+  sel.value=''; qtyEl.value='1';
+  renderEditItens();
+}
+
+async function salvarEdicaoPedido(){
+  if(!_editandoPedidoId) return;
+  const itensValidos = _editandoItens.filter(i=>i.qty>0);
+  if(!itensValidos.length){ alert('O pedido deve ter pelo menos 1 item.'); return; }
+  const total = itensValidos.reduce((s,i)=>s+i.qty*i.unit,0);
+  const totalItens = itensValidos.reduce((s,i)=>s+i.qty,0);
+  try {
+    await db.collection('pedidos').doc(_editandoPedidoId).update({
+      itensList: itensValidos,
+      itens: totalItens,
+      total: 'R$ '+total.toFixed(2).replace('.',',')
+    });
+    closeModal('modal-edit-pedido');
+    alert('✅ Pedido atualizado!');
+    loadFinanceiro();
+    loadPedidos();
+  } catch(e){ alert('Erro: '+e.message); }
+}
+
+// ===== EXPORTAR ROTA COM SELEÇÃO DE CLIENTES =====
+let _clientesSelecionados = [];
+
+async function exportarRota(){
+  // Carregar clientes para seleção
+  try {
+    const cliSnap = await db.collection('clientes').get();
+    const clientes = [];
+    cliSnap.forEach(d=>{ clientes.push({id:d.id,...d.data()}); });
+    
+    // Mostrar modal de seleção
+    const diasNomes=['','Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+    let optsHtml = clientes.map(c=>`
+      <label style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F5F0EA;cursor:pointer;">
+        <input type="checkbox" value="${c.id}" checked style="width:16px;height:16px;">
+        <span style="font-size:13px;flex:1;">${c.nome}</span>
+        <span style="font-size:11px;color:#999;">${diasNomes[c.diaEntrega]||'Sem dia'}</span>
+      </label>`).join('');
+    
+    const div = document.createElement('div');
+    div.id = 'modal-rota-overlay';
+    div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:700;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    div.innerHTML = `
+      <div style="background:#fff;border-radius:20px;padding:1.5rem;width:100%;max-width:420px;max-height:80vh;display:flex;flex-direction:column;">
+        <div style="font-size:17px;font-weight:700;color:#2D1A00;margin-bottom:4px;">🚚 Rota do Motorista</div>
+        <div style="font-size:12px;color:#999;margin-bottom:12px;">Selecione os clientes para incluir na planilha</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <button onclick="document.querySelectorAll('#rota-lista input').forEach(i=>i.checked=true)" class="btn-edit" style="flex:1;">✅ Todos</button>
+          <button onclick="document.querySelectorAll('#rota-lista input').forEach(i=>i.checked=false)" class="btn-edit" style="flex:1;">❌ Nenhum</button>
+        </div>
+        <div id="rota-lista" style="overflow-y:auto;flex:1;padding-right:4px;">${optsHtml}</div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button class="btn-cancel" onclick="document.getElementById('modal-rota-overlay').remove()" style="flex:1;">Cancelar</button>
+          <button class="btn-save" onclick="gerarRotaExcel()" style="flex:1;">📊 Exportar Excel</button>
+        </div>
+      </div>`;
+    document.body.appendChild(div);
+  } catch(e){ alert('Erro: '+e.message); }
+}
+
+async function gerarRotaExcel(){
+  const checks = document.querySelectorAll('#rota-lista input:checked');
+  const idsSel = [...checks].map(i=>i.value);
+  document.getElementById('modal-rota-overlay').remove();
+  if(!idsSel.length){ alert('Selecione pelo menos um cliente.'); return; }
+  
+  const [pedSnap, cliSnap] = await Promise.all([
+    db.collection('pedidos').get().catch(()=>({empty:true,forEach:()=>{}})),
+    db.collection('clientes').get()
+  ]);
+  
+  const clientes = {};
+  cliSnap.forEach(d=>{ clientes[d.id] = {id:d.id,...d.data()}; });
+  const diasNomes=['','Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  
+  const linhas = [['Cliente','Responsável','Endereço','Bairro','Cidade','Telefone','Dia Entrega','Vencimento','Valor da Nota','Saldo Devedor','Status']];
+  
+  pedSnap.forEach(d=>{
+    const o = d.data();
+    if(!idsSel.includes(o.clienteId)) return;
+    const cli = clientes[o.clienteId]||{};
+    const prazo = cli.prazo||0;
+    const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : new Date();
+    const venc = new Date(dt.getTime()+prazo*24*60*60*1000);
+    const totalNum = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'));
+    const saldo = totalNum - (o.valorPago||0);
+    if(saldo <= 0 && o.pago) return;
+    linhas.push([
+      cli.nome||o.clienteNome||'',
+      cli.responsavel||'',
+      cli.end||'',
+      cli.bairro||'',
+      cli.cidade||'',
+      cli.tel||'',
+      diasNomes[cli.diaEntrega]||'-',
+      venc.toLocaleDateString('pt-BR'),
+      'R$ '+totalNum.toFixed(2).replace('.',','),
+      'R$ '+saldo.toFixed(2).replace('.',','),
+      o.pago?'Pago':'Pendente'
+    ]);
+  });
+  
+  const csv = linhas.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='rota_motorista.csv'; a.click();
+  URL.revokeObjectURL(url);
 }
 
 </script>
