@@ -416,7 +416,7 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
       <div class="pedido-itens" id="pedido-sheet-itens"></div>
       <div class="pedido-total-row" style="margin-top:12px;">
         <span class="pedido-total-label">Total</span>
-        <span class="pedido-total-val" id="pedido-sheet-total"></span>
+        <span class="pedido-total-val" id="pedido-sheet-total" style="${currentClientData&&currentClientData.ocultarPreco?'display:none':''}"></span>
       </div>
       <div class="pedido-acoes">
         <button class="pedido-btn-enviar" onclick="confirmarEnvio()">
@@ -574,6 +574,12 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
           <option value="7">Domingo</option>
         </select>
       </div>
+    </div>
+    <div class="form-group" style="grid-column:1/-1">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <input type="checkbox" id="m-ocultar-preco" style="width:18px;height:18px;cursor:pointer;">
+        <span>🚫 Ocultar preços no catálogo e na notinha para este cliente</span>
+      </label>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modal-client')">Cancelar</button>
@@ -921,7 +927,8 @@ async function saveClient(){
   const prazo=parseInt(document.getElementById('m-prazo').value)||0;
   const diaEntrega=document.getElementById('m-dia-entrega').value||'';
   if(!nome||!usuario||!senha){alert('Preencha nome, usuário e senha!');return;}
-  const data={nome,responsavel,cpfcnpj,tel,cep,end,bairro,cidade,usuario,senha,tag,prazo,diaEntrega,bloqueado:false};
+  const ocultarPreco = document.getElementById('m-ocultar-preco').checked;
+  const data={nome,responsavel,cpfcnpj,tel,cep,end,bairro,cidade,usuario,senha,tag,prazo,diaEntrega,ocultarPreco,bloqueado:false};
   try {
     if(editingClientId){
       const existing = await db.collection('clientes').doc(editingClientId).get();
@@ -1357,7 +1364,7 @@ function renderCatalog(){
         <div class="pinfo">
           <div class="pname">${p.nome}</div>
           <div class="pdesc">${p.un}</div>
-          <div class="pprice">${fmt(p.precoFinal)}${origHtml}</div>
+          <div class="pprice">${_ocPreco ? '' : fmt(p.precoFinal)+origHtml}</div>
         </div>
         <div class="qty-ctrl">
           <button class="qty-btn" onclick="alter('${p.id}',1)">+</button>
@@ -1438,7 +1445,7 @@ function abrirPedidoSheet(){
       itensHtml+=`<div class="pedido-item-row">
         <span class="pedido-item-nome">${p.nome}</span>
         <span class="pedido-item-qty">x${q}</span>
-        <span class="pedido-item-val">${fmt(sub)}</span>
+        ${_ocPreco ? '' : `<span class="pedido-item-val">${fmt(sub)}</span>`}
       </div>`;
     });
     linhas.push('');
@@ -1931,14 +1938,20 @@ function imprimirNotinha(pedidoId, pedidoData){
 
   // Monta itens
   const itens = pedidoData.itensList || [];
-  let itensHtml = itens.map(i=>`
-    <tr>
-      <td style="padding:5px 4px;border-bottom:1px solid #eee;">${i.nome}</td>
-      <td style="padding:5px 4px;border-bottom:1px solid #eee;text-align:center;">${i.un||''}</td>
-      <td style="padding:5px 4px;border-bottom:1px solid #eee;text-align:center;">${i.qty}</td>
-      <td style="padding:5px 4px;border-bottom:1px solid #eee;text-align:right;">R$ ${i.unit.toFixed(2).replace('.',',')}</td>
-      <td style="padding:5px 4px;border-bottom:1px solid #eee;text-align:right;font-weight:600;">R$ ${(i.qty*i.unit).toFixed(2).replace('.',',')}</td>
-    </tr>`).join('');
+  const ocultarPreco = pedidoData.clienteData && pedidoData.clienteData.ocultarPreco;
+  let itensHtml = '';
+  if(itens.length){
+    itensHtml = itens.map(i=>`
+      <tr>
+        <td style="padding:5px 4px;border-bottom:1px solid #eee;">${i.nome}</td>
+        <td style="padding:5px 4px;border-bottom:1px solid #eee;text-align:center;">${i.un||''}</td>
+        <td style="padding:5px 4px;border-bottom:1px solid #eee;text-align:center;">${i.qty}</td>
+        ${ocultarPreco ? '' : `<td style="padding:5px 4px;border-bottom:1px solid #eee;text-align:right;">R$ ${(i.unit||0).toFixed(2).replace('.',',')}</td>`}
+        ${ocultarPreco ? '' : `<td style="padding:5px 4px;border-bottom:1px solid #eee;text-align:right;font-weight:600;">R$ ${((i.qty||0)*(i.unit||0)).toFixed(2).replace('.',',')}</td>`}
+      </tr>`).join('');
+  } else {
+    itensHtml = `<tr><td colspan="5" style="padding:12px;text-align:center;color:#999;font-style:italic;">Detalhes dos itens não disponíveis para este pedido.</td></tr>`;
+  }
 
   const html = `<!DOCTYPE html><html lang="pt-BR"><head>
 <meta charset="UTF-8"><title>Nota - ${cliente.nome||''}</title>
@@ -2027,14 +2040,13 @@ function imprimirNotinha(pedidoId, pedidoData){
       <th>Produto</th>
       <th style="text-align:center;">Un.</th>
       <th style="text-align:center;">Qtd</th>
-      <th style="text-align:right;">Unit.</th>
-      <th style="text-align:right;">Total</th>
+      ${ocultarPreco ? '' : '<th style="text-align:right;">Unit.</th><th style="text-align:right;">Total</th>'}
     </tr></thead>
     <tbody>${itensHtml}</tbody>
     <tfoot>
       <tr class="total-row">
-        <td colspan="4" style="padding:8px 4px;font-weight:700;text-align:right;">TOTAL</td>
-        <td style="padding:8px 4px;text-align:right;" class="total-val">${pedidoData.total}</td>
+        <td colspan="${ocultarPreco?3:4}" style="padding:8px 4px;font-weight:700;text-align:right;">TOTAL</td>
+        ${ocultarPreco ? '' : `<td style="padding:8px 4px;text-align:right;" class="total-val">${pedidoData.total}</td>`}
       </tr>
     </tfoot>
   </table>
@@ -2192,7 +2204,27 @@ async function imprimirNotinhaPedido(pedidoId){
     const o = pedDoc.data();
     const cliDoc = [...cliSnap.docs].find(d=>d.id===o.clienteId);
     const clienteData = cliDoc ? cliDoc.data() : {};
-    imprimirNotinha(pedidoId, {...o, clienteData});
+
+    // Se não tem itensList, tenta reconstruir do texto das linhas
+    let itensList = o.itensList || [];
+    if(!itensList.length && o.itens > 0){
+      // Pedido antigo — tenta extrair itens do campo linhas (formato WhatsApp)
+      // Ex: "• Produto (un) x3 = R$ 30,00"
+      const linhas = o.linhas || [];
+      linhas.forEach(linha=>{
+        const match = linha.match(/^•\s+(.+?)\s+\((.+?)\)\s+x(\d+)\s+=\s+R\$\s+([\d,.]+)/);
+        if(match){
+          const nome = match[1];
+          const un = match[2];
+          const qty = parseInt(match[3]);
+          const subtotal = parseFloat(match[4].replace(',','.'));
+          const unit = qty > 0 ? subtotal/qty : 0;
+          itensList.push({nome, un, qty, unit});
+        }
+      });
+    }
+
+    imprimirNotinha(pedidoId, {...o, clienteData, itensList});
   } catch(e){ alert('Erro: '+e.message); }
 }
 
