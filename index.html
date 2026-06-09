@@ -383,7 +383,7 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
     <div class="cat-logo">🦁</div>
     <div class="cat-title">Distribuidora Leão</div>
     <div class="cat-slogan">Qualidade e tradição direto pra você</div>
-    <button id="btn-lista-cliente" onclick="gerarListaCliente()" style="display:none;margin-top:8px;background:rgba(255,255,255,0.12);border:1px solid rgba(250,199,117,0.3);color:#FAC775;padding:6px 16px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">📋 Lista de produtos</button>
+
     <div class="cat-user" id="cat-user-name"></div>
   </div>
   <div class="cat-body">
@@ -394,6 +394,11 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
     <div class="cat-tabs" id="cat-tabs"></div>
     <div id="sugestao-banner"></div>
     <div id="entrega-banner"></div>
+    <div id="lista-btn-wrap" style="display:none;margin-bottom:12px;">
+      <button onclick="gerarListaCliente()" style="width:100%;padding:13px;background:linear-gradient(135deg,#412402,#7A3F08);color:#FAC775;border:none;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(65,36,2,0.2);">
+        📋 Gerar lista de produtos para anotar
+      </button>
+    </div>
     <div id="vip-banner"></div>
 
     <div id="catalog"></div>
@@ -686,8 +691,8 @@ window.addEventListener('load', async ()=>{
       const pd = await db.doc('precos/'+session.id).get();
       clientPrices = pd.exists ? pd.data() : {};
       document.getElementById('cat-user-name').textContent='Olá, '+session.nome+'! ✨';
-      const btnListaSess = document.getElementById('btn-lista-cliente');
-      if(btnListaSess) btnListaSess.style.display='inline-block';
+      const btnListaSess = document.getElementById('lista-btn-wrap');
+      if(btnListaSess) btnListaSess.style.display='block';
       if(session.tag==='VIP') document.getElementById('vip-banner').innerHTML='<div class="vip-banner">⭐ Você tem preços VIP exclusivos!</div>';
       showScreen('catalog-screen');
       await loadProdutosFirebase();
@@ -824,8 +829,8 @@ function doLogin(){
         clientPrices=pd.exists?pd.data():{};
         try{ localStorage.setItem('leao_session', JSON.stringify({role:'cliente', id:currentUser.id, ...currentClientData})); }catch(e){}
         document.getElementById('cat-user-name').textContent='Olá, '+currentUser.nome+'! ✨';
-      const btnLista = document.getElementById('btn-lista-cliente');
-      if(btnLista) btnLista.style.display='inline-block';
+      const btnLista = document.getElementById('lista-btn-wrap');
+      if(btnLista) btnLista.style.display='block';
         if(currentUser.tag==='VIP') document.getElementById('vip-banner').innerHTML='<div class="vip-banner">⭐ Você tem preços VIP exclusivos!</div>';
         showScreen('catalog-screen');
         loadProdutosFirebase().then(()=>{
@@ -848,7 +853,7 @@ function logout(){
   document.getElementById('login-pass').value='';
   document.getElementById('vip-banner').innerHTML='';
   document.getElementById('promo-banner-wrap').innerHTML='';
-  const btnListaLogout = document.getElementById('btn-lista-cliente');
+  const btnListaLogout = document.getElementById('lista-btn-wrap');
   if(btnListaLogout) btnListaLogout.style.display='none';
   showScreen('login-screen');
 }
@@ -1296,14 +1301,14 @@ async function loadProdutosFirebase(){
     if(currentUser && currentUser.role === 'cliente'){
       if(!docSnap.exists || !docSnap.data().ativo){
         document.getElementById('promo-banner-wrap').innerHTML='';
-  const btnListaLogout = document.getElementById('btn-lista-cliente');
+  const btnListaLogout = document.getElementById('lista-btn-wrap');
   if(btnListaLogout) btnListaLogout.style.display='none';
         return;
       }
       const p = docSnap.data();
       const prod = getProdutos().find(x=>x.id===p.produtoId);
       if(!prod){ document.getElementById('promo-banner-wrap').innerHTML='';
-  const btnListaLogout = document.getElementById('btn-lista-cliente');
+  const btnListaLogout = document.getElementById('lista-btn-wrap');
   if(btnListaLogout) btnListaLogout.style.display='none'; return; }
       const imgSrc = prod.foto || (prod.img && IMGS[prod.img]) || '';
       const imgHtml = imgSrc
