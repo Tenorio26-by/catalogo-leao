@@ -561,6 +561,7 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
           <option value="Varejo">Varejo</option>
           <option value="Atacado">Atacado</option>
           <option value="VIP">VIP</option>
+          <option value="SemPreco">🚫 Sem Preço (não mostra valores)</option>
         </select>
       </div>
       <div class="form-group">
@@ -884,7 +885,7 @@ async function loadAdminData(){
     let html='';
     cSnap.forEach(d=>{
       const c=d.data();
-      const tagClass=c.tag==='VIP'?'tag-vip':c.tag==='Atacado'?'tag-at':'tag-var';
+      const tagClass=c.tag==='VIP'?'tag-vip':c.tag==='Atacado'?'tag-at':c.tag==='SemPreco'?'tag-var':'tag-var';
       html+=`<div class="client-card">
         <div style="flex:1;min-width:0;">
           <div class="client-name">${c.nome}</div>
@@ -1356,6 +1357,7 @@ function setcat(c){catAtiva=c;renderCatalog();}
 
 function renderCatalog(){
   renderTabs();
+  const _ocPreco = (currentClientData && currentClientData.ocultarPreco) || (currentClientData && currentClientData.tag==='SemPreco');
   const search=document.getElementById('search').value.toLowerCase();
   const produtos=getProdutos();
   const el=document.getElementById('catalog');
@@ -1440,6 +1442,7 @@ function repetirPedido(){
 let _pedidoAtual = null;
 
 function abrirPedidoSheet(){
+  const _ocPreco = (currentClientData && currentClientData.ocultarPreco) || (currentClientData && currentClientData.tag==='SemPreco');
   const produtos = getProdutos();
   const catsFiltradas = cats.filter(c=>c.nome!=="Todos").map(c=>c.nome);
   let itensHtml = '';
