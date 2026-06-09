@@ -383,6 +383,7 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
     <div class="cat-logo">🦁</div>
     <div class="cat-title">Distribuidora Leão</div>
     <div class="cat-slogan">Qualidade e tradição direto pra você</div>
+    <button id="btn-lista-cliente" onclick="gerarListaCliente()" style="display:none;margin-top:8px;background:rgba(255,255,255,0.12);border:1px solid rgba(250,199,117,0.3);color:#FAC775;padding:6px 16px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">📋 Lista de produtos</button>
     <div class="cat-user" id="cat-user-name"></div>
   </div>
   <div class="cat-body">
@@ -685,6 +686,8 @@ window.addEventListener('load', async ()=>{
       const pd = await db.doc('precos/'+session.id).get();
       clientPrices = pd.exists ? pd.data() : {};
       document.getElementById('cat-user-name').textContent='Olá, '+session.nome+'! ✨';
+      const btnListaSess = document.getElementById('btn-lista-cliente');
+      if(btnListaSess) btnListaSess.style.display='inline-block';
       if(session.tag==='VIP') document.getElementById('vip-banner').innerHTML='<div class="vip-banner">⭐ Você tem preços VIP exclusivos!</div>';
       showScreen('catalog-screen');
       await loadProdutosFirebase();
@@ -821,6 +824,8 @@ function doLogin(){
         clientPrices=pd.exists?pd.data():{};
         try{ localStorage.setItem('leao_session', JSON.stringify({role:'cliente', id:currentUser.id, ...currentClientData})); }catch(e){}
         document.getElementById('cat-user-name').textContent='Olá, '+currentUser.nome+'! ✨';
+      const btnLista = document.getElementById('btn-lista-cliente');
+      if(btnLista) btnLista.style.display='inline-block';
         if(currentUser.tag==='VIP') document.getElementById('vip-banner').innerHTML='<div class="vip-banner">⭐ Você tem preços VIP exclusivos!</div>';
         showScreen('catalog-screen');
         loadProdutosFirebase().then(()=>{
@@ -843,6 +848,8 @@ function logout(){
   document.getElementById('login-pass').value='';
   document.getElementById('vip-banner').innerHTML='';
   document.getElementById('promo-banner-wrap').innerHTML='';
+  const btnListaLogout = document.getElementById('btn-lista-cliente');
+  if(btnListaLogout) btnListaLogout.style.display='none';
   showScreen('login-screen');
 }
 
@@ -1289,11 +1296,15 @@ async function loadProdutosFirebase(){
     if(currentUser && currentUser.role === 'cliente'){
       if(!docSnap.exists || !docSnap.data().ativo){
         document.getElementById('promo-banner-wrap').innerHTML='';
+  const btnListaLogout = document.getElementById('btn-lista-cliente');
+  if(btnListaLogout) btnListaLogout.style.display='none';
         return;
       }
       const p = docSnap.data();
       const prod = getProdutos().find(x=>x.id===p.produtoId);
-      if(!prod){ document.getElementById('promo-banner-wrap').innerHTML=''; return; }
+      if(!prod){ document.getElementById('promo-banner-wrap').innerHTML='';
+  const btnListaLogout = document.getElementById('btn-lista-cliente');
+  if(btnListaLogout) btnListaLogout.style.display='none'; return; }
       const imgSrc = prod.foto || (prod.img && IMGS[prod.img]) || '';
       const imgHtml = imgSrc
         ? `<img class="promo-img" src="${imgSrc}" alt="${prod.nome}">`
@@ -1911,7 +1922,7 @@ function gerarListaSemPreco(){
     <thead><tr>
       <th class="col-header">Produto</th>
       <th class="col-header" style="text-align:center;width:80px;">Unidade</th>
-      <th class="col-header col-preco">Preço (R$)</th>
+      <th class="col-header" style="text-align:center;width:100px;">Quantidade</th>
     </tr></thead>
     <tbody>${linhas}</tbody>
   </table>
@@ -2516,6 +2527,74 @@ async function gerarRotaExcel(){
   const a = document.createElement('a');
   a.href=url; a.download='rota_motorista.csv'; a.click();
   URL.revokeObjectURL(url);
+}
+
+// ===== LISTA DE PRODUTOS PARA O CLIENTE (sem preço) =====
+function gerarListaCliente(){
+  const prods = getProdutos().filter(p=>p.ativo!==false);
+  const cats_unicas = [...new Set(prods.map(p=>p.cat))].sort();
+
+  let linhas = '';
+  cats_unicas.forEach(cat=>{
+    const itens = prods.filter(p=>p.cat===cat);
+    if(!itens.length) return;
+    const catObj = cats.find(c=>c.nome===cat);
+    const icon = catObj?catObj.icon:'📦';
+    linhas += `<tr><td colspan="3" style="background:#3A1800;color:#FAC775;font-weight:700;padding:10px 14px;font-size:13px;letter-spacing:0.5px;">${icon} ${cat.toUpperCase()}</td></tr>`;
+    itens.forEach((p,i)=>{
+      const bg = i%2===0?'#fff':'#FBF8F4';
+      linhas += `<tr style="background:${bg};">
+        <td style="padding:10px 14px;font-size:13px;color:#2D1A00;font-weight:500;">${p.nome}</td>
+        <td style="padding:10px 14px;font-size:12px;color:#888;text-align:center;">${p.un}</td>
+        <td style="padding:10px 14px;width:100px;border-bottom:1px dotted #ccc;">&nbsp;</td>
+      </tr>`;
+    });
+  });
+
+  const nomeCliente = currentClientData ? currentClientData.nome : '';
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="UTF-8">
+<title>Lista de Produtos — Distribuidora Leão</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',sans-serif;background:#fff;color:#222;}
+  .page{max-width:700px;margin:0 auto;padding:20px;}
+  .topo{background:linear-gradient(135deg,#2D1100,#7A3F08);padding:20px 24px;border-radius:12px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
+  .topo-titulo{font-size:22px;font-weight:800;color:#FAC775;}
+  .topo-sub{font-size:12px;color:rgba(250,199,117,0.6);margin-top:3px;}
+  .topo-data{font-size:12px;color:rgba(250,199,117,0.5);}
+  .cliente-info{background:#FEF9EC;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#412402;}
+  table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);}
+  .col-header{background:#f5f0ea;color:#633806;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:8px 14px;}
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.page{padding:10px;}.topo{border-radius:0;}}
+</style>
+</head><body>
+<div class="page">
+  <div class="topo">
+    <div>
+      <div class="topo-titulo">🦁 Distribuidora Leão</div>
+      <div class="topo-sub">Lista de Produtos</div>
+    </div>
+    <div class="topo-data">${new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  </div>
+  ${nomeCliente ? `<div class="cliente-info">📋 Lista para: <strong>${nomeCliente}</strong></div>` : ''}
+  <table>
+    <thead><tr>
+      <th class="col-header">Produto</th>
+      <th class="col-header" style="text-align:center;width:80px;">Unidade</th>
+      <th class="col-header" style="text-align:center;width:100px;">Quantidade</th>
+    </tr></thead>
+    <tbody>${linhas}</tbody>
+  </table>
+  <div style="text-align:center;margin-top:16px;font-size:11px;color:#ccc;">Distribuidora Leão • WhatsApp: (31) 99642-2924</div>
+</div>
+<scr'+'ipt>window.onload=()=>window.print();</scr'+'ipt>
+</body></html>`;
+
+  const blob = new Blob([html],{type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  window.open(url,'_blank');
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
 }
 
 </script>
