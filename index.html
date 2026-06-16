@@ -2343,6 +2343,7 @@ async function loadFinanceiro(){
             <button class="btn-edit" onclick="abrirEditarPedido('${o.id}',this)" data-nome="${cli.nome||o.clienteNome||''}">✏️</button>
             ${!o.pago?`<button class="btn-edit" onclick="abrirPagamento('${o.id}','${cli.nome||o.clienteNome}',${o._totalNum},${o._saldo})">💵 Pagar</button>`:''}
             <button class="btn-edit" onclick="imprimirNotinhaPedido('${o.id}')">🖨️</button>
+            <button class="btn-del" onclick="excluirCobranca('${o.id}')" title="Excluir cobrança e cupons">🗑</button>
           </div>
         </div>
         ${o.historicoPage&&o.historicoPage.length?`<div style="font-size:11px;color:#999;margin-top:6px;">Último pagamento: ${o.historicoPage[o.historicoPage.length-1].data} — R$ ${o.historicoPage[o.historicoPage.length-1].valor}</div>`:''}
@@ -3094,6 +3095,33 @@ async function abrirMeusCupons(){
   } catch(e){
     body.innerHTML = '<div style="text-align:center;padding:2rem;color:#999;">Erro ao carregar cupons.</div>';
   }
+}
+
+// ===== EXCLUIR COBRANÇA + CUPONS DO FINANCEIRO =====
+async function excluirCobranca(pedidoId){
+  // Verifica se tem cupons vinculados
+  const cuponsSnap = await db.collection('cupons').where('pedidoId','==',pedidoId).get().catch(()=>({empty:true,docs:[]}));
+  const temCupons = !cuponsSnap.empty && cuponsSnap.docs && cuponsSnap.docs.length > 0;
+
+  const msg = temCupons
+    ? `Excluir esta cobrança?\n\n⚠️ Esta ação também excluirá ${cuponsSnap.docs.length} cupom(s) do sorteio vinculados a este pedido.\n\nEsta ação não pode ser desfeita.`
+    : 'Excluir esta cobrança?\n\nEsta ação não pode ser desfeita.';
+
+  if(!confirm(msg)) return;
+
+  try {
+    // Exclui cupons vinculados
+    if(temCupons){
+      const batch = db.batch();
+      cuponsSnap.docs.forEach(d=>{ batch.delete(d.ref); });
+      await batch.commit();
+    }
+    // Exclui o pedido
+    await db.collection('pedidos').doc(pedidoId).delete();
+    loadFinanceiro();
+    if(temCupons) loadCupons();
+    alert('✅ Cobrança' + (temCupons?' e cupons':'')+' excluídos com sucesso!');
+  } catch(e){ alert('Erro: '+e.message); }
 }
 
 </script>
