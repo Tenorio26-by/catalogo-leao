@@ -538,10 +538,15 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
       <div class="section-title">🏆 Promoção Copa</div>
       <button class="btn-add" onclick="exportarCupons()" style="background:#1a472a;color:#FFD700;">📊 Exportar</button>
     </div>
-    <div style="background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:16px;padding:1rem;margin-bottom:14px;color:#fff;">
-      <div style="font-size:14px;font-weight:700;color:#FFD700;">🏆 DISTRIBUIDORA LEÃO — PROMOÇÃO COPA</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px;">A cada R$ 500 em compras = 1 cupom</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.8);">📅 16/06/2026 a 16/07/2026 • Sorteio: 18/07/2026</div>
+    <div style="background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:16px;padding:1rem 1.25rem;margin-bottom:14px;color:#fff;">
+      <div style="font-size:15px;font-weight:800;color:#FFD700;">🏆 DISTRIBUIDORA LEÃO — PROMOÇÃO COPA</div>
+      <div style="font-size:13px;color:#FFD700;font-weight:700;margin-top:4px;">🎁 PRÊMIO: Camisa Oficial da Seleção Brasileira Original!</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:8px;line-height:1.7;">
+        ✅ A cada R$ 500,00 em compras = 1 cupom de sorteio<br>
+        📅 Período: 16/06/2026 a 16/07/2026<br>
+        🎲 Data do sorteio: 18/07/2026<br>
+        📋 O número do cupom aparece na notinha do cliente
+      </div>
     </div>
     <div id="sorteio-resumo" style="margin-bottom:12px;"></div>
     <button class="btn-sortear" onclick="realizarSorteio()">🎲 REALIZAR SORTEIO</button>
@@ -1548,7 +1553,7 @@ function confirmarEnvio(){
   setTimeout(()=>a.remove(), 500);
 
   fecharPedidoSheet();
-  mostrarSucesso(fmt(total), totalItens, cupons||0);
+  mostrarSucesso(fmt(total), totalItens, total);
   salvarUltimoPedido(itensSalvar, fmt(total));
   salvarPedidoComItens(currentUser.id, currentClientData.nome, totalItens, fmt(total), itensList||[]);
   _pedidoAtual = null;
@@ -1556,9 +1561,50 @@ function confirmarEnvio(){
 
 function enviarPedido(){ abrirPedidoSheet(); }
 
-function mostrarSucesso(totalFmt, qtdItens){
+async function mostrarSucesso(totalFmt, qtdItens, totalNumerico){
   const old = document.getElementById('sucesso-overlay');
   if(old) old.remove();
+
+  // Calcula cupons ganhos neste pedido e falta pro próximo
+  let cuponsHtml = '';
+  let faltaHtml = '';
+  try {
+    const agora = new Date();
+    const inicioPromo = new Date('2026-06-16');
+    const fimPromo = new Date('2026-07-16T23:59:59');
+    if(agora >= inicioPromo && agora <= fimPromo){
+      // Busca total acumulado
+      const snap = await db.collection('pedidos').where('clienteId','==',currentUser.id).get();
+      let totalAcum = 0;
+      snap.forEach(d=>{
+        const o = d.data();
+        const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : new Date();
+        if(dt >= inicioPromo && dt <= fimPromo){
+          const val = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'));
+          if(!isNaN(val)) totalAcum += val;
+        }
+      });
+      const cuponsTotal = Math.floor(totalAcum / 500);
+      const cuponsNestePedido = Math.floor(totalNumerico / 500) > 0 ? Math.floor(totalNumerico/500) : 0;
+      const progresso = totalAcum % 500;
+      const falta = 500 - progresso;
+      const pct = Math.min(100,(progresso/500)*100);
+
+      if(cuponsNestePedido > 0){
+        cuponsHtml = `<div style="background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:16px;padding:14px;margin:12px 0;text-align:center;">
+          <div style="font-size:12px;color:#FFD700;font-weight:700;margin-bottom:6px;">🏆 VOCÊ GANHOU CUPOM(S) DO SORTEIO!</div>
+          <div style="font-size:32px;font-weight:800;color:#FFD700;letter-spacing:3px;">🎟 +${cuponsNestePedido}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:4px;">Total: ${cuponsTotal} cupom${cuponsTotal!==1?'s':''} • Sorteio: 18/07/2026</div>
+        </div>`;
+      }
+      faltaHtml = `<div style="background:#F0FDF4;border-radius:12px;padding:10px 14px;margin:8px 0;font-size:12px;color:#15803D;">
+        <div style="font-weight:700;margin-bottom:4px;">🏆 Promoção Copa Leão</div>
+        <div style="background:#e0e0e0;border-radius:4px;height:6px;margin:6px 0;overflow:hidden;"><div style="background:#FFD700;height:100%;width:${pct}%;border-radius:4px;"></div></div>
+        ${falta < 500 ? `<div>Falta <strong>R$ ${falta.toFixed(2).replace('.',',')}</strong> para o próximo cupom!</div>` : `<div>A cada R$ 500 em compras você ganha 1 cupom 🎟</div>`}
+      </div>`;
+    }
+  } catch(e){}
+
   const el = document.createElement('div');
   el.id = 'sucesso-overlay';
   el.innerHTML = `
@@ -1566,12 +1612,13 @@ function mostrarSucesso(totalFmt, qtdItens){
       <div class="sucesso-anim">✅</div>
       <div class="sucesso-titulo">Pedido enviado!</div>
       <div class="sucesso-sub">Seu pedido de <strong>${qtdItens} item${qtdItens>1?'s':''}</strong> totalizando <strong>${totalFmt}</strong> foi enviado para o WhatsApp da Distribuidora Leão.</div>
-      <div class="sucesso-dica">📱 Se o WhatsApp não abrir automaticamente, verifique se o pop-up foi bloqueado pelo navegador.</div>
+      ${cuponsHtml}
+      ${faltaHtml}
+      <div class="sucesso-dica">📱 Se o WhatsApp não abrir, verifique se o pop-up foi bloqueado.</div>
       <button class="sucesso-btn" onclick="fecharSucesso()">🛒 Fazer novo pedido</button>
     </div>`;
   document.body.appendChild(el);
   setTimeout(()=>{ el.style.opacity='1'; el.querySelector('.sucesso-box').style.transform='translateY(0)'; },10);
-  // Limpa carrinho
   Object.keys(qtds).forEach(k=>delete qtds[k]);
   renderCatalog();
 }
@@ -2719,16 +2766,23 @@ async function loadPromoSorteio(){
     const pct = Math.min(100, ((totalCompras % SORTEIO_CONFIG.valorCupom) / SORTEIO_CONFIG.valorCupom)*100);
 
     el.innerHTML = `<div class="sorteio-banner">
-      <div class="sorteio-titulo">🏆 PROMOÇÃO DISTRIBUIDORA LEÃO</div>
-      <div class="sorteio-sub">A cada R$ 500 em compras você ganha 1 cupom para o sorteio!<br>📅 Sorteio: 18/07/2026</div>
-      <div class="sorteio-cupons">
+      <div class="sorteio-titulo">🏆 PROMOÇÃO DISTRIBUIDORA LEÃO — COPA</div>
+      <div style="font-size:13px;color:#FFD700;font-weight:700;margin-top:4px;">🎁 PRÊMIO: Camisa Oficial da Seleção Brasileira!</div>
+      <div class="sorteio-sub" style="margin-top:6px;">
+        <strong style="color:#FFD700;">REGULAMENTO:</strong><br>
+        ✅ A cada R$ 500,00 em compras, você ganha 1 cupom<br>
+        📅 Período: 16/06/2026 a 16/07/2026<br>
+        🎲 Sorteio: 18/07/2026<br>
+        🏆 O cupom sorteado garante a camisa oficial do Brasil original!
+      </div>
+      <div class="sorteio-cupons" style="margin-top:12px;">
         <div>
           <div style="font-size:10px;color:rgba(255,255,255,0.6);">SEUS CUPONS</div>
           <div class="sorteio-cupom-badge">🎟 ${cuponsGanhos} cupom${cuponsGanhos!==1?'s':''}</div>
         </div>
         <div style="flex:1;">
           <div class="sorteio-progress"><div class="sorteio-progress-fill" style="width:${pct}%"></div></div>
-          <div class="sorteio-falta">${cuponsGanhos>0?'Próximo cupom: ':'Primeiro cupom: '}falta R$ ${faltaProximo.toFixed(2).replace('.',',')}</div>
+          <div class="sorteio-falta">${cuponsGanhos>0?'Próximo cupom: falta ':'Ganhe seu 1º cupom: falta '}R$ ${faltaProximo.toFixed(2).replace('.',',')}</div>
         </div>
       </div>
     </div>`;
