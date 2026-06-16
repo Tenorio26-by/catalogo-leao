@@ -2088,139 +2088,218 @@ function imprimirNotinha(pedidoId, pedidoData){
   const vencimento = new Date(hoje.getTime() + prazo*24*60*60*1000);
   const fmtData = d => d.toLocaleDateString('pt-BR');
 
-  // Monta itens
   const itens = pedidoData.itensList || [];
-  const ocultarPreco = pedidoData.clienteData && pedidoData.clienteData.ocultarPreco;
+  const ocultarPreco = cliente.ocultarPreco || cliente.tag==='SemPreco';
+
+  // Monta linhas dos itens
   let itensHtml = '';
   if(itens.length){
     itensHtml = itens.map(i=>`
       <tr>
-        <td style="padding:5px 4px;border-bottom:1px solid #eee;">${i.nome}</td>
-        <td style="padding:5px 4px;border-bottom:1px solid #eee;text-align:center;">${i.un||''}</td>
-        <td style="padding:5px 4px;border-bottom:1px solid #eee;text-align:center;">${i.qty}</td>
-        ${ocultarPreco ? '' : `<td style="padding:5px 4px;border-bottom:1px solid #eee;text-align:right;">R$ ${(i.unit||0).toFixed(2).replace('.',',')}</td>`}
-        ${ocultarPreco ? '' : `<td style="padding:5px 4px;border-bottom:1px solid #eee;text-align:right;font-weight:600;">R$ ${((i.qty||0)*(i.unit||0)).toFixed(2).replace('.',',')}</td>`}
+        <td class="col-prod">${i.nome}</td>
+        <td class="col-un">${i.un||''}</td>
+        <td class="col-qty">${i.qty}</td>
+        ${ocultarPreco?'':'<td class="col-unit">R$ '+(i.unit||0).toFixed(2).replace('.',',')+'</td>'}
+        ${ocultarPreco?'':'<td class="col-tot">R$ '+((i.qty||0)*(i.unit||0)).toFixed(2).replace('.',',')+'</td>'}
       </tr>`).join('');
   } else {
-    itensHtml = `<tr><td colspan="5" style="padding:12px;text-align:center;color:#999;font-style:italic;">Detalhes dos itens não disponíveis para este pedido.</td></tr>`;
+    itensHtml = `<tr><td colspan="5" style="text-align:center;color:#999;padding:8px;font-style:italic;">Detalhes não disponíveis</td></tr>`;
   }
 
+  // Cupons
+  const cupons = pedidoData.cupons || [];
+  const cuponsHtml = cupons.length ? `
+    <div class="cupom-box">
+      <div class="cupom-titulo">🏆 PROMOÇÃO COPA LEÃO</div>
+      ${cupons.map(n=>`<div class="cupom-num">🎟 ${n}</div>`).join('')}
+      <div class="cupom-info">Sorteio: 18/07/2026 • Prêmio: Camisa Oficial do Brasil</div>
+    </div>` : '';
+
+  // Formatos disponíveis
+  const FORMATOS = {
+    a4: {
+      label:'A4',
+      width:'148mm',
+      fontSize:'12px',
+      titleSize:'20px',
+      numSize:'24px',
+      padding:'16px 20px',
+      pageSize:'@page{size:A4;margin:10mm;}',
+      twoCol:true
+    },
+    t80: {
+      label:'80mm',
+      width:'76mm',
+      fontSize:'11px',
+      titleSize:'14px',
+      numSize:'16px',
+      padding:'8px',
+      pageSize:'@page{size:80mm auto;margin:2mm;}',
+      twoCol:false
+    },
+    t58: {
+      label:'58mm',
+      width:'54mm',
+      fontSize:'9px',
+      titleSize:'11px',
+      numSize:'13px',
+      padding:'4px',
+      pageSize:'@page{size:58mm auto;margin:1mm;}',
+      twoCol:false
+    }
+  };
+
+  // Monta seletor de formato
+  const seletorHtml = `
+    <div id="fmt-selector" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;">
+      <div style="background:#fff;border-radius:20px;padding:1.5rem;width:320px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div style="font-size:20px;margin-bottom:4px;">🖨️</div>
+        <div style="font-size:16px;font-weight:700;color:#2D1A00;margin-bottom:16px;">Escolha o tamanho do papel</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button onclick="gerarImpressao('a4',${JSON.stringify(pedidoId)},${JSON.stringify(pedidoData).replace(/</g,'\\u003c')})" 
+            style="padding:14px;border-radius:12px;border:2px solid #412402;background:#fff;font-size:14px;font-weight:700;cursor:pointer;color:#412402;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:24px;">📄</span>
+            <div style="text-align:left;">
+              <div>A4 — Meia folha</div>
+              <div style="font-size:11px;color:#888;font-weight:400;">Impressora comum</div>
+            </div>
+          </button>
+          <button onclick="gerarImpressao('t80',${JSON.stringify(pedidoId)},${JSON.stringify(pedidoData).replace(/</g,'\\u003c')})"
+            style="padding:14px;border-radius:12px;border:2px solid #412402;background:#fff;font-size:14px;font-weight:700;cursor:pointer;color:#412402;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:24px;">🧾</span>
+            <div style="text-align:left;">
+              <div>80mm — Térmica grande</div>
+              <div style="font-size:11px;color:#888;font-weight:400;">Impressora tipo mercado</div>
+            </div>
+          </button>
+          <button onclick="gerarImpressao('t58',${JSON.stringify(pedidoId)},${JSON.stringify(pedidoData).replace(/</g,'\\u003c')})"
+            style="padding:14px;border-radius:12px;border:2px solid #412402;background:#fff;font-size:14px;font-weight:700;cursor:pointer;color:#412402;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:24px;">🧾</span>
+            <div style="text-align:left;">
+              <div>58mm — Térmica pequena</div>
+              <div style="font-size:11px;color:#888;font-weight:400;">Impressora de bolso</div>
+            </div>
+          </button>
+        </div>
+        <button onclick="document.getElementById('fmt-selector').remove()" 
+          style="margin-top:14px;padding:10px;border-radius:10px;border:none;background:#f0f0f0;color:#666;font-size:13px;cursor:pointer;width:100%;">Cancelar</button>
+      </div>
+    </div>`;
+
+  // Mostra seletor na tela
+  const div = document.createElement('div');
+  div.innerHTML = seletorHtml;
+  document.body.appendChild(div.firstChild);
+
+  // Guarda dados para uso pelo gerarImpressao
+  window._notinhaData = {pedidoId, pedidoData, itensHtml, cuponsHtml, ocultarPreco, fmtData, hoje, vencimento, diaEntrega, prazo, cliente};
+}
+
+function gerarImpressao(formato, pedidoId, pedidoData){
+  document.getElementById('fmt-selector').remove();
+  const {itensHtml, cuponsHtml, ocultarPreco, fmtData, hoje, vencimento, diaEntrega, prazo, cliente} = window._notinhaData;
+
+  const FORMATOS = {
+    a4: {width:'148mm',fontSize:'12px',titleSize:'18px',numSize:'22px',padding:'16px 20px',pageSize:'@page{size:A4;margin:8mm;}',twoCol:true},
+    t80:{width:'76mm',fontSize:'11px',titleSize:'13px',numSize:'15px',padding:'6px',pageSize:'@page{size:80mm auto;margin:2mm;}',twoCol:false},
+    t58:{width:'54mm',fontSize:'9px',titleSize:'11px',numSize:'12px',padding:'4px',pageSize:'@page{size:58mm auto;margin:1mm;}',twoCol:false}
+  };
+  const f = FORMATOS[formato];
+  const isThermal = formato!=='a4';
+
+  const infoCliente = isThermal ? `
+    <div class="sec">
+      <b>${cliente.nome||''}</b>${cliente.responsavel?' | '+cliente.responsavel:''}
+      ${cliente.cpfcnpj?'<br>'+cliente.cpfcnpj:''}
+      ${cliente.end?'<br>'+cliente.end+(cliente.bairro?', '+cliente.bairro:'')+(cliente.cidade?' - '+cliente.cidade:''):''}
+    </div>` : `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div class="info-item"><div class="lbl">Estabelecimento</div><div class="val">${cliente.nome||'-'}</div></div>
+      <div class="info-item"><div class="lbl">Responsável</div><div class="val">${cliente.responsavel||'-'}</div></div>
+      <div class="info-item"><div class="lbl">CPF/CNPJ</div><div class="val">${cliente.cpfcnpj||'-'}</div></div>
+      <div class="info-item"><div class="lbl">Telefone</div><div class="val">${cliente.tel||'-'}</div></div>
+      <div class="info-item" style="grid-column:1/-1"><div class="lbl">Endereço</div><div class="val">${[cliente.end,cliente.bairro,cliente.cidade].filter(Boolean).join(', ')||'-'}</div></div>
+    </div>`;
+
+  const infoData = isThermal ? `
+    <div class="sec" style="text-align:center;">
+      Pedido: ${fmtData(hoje)} | Prazo: ${prazo}d | Venc: ${fmtData(vencimento)}<br>
+      Entrega: ${diaEntrega}
+    </div>` : `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;">
+      <div class="info-item"><div class="lbl">Data</div><div class="val">${fmtData(hoje)}</div></div>
+      <div class="info-item"><div class="lbl">Prazo</div><div class="val">${prazo} dias</div></div>
+      <div class="info-item"><div class="lbl">Vencimento</div><div class="val">${fmtData(vencimento)}</div></div>
+      <div class="info-item"><div class="lbl">Entrega</div><div class="val">${diaEntrega}</div></div>
+    </div>`;
+
+  const theadCols = ocultarPreco
+    ? `<th class="col-prod">Produto</th><th class="col-un">Un</th><th class="col-qty">Qtd</th>`
+    : `<th class="col-prod">Produto</th><th class="col-un">Un</th><th class="col-qty">Qtd</th><th class="col-unit">Unit</th><th class="col-tot">Total</th>`;
+
+  const assinatura = isThermal ? `
+    <div class="sec" style="margin-top:10px;">
+      Entrega: ____/____/______<br><br>
+      Assinatura:_______________
+    </div>` : `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px;">
+      <div><div class="lbl">Data da entrega</div><div style="border-bottom:1px solid #000;height:32px;"></div></div>
+      <div><div class="lbl">Assinatura do cliente</div><div style="border-bottom:1px solid #000;height:32px;"></div></div>
+    </div>`;
+
   const html = `<!DOCTYPE html><html lang="pt-BR"><head>
-<meta charset="UTF-8"><title>Nota - ${cliente.nome||''}</title>
+<meta charset="UTF-8"><title>Nota — ${cliente.nome||''}</title>
 <style>
+  ${f.pageSize}
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:Arial,sans-serif;font-size:12px;color:#000;background:#fff;}
-  .nota{max-width:600px;margin:0 auto;padding:20px;}
-  .topo{text-align:center;border-bottom:2px solid #000;padding-bottom:12px;margin-bottom:12px;}
-  .empresa-nome{font-size:20px;font-weight:800;letter-spacing:1px;}
-  .empresa-sub{font-size:11px;color:#555;margin-top:2px;}
-  .cliente-box{background:#f5f5f5;border-radius:6px;padding:10px;margin-bottom:12px;}
-  .cliente-box h3{font-size:11px;font-weight:700;text-transform:uppercase;color:#666;margin-bottom:6px;}
-  .row{display:flex;gap:20px;}
-  .col{flex:1;}
-  .label{font-size:10px;color:#888;margin-bottom:1px;}
-  .valor{font-size:12px;font-weight:600;}
-  table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+  body{font-family:Arial,sans-serif;font-size:${f.fontSize};background:#fff;color:#000;}
+  .nota{width:${f.width};margin:0 auto;padding:${f.padding};}
+  .topo{text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:8px;}
+  .empresa{font-size:${f.titleSize};font-weight:800;}
+  .empresa-sub{font-size:calc(${f.fontSize} - 1px);color:#555;margin-top:2px;}
+  .num-pedido{font-size:calc(${f.fontSize} - 1px);margin-top:3px;}
+  .sec{border-bottom:1px dashed #ccc;padding:6px 0;margin-bottom:6px;line-height:1.5;}
+  .info-item{background:#f5f5f5;border-radius:4px;padding:6px 8px;}
+  .lbl{font-size:calc(${f.fontSize} - 2px);color:#888;margin-bottom:1px;}
+  .val{font-size:${f.fontSize};font-weight:600;}
+  table{width:100%;border-collapse:collapse;margin:6px 0;}
   thead{background:#2D1100;color:#FAC775;}
-  thead th{padding:7px 4px;text-align:left;font-size:11px;}
-  .total-row{background:#f5f5f5;border-top:2px solid #2D1100;}
-  .total-val{font-size:16px;font-weight:800;color:#2D1100;}
-  .rodape{border-top:1px solid #ccc;margin-top:20px;padding-top:16px;}
-  .assinatura-linha{border-bottom:1px solid #000;height:40px;margin-top:8px;}
-  .info-box{display:flex;gap:20px;margin-bottom:16px;}
-  .info-item{flex:1;border:1px solid #ddd;border-radius:6px;padding:8px;text-align:center;}
-  .info-item .lbl{font-size:10px;color:#888;}
-  .info-item .val{font-size:13px;font-weight:700;margin-top:2px;}
-  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.nota{padding:10px;}}
+  th{padding:4px 3px;font-size:calc(${f.fontSize} - 1px);text-align:left;}
+  td{padding:3px;border-bottom:1px solid #eee;font-size:${f.fontSize};}
+  .col-prod{width:45%;}
+  .col-un,.col-qty{width:10%;text-align:center;}
+  .col-unit,.col-tot{width:17.5%;text-align:right;}
+  .total-row{font-weight:800;border-top:2px solid #2D1100;}
+  .total-val{font-size:${f.numSize};font-weight:800;color:#2D1100;text-align:right;}
+  .cupom-box{background:#1a472a;color:#fff;border-radius:6px;padding:8px;text-align:center;margin:8px 0;}
+  .cupom-titulo{font-size:calc(${f.fontSize} - 1px);color:#FFD700;font-weight:700;}
+  .cupom-num{font-size:${f.numSize};font-weight:800;color:#FFD700;letter-spacing:2px;}
+  .cupom-info{font-size:calc(${f.fontSize} - 2px);color:rgba(255,255,255,0.7);margin-top:2px;}
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
 </style>
-</head><body><div class="nota">
+</head><body>
+<div class="nota">
   <div class="topo">
-    <div class="empresa-nome">🦁 DISTRIBUIDORA LEÃO</div>
+    <div class="empresa">🦁 DISTRIBUIDORA LEÃO</div>
     <div class="empresa-sub">WhatsApp: (31) 99642-2924</div>
-    <div style="font-size:11px;margin-top:4px;">COMPROVANTE DE PEDIDO Nº ${pedidoId.slice(-6).toUpperCase()}</div>
+    <div class="num-pedido">Pedido Nº ${pedidoId.slice(-6).toUpperCase()}</div>
   </div>
-
-  <div class="cliente-box">
-    <h3>Dados do Cliente</h3>
-    <div class="row">
-      <div class="col">
-        <div class="label">Estabelecimento</div>
-        <div class="valor">${cliente.nome||'-'}</div>
-      </div>
-      <div class="col">
-        <div class="label">Responsável</div>
-        <div class="valor">${cliente.responsavel||'-'}</div>
-      </div>
-    </div>
-    <div class="row" style="margin-top:8px;">
-      <div class="col">
-        <div class="label">CPF/CNPJ</div>
-        <div class="valor">${cliente.cpfcnpj||'-'}</div>
-      </div>
-      <div class="col">
-        <div class="label">Telefone</div>
-        <div class="valor">${cliente.tel||'-'}</div>
-      </div>
-    </div>
-    <div style="margin-top:8px;">
-      <div class="label">Endereço</div>
-      <div class="valor">${[cliente.end,cliente.bairro,cliente.cidade].filter(Boolean).join(', ')||'-'}</div>
-    </div>
-  </div>
-
-  <div class="info-box">
-    <div class="info-item">
-      <div class="lbl">Data do pedido</div>
-      <div class="val">${fmtData(hoje)}</div>
-    </div>
-    <div class="info-item">
-      <div class="lbl">Prazo</div>
-      <div class="val">${prazo} dias</div>
-    </div>
-    <div class="info-item">
-      <div class="lbl">Vencimento</div>
-      <div class="val">${fmtData(vencimento)}</div>
-    </div>
-    <div class="info-item">
-      <div class="lbl">Dia de entrega</div>
-      <div class="val">${diaEntrega}</div>
-    </div>
-  </div>
-
+  ${infoCliente}
+  ${infoData}
   <table>
-    <thead><tr>
-      <th>Produto</th>
-      <th style="text-align:center;">Un.</th>
-      <th style="text-align:center;">Qtd</th>
-      ${ocultarPreco ? '' : '<th style="text-align:right;">Unit.</th><th style="text-align:right;">Total</th>'}
-    </tr></thead>
+    <thead><tr>${theadCols}</tr></thead>
     <tbody>${itensHtml}</tbody>
     <tfoot>
       <tr class="total-row">
-        <td colspan="${ocultarPreco?3:4}" style="padding:8px 4px;font-weight:700;text-align:right;">TOTAL</td>
-        ${ocultarPreco ? '' : `<td style="padding:8px 4px;text-align:right;" class="total-val">${pedidoData.total}</td>`}
+        <td colspan="${ocultarPreco?3:4}" style="text-align:right;padding:5px 3px;">TOTAL</td>
+        ${ocultarPreco?'':'<td class="total-val">'+pedidoData.total+'</td>'}
       </tr>
     </tfoot>
   </table>
-
-  ${pedidoData.cupons && pedidoData.cupons.length ? `
-  <div style="background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:12px;padding:14px;margin-bottom:16px;text-align:center;color:#fff;">
-    <div style="font-size:12px;color:#FFD700;font-weight:700;margin-bottom:8px;">🏆 PROMOÇÃO COPA — CUPOM(S) DE SORTEIO</div>
-    ${pedidoData.cupons.map(num=>`<div style="font-size:28px;font-weight:800;color:#FFD700;letter-spacing:4px;font-family:Georgia,serif;">🎟 ${num}</div>`).join('')}
-    <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:6px;">Sorteio: 18/07/2026</div>
-  </div>` : ''}
-  <div class="rodape">
-    <div class="row">
-      <div class="col">
-        <div class="label">Data da entrega</div>
-        <div class="assinatura-linha"></div>
-      </div>
-      <div class="col">
-        <div class="label">Assinatura do cliente</div>
-        <div class="assinatura-linha"></div>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:12px;font-size:10px;color:#999;">
+  ${window._notinhaData.cuponsHtml}
+  <div style="border-top:1px dashed #ccc;padding-top:10px;margin-top:8px;">
+    ${assinatura}
+    <div style="text-align:center;margin-top:10px;font-size:calc(${f.fontSize} - 2px);color:#aaa;">
       Distribuidora Leão — Obrigado pela preferência!
     </div>
   </div>
@@ -2230,128 +2309,12 @@ function imprimirNotinha(pedidoId, pedidoData){
 
   const blob = new Blob([html],{type:'text/html;charset=utf-8'});
   const url = URL.createObjectURL(blob);
-  window.open(url,'_blank');
-  setTimeout(()=>URL.revokeObjectURL(url),5000);
+  const a = document.createElement('a');
+  a.href=url; a.target='_blank'; a.rel='noopener';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); },3000);
 }
 
-// ===== CONTROLE FINANCEIRO =====
-let _filtroFin = 'todos';
-let _pagandoId = null;
-
-function filtrarFin(tipo){
-  _filtroFin = tipo;
-  document.querySelectorAll('[id^="fin-btn-"]').forEach(b=>b.classList.remove('active'));
-  const el = document.getElementById('fin-btn-'+tipo);
-  if(el) el.classList.add('active');
-  loadFinanceiro();
-}
-
-async function loadFinanceiro(){
-  const finList = document.getElementById('fin-list');
-  const finResumo = document.getElementById('fin-resumo');
-  if(!finList) return;
-  finList.innerHTML='<div class="loading">Carregando...</div>';
-
-  try {
-    // Busca pedidos e clientes
-    const [pedSnap, cliSnap] = await Promise.all([
-      db.collection('pedidos').get(),
-      db.collection('clientes').get()
-    ]);
-
-    const clientes = {};
-    cliSnap.forEach(d=>{ clientes[d.id] = {id:d.id,...d.data()}; });
-
-    const hoje = new Date(); hoje.setHours(0,0,0,0);
-    const amanha = new Date(hoje); amanha.setDate(amanha.getDate()+1);
-
-    let pedidos = [];
-    pedSnap.forEach(d=>{
-      const o = {id:d.id,...d.data()};
-      if(!o.clienteId && !o.clienteNome) return; // skip invalid
-      const cli = clientes[o.clienteId]||{};
-      const prazo = cli.prazo||0;
-      const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : new Date();
-      const venc = new Date(dt.getTime()+prazo*24*60*60*1000);
-      venc.setHours(0,0,0,0);
-      const totalNum = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'));
-      const pago = o.pago||false;
-      const saldo = pago ? 0 : totalNum - (o.valorPago||0);
-      o._cli = cli; o._venc = venc; o._totalNum = totalNum; o._saldo = saldo;
-      pedidos.push(o);
-    });
-    // Sort by timestamp desc
-    pedidos.sort((a,b)=>{
-      const ta = a.timestamp?a.timestamp.seconds:0;
-      const tb = b.timestamp?b.timestamp.seconds:0;
-      return tb-ta;
-    });
-
-    // Filtro
-    const agora = new Date(); agora.setHours(0,0,0,0);
-    let filtrados = pedidos.filter(o=>{
-      if(_filtroFin==='pago') return o.pago;
-      if(_filtroFin==='pendente') return !o.pago;
-      if(_filtroFin==='atrasado') return !o.pago && o._venc < agora;
-      if(_filtroFin==='vencendo') return !o.pago && o._venc.getTime()===agora.getTime();
-      return true;
-    });
-
-    // Resumo
-    const totalDevedor = filtrados.filter(o=>!o.pago).reduce((s,o)=>s+o._saldo,0);
-    const totalRecebido = filtrados.filter(o=>o.pago).reduce((s,o)=>s+o._totalNum,0);
-    const atrasados = filtrados.filter(o=>!o.pago && o._venc < agora).length;
-    if(finResumo) finResumo.innerHTML=`
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">
-        <div style="background:#FEF2F2;border-radius:12px;padding:10px;text-align:center;">
-          <div style="font-size:11px;color:#DC2626;font-weight:700;">A RECEBER</div>
-          <div style="font-size:16px;font-weight:800;color:#DC2626;">R$ ${totalDevedor.toFixed(2).replace('.',',')}</div>
-        </div>
-        <div style="background:#F0FDF4;border-radius:12px;padding:10px;text-align:center;">
-          <div style="font-size:11px;color:#15803D;font-weight:700;">RECEBIDO</div>
-          <div style="font-size:16px;font-weight:800;color:#15803D;">R$ ${totalRecebido.toFixed(2).replace('.',',')}</div>
-        </div>
-        <div style="background:#FEF9C3;border-radius:12px;padding:10px;text-align:center;">
-          <div style="font-size:11px;color:#854D0E;font-weight:700;">ATRASADOS</div>
-          <div style="font-size:16px;font-weight:800;color:#854D0E;">${atrasados}</div>
-        </div>
-      </div>`;
-
-    if(!filtrados.length){ finList.innerHTML='<div class="empty-state">Nenhum pedido encontrado.</div>'; return; }
-
-    const hoje2 = new Date(); hoje2.setHours(0,0,0,0);
-    let html='';
-    filtrados.forEach(o=>{
-      const atrasado = !o.pago && o._venc < hoje2;
-      const vencendo = !o.pago && o._venc.getTime()===hoje2.getTime();
-      const statusCor = o.pago?'#15803D':atrasado?'#DC2626':vencendo?'#D97706':'#1D4ED8';
-      const statusTxt = o.pago?'✅ Pago':atrasado?'🔴 Atrasado':vencendo?'⚠️ Vence hoje':'⏳ Pendente';
-      const cli = o._cli;
-      html+=`<div class="order-card" style="margin-bottom:10px;border-left:4px solid ${statusCor};">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-          <div style="flex:1;">
-            <div class="order-client">${cli.nome||o.clienteNome}</div>
-            <div class="order-meta">${cli.bairro||''} ${cli.cidade?'• '+cli.cidade:''}</div>
-            <div class="order-meta">Venc: ${o._venc.toLocaleDateString('pt-BR')} • ${o.itens||0} itens</div>
-            <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
-              <span style="font-size:15px;font-weight:700;color:#412402;">${o.total}</span>
-              ${o._saldo>0&&!o.pago?`<span style="font-size:12px;color:#DC2626;">Saldo: R$ ${o._saldo.toFixed(2).replace('.',',')}</span>`:''}
-              <span style="font-size:11px;font-weight:700;color:${statusCor};">${statusTxt}</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
-            <button class="btn-edit" onclick="abrirEditarPedido('${o.id}',this)" data-nome="${cli.nome||o.clienteNome||''}">✏️</button>
-            ${!o.pago?`<button class="btn-edit" onclick="abrirPagamento('${o.id}','${cli.nome||o.clienteNome}',${o._totalNum},${o._saldo})">💵 Pagar</button>`:''}
-            <button class="btn-edit" onclick="imprimirNotinhaPedido('${o.id}')">🖨️</button>
-            <button class="btn-del" onclick="excluirCobranca('${o.id}')" title="Excluir cobrança e cupons">🗑</button>
-          </div>
-        </div>
-        ${o.historicoPage&&o.historicoPage.length?`<div style="font-size:11px;color:#999;margin-top:6px;">Último pagamento: ${o.historicoPage[o.historicoPage.length-1].data} — R$ ${o.historicoPage[o.historicoPage.length-1].valor}</div>`:''}
-      </div>`;
-    });
-    finList.innerHTML=html;
-  } catch(e){ finList.innerHTML='<div class="empty-state">Erro ao carregar: '+e.message+'</div>'; }
-}
 
 async function imprimirNotinhaPedido(pedidoId){
   try {
