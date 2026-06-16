@@ -387,6 +387,17 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 </div>
 
 
+<!-- ===== MEUS CUPONS (CLIENTE) ===== -->
+<div id="cupons-screen" class="screen">
+  <div class="hist-header">
+    <button class="hist-back" onclick="showScreen('catalog-screen')">←</button>
+    <div class="hist-title">🎟 Meus Cupons</div>
+  </div>
+  <div style="padding:1rem;" id="meus-cupons-body">
+    <div class="loading">Carregando...</div>
+  </div>
+</div>
+
 <!-- ===== HISTÓRICO DE PEDIDOS ===== -->
 <div id="hist-screen" class="screen">
   <div class="hist-header">
@@ -461,6 +472,7 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
       <div class="bottom-total" id="bot-total"></div>
     </div>
     <button class="hist-nav-btn" onclick="abrirHistorico()">📋<span>Pedidos</span></button>
+    <button class="hist-nav-btn" onclick="abrirMeusCupons()" id="btn-meus-cupons" style="display:none;">🎟<span>Cupons</span></button>
     <button class="wbtn" id="wbtn" disabled onclick="abrirPedidoSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
       Ver pedido
@@ -545,7 +557,8 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
         ✅ A cada R$ 500,00 em compras = 1 cupom de sorteio<br>
         📅 Período: 16/06/2026 a 16/07/2026<br>
         🎲 Data do sorteio: 18/07/2026<br>
-        📋 O número do cupom aparece na notinha do cliente
+        📋 O número do cupom aparece na notinha do cliente<br>
+        ⚠️ Participam do sorteio apenas cupons vinculados a pedidos quitados até a data do sorteio. 🎟️
       </div>
     </div>
     <div id="sorteio-resumo" style="margin-bottom:12px;"></div>
@@ -741,7 +754,7 @@ window.addEventListener('load', async ()=>{
       showScreen('catalog-screen');
       await loadProdutosFirebase();
       renderCatalog();
-      setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();},300);
+      setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();mostrarBotaoCupons();},300);
     }
   } catch(e){ localStorage.removeItem('leao_session'); }
 });
@@ -879,7 +892,7 @@ function doLogin(){
         showScreen('catalog-screen');
         loadProdutosFirebase().then(()=>{
           renderCatalog();
-          setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();},300);
+          setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();mostrarBotaoCupons();},300);
         });
       });
     } else {errEl.style.display='block';}
@@ -2803,7 +2816,8 @@ async function loadPromoSorteio(){
         ✅ A cada R$ 500,00 em compras, você ganha 1 cupom<br>
         📅 Período: 16/06/2026 a 16/07/2026<br>
         🎲 Sorteio: 18/07/2026<br>
-        🏆 O cupom sorteado garante a camisa oficial do Brasil original!
+        🏆 O cupom sorteado garante a camisa oficial do Brasil original!<br>
+        ⚠️ Participam do sorteio apenas cupons vinculados a pedidos quitados até a data do sorteio. 🎟️
       </div>
       <div class="sorteio-cupons" style="margin-top:12px;">
         <div>
@@ -2895,17 +2909,48 @@ async function loadCupons(){
 
     if(!cupons.length){ el.innerHTML='<div class="empty-state">Nenhum cupom gerado ainda.</div>'; return; }
 
+    // Busca pedidos para verificar status de pagamento
+    const pedSnap = await db.collection('pedidos').get().catch(()=>({forEach:()=>{}}));
+    const pedidosPagos = {};
+    pedSnap.forEach(d=>{ pedidosPagos[d.id] = d.data().pago||false; });
+
     let html = '';
+    let validosCount = 0; let invalidosCount = 0;
     cupons.forEach(cup=>{
-      html += `<div class="cupom-card">
-        <div>
+      const pago = cup.pedidoId ? (pedidosPagos[cup.pedidoId]||false) : false;
+      if(pago) validosCount++; else invalidosCount++;
+      const statusCor = pago ? '#15803D' : '#D97706';
+      const statusBg = pago ? '#F0FDF4' : '#FEF9C3';
+      const statusTxt = pago ? '✅ Válido' : '⏳ Aguard. pagamento';
+      html += `<div class="cupom-card" style="border-left:4px solid ${statusCor};">
+        <div style="flex:1;">
           <div class="cupom-num">🎟 ${cup.numero}</div>
           <div class="cupom-info">${cup.clienteNome} • ${cup.dataPedido}</div>
           <div class="cupom-info">Pedido: ${cup.totalPedido}</div>
+          <span style="display:inline-block;margin-top:4px;font-size:11px;font-weight:700;color:${statusCor};background:${statusBg};padding:2px 10px;border-radius:20px;">${statusTxt}</span>
         </div>
-        <button class="btn-del" onclick="deletarCupom('${cup.id}')">🗑</button>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+          ${!pago ? `<button class="btn-del" title="Excluir cupom não pago" onclick="deletarCupom('${cup.id}')">🗑</button>` : ''}
+        </div>
       </div>`;
     });
+
+    // Atualiza resumo com válidos/inválidos
+    if(resumoEl) resumoEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">
+      <div style="background:#F0FDF4;border-radius:12px;padding:10px;text-align:center;">
+        <div style="font-size:10px;color:#15803D;font-weight:700;">✅ VÁLIDOS</div>
+        <div style="font-size:22px;font-weight:800;color:#15803D;">${validosCount}</div>
+      </div>
+      <div style="background:#FEF9C3;border-radius:12px;padding:10px;text-align:center;">
+        <div style="font-size:10px;color:#854D0E;font-weight:700;">⏳ PENDENTES</div>
+        <div style="font-size:22px;font-weight:800;color:#854D0E;">${invalidosCount}</div>
+      </div>
+      <div style="background:#EFF6FF;border-radius:12px;padding:10px;text-align:center;">
+        <div style="font-size:10px;color:#1D4ED8;font-weight:700;">🎟 TOTAL</div>
+        <div style="font-size:22px;font-weight:800;color:#1D4ED8;">${cupons.length}</div>
+      </div>
+    </div>`;
+
     el.innerHTML = html;
   } catch(e){ el.innerHTML='<div class="empty-state">Erro: '+e.message+'</div>'; }
 }
@@ -2964,6 +3009,91 @@ async function exportarCupons(){
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href=url; a.download='cupons_sorteio.csv'; a.click();
   URL.revokeObjectURL(url);
+}
+
+// ===== MEUS CUPONS (CLIENTE) =====
+function mostrarBotaoCupons(){
+  const agora = new Date();
+  const fimPromo = new Date('2026-07-18'); // mostra até o dia do sorteio
+  const inicioPromo = new Date('2026-06-16');
+  const btn = document.getElementById('btn-meus-cupons');
+  if(btn && agora >= inicioPromo && agora <= fimPromo) btn.style.display='flex';
+}
+
+async function abrirMeusCupons(){
+  showScreen('cupons-screen');
+  const body = document.getElementById('meus-cupons-body');
+  body.innerHTML = '<div class="loading">Carregando seus cupons...</div>';
+
+  try {
+    const [cuponsSnap, pedSnap] = await Promise.all([
+      db.collection('cupons').where('clienteId','==',currentUser.id).get(),
+      db.collection('pedidos').where('clienteId','==',currentUser.id).get()
+    ]);
+
+    const pedidosPagos = {};
+    pedSnap.forEach(d=>{ pedidosPagos[d.id] = d.data().pago||false; });
+
+    const cupons = [];
+    cuponsSnap.forEach(d=>{ cupons.push({id:d.id,...d.data()}); });
+
+    if(!cupons.length){
+      body.innerHTML = `<div style="text-align:center;padding:3rem 1rem;">
+        <div style="font-size:48px;margin-bottom:12px;">🎟</div>
+        <div style="font-size:16px;font-weight:700;color:#412402;margin-bottom:8px;">Você ainda não tem cupons</div>
+        <div style="font-size:13px;color:#999;">A cada R$ 500 em compras você ganha 1 cupom para o sorteio!</div>
+        <div style="margin-top:16px;font-size:12px;color:#666;background:#FEF9C3;border-radius:12px;padding:12px;">
+          🎁 Prêmio: Camisa Oficial da Seleção Brasileira<br>
+          📅 Sorteio: 18/07/2026
+        </div>
+      </div>`;
+      return;
+    }
+
+    let validosCount = 0;
+    let html = `<div style="background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:16px;padding:1rem;margin-bottom:14px;color:#fff;text-align:center;">
+      <div style="font-size:14px;font-weight:800;color:#FFD700;">🏆 SEUS CUPONS DO SORTEIO</div>
+      <div style="font-size:32px;font-weight:800;color:#FFD700;margin:8px 0;">🎟 ${cupons.length}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.7);">Sorteio: 18/07/2026 • Prêmio: Camisa Oficial do Brasil</div>
+    </div>`;
+
+    html += `<div style="background:#FEF9C3;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#854D0E;line-height:1.6;">
+      ⚠️ <strong>Regulamento:</strong> Participam do sorteio apenas cupons vinculados a pedidos quitados até a data do sorteio. 🎟️🏆
+    </div>`;
+
+    cupons.sort((a,b)=>a.numero.localeCompare(b.numero));
+    cupons.forEach(cup=>{
+      const pago = cup.pedidoId ? (pedidosPagos[cup.pedidoId]||false) : false;
+      if(pago) validosCount++;
+      const statusCor = pago ? '#15803D' : '#D97706';
+      const statusBg = pago ? '#F0FDF4' : '#FEF9C3';
+      const statusTxt = pago ? '✅ Válido para o sorteio' : '⏳ Aguardando pagamento';
+      const statusSub = pago ? 'Este cupom participará do sorteio!' : 'Quite o pedido para validar este cupom';
+
+      html += `<div style="background:#fff;border-radius:16px;padding:1rem;margin-bottom:10px;box-shadow:0 2px 12px rgba(0,0,0,0.06);border-left:4px solid ${statusCor};">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:28px;font-weight:800;color:#1a472a;letter-spacing:3px;font-family:Georgia,serif;">🎟 ${cup.numero}</div>
+            <div style="font-size:12px;color:#888;margin-top:2px;">${cup.dataPedido} • Pedido: ${cup.totalPedido}</div>
+          </div>
+          <div style="text-align:right;">
+            <span style="display:inline-block;font-size:11px;font-weight:700;color:${statusCor};background:${statusBg};padding:4px 10px;border-radius:20px;">${statusTxt}</span>
+            <div style="font-size:11px;color:#999;margin-top:4px;">${statusSub}</div>
+          </div>
+        </div>
+      </div>`;
+    });
+
+    if(validosCount > 0){
+      html = `<div style="background:#F0FDF4;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#15803D;font-weight:600;">
+        ✅ Você tem <strong>${validosCount} cupom${validosCount!==1?'s':''} válido${validosCount!==1?'s':''}</strong> para o sorteio!
+      </div>` + html;
+    }
+
+    body.innerHTML = html;
+  } catch(e){
+    body.innerHTML = '<div style="text-align:center;padding:2rem;color:#999;">Erro ao carregar cupons.</div>';
+  }
 }
 
 </script>
