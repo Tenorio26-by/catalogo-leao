@@ -184,6 +184,25 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 .notif-badge{position:fixed;top:20px;right:20px;background:#25D366;color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(37,211,102,0.4);z-index:300;display:none;animation:slideIn .3s ease;}
 @keyframes slideIn{from{transform:translateY(-20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+/* ===== PROMOÇÃO SORTEIO ===== */
+.sorteio-banner{background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:16px;padding:1rem 1.25rem;margin-bottom:14px;color:#fff;position:relative;overflow:hidden;}
+.sorteio-banner::before{content:'🏆';position:absolute;right:-10px;top:-10px;font-size:80px;opacity:0.15;}
+.sorteio-titulo{font-size:15px;font-weight:800;color:#FFD700;letter-spacing:0.5px;}
+.sorteio-sub{font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px;line-height:1.4;}
+.sorteio-cupons{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.sorteio-cupom-badge{background:#FFD700;color:#1a472a;font-size:13px;font-weight:800;padding:4px 12px;border-radius:20px;}
+.sorteio-progress{flex:1;height:6px;background:rgba(255,255,255,0.2);border-radius:3px;overflow:hidden;}
+.sorteio-progress-fill{height:100%;background:#FFD700;border-radius:3px;transition:width .5s ease;}
+.sorteio-falta{font-size:11px;color:rgba(255,255,255,0.7);margin-top:4px;}
+
+/* ADMIN SORTEIO */
+.cupom-card{background:#fff;border-radius:14px;padding:12px 16px;margin-bottom:8px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #EEE5D8;display:flex;justify-content:space-between;align-items:center;}
+.cupom-num{font-size:20px;font-weight:800;color:#1a472a;font-family:'Georgia',serif;letter-spacing:2px;}
+.cupom-info{font-size:12px;color:#666;}
+.btn-sortear{background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a472a;border:none;padding:14px;border-radius:16px;font-size:16px;font-weight:800;cursor:pointer;width:100%;font-family:'Inter',sans-serif;margin-bottom:12px;box-shadow:0 4px 20px rgba(255,215,0,0.4);}
+.resultado-sorteio{background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:20px;padding:1.5rem;text-align:center;color:#fff;margin-top:12px;}
+.resultado-cupom{font-size:48px;font-weight:800;color:#FFD700;font-family:'Georgia',serif;letter-spacing:4px;}
+
 
 .btn-filtro{padding:6px 14px;border-radius:20px;border:1.5px solid #EEE5D8;background:#fff;color:#412402;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
 .btn-filtro.active{background:#412402;color:#FAC775;border-color:#412402;}
@@ -297,6 +316,7 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
     <button class="admin-tab" onclick="setAdminTab('pedidos')">🛒 Pedidos</button>
     <button class="admin-tab" onclick="setAdminTab('promo')">🔥 Promo</button>
     <button class="admin-tab" onclick="setAdminTab('financeiro')">💰 Financeiro</button>
+    <button class="admin-tab" onclick="setAdminTab('sorteio')">🏆 Sorteio</button>
   </div>
 
   <!-- ABA CLIENTES -->
@@ -392,6 +412,7 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
       <input type="text" class="search-input" id="search" placeholder="🔍 Buscar produto..." oninput="renderCatalog()">
     </div>
     <div class="cat-tabs" id="cat-tabs"></div>
+    <div id="promo-sorteio-banner"></div>
     <div id="sugestao-banner"></div>
     <div id="entrega-banner"></div>
     <div id="lista-btn-wrap" style="display:none;margin-bottom:12px;">
@@ -510,6 +531,23 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
       </div>
     </div>
   </div>
+
+  <!-- ===== ABA SORTEIO ===== -->
+  <div id="tab-sorteio" class="admin-body" style="display:none;">
+    <div class="section-header">
+      <div class="section-title">🏆 Promoção Copa</div>
+      <button class="btn-add" onclick="exportarCupons()" style="background:#1a472a;color:#FFD700;">📊 Exportar</button>
+    </div>
+    <div style="background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:16px;padding:1rem;margin-bottom:14px;color:#fff;">
+      <div style="font-size:14px;font-weight:700;color:#FFD700;">🏆 DISTRIBUIDORA LEÃO — PROMOÇÃO COPA</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px;">A cada R$ 500 em compras = 1 cupom</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.8);">📅 16/06/2026 a 16/07/2026 • Sorteio: 18/07/2026</div>
+    </div>
+    <div id="sorteio-resumo" style="margin-bottom:12px;"></div>
+    <button class="btn-sortear" onclick="realizarSorteio()">🎲 REALIZAR SORTEIO</button>
+    <div id="resultado-sorteio-div"></div>
+    <div id="cupons-list"><div class="loading">Carregando cupons...</div></div>
+  </div>
 <!-- ===== MODAL CLIENTE ===== -->
 <div class="modal-overlay hidden" id="modal-client">
   <div class="modal" style="max-width:500px;">
@@ -561,6 +599,7 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
           <option value="Varejo">Varejo</option>
           <option value="Atacado">Atacado</option>
           <option value="VIP">VIP</option>
+          <option value="SemPreco">🚫 Sem Preço (não mostra valores)</option>
         </select>
       </div>
       <div class="form-group">
@@ -697,7 +736,7 @@ window.addEventListener('load', async ()=>{
       showScreen('catalog-screen');
       await loadProdutosFirebase();
       renderCatalog();
-      setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();},300);
+      setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();},300);
     }
   } catch(e){ localStorage.removeItem('leao_session'); }
 });
@@ -835,7 +874,7 @@ function doLogin(){
         showScreen('catalog-screen');
         loadProdutosFirebase().then(()=>{
           renderCatalog();
-          setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();},300);
+          setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();},300);
         });
       });
     } else {errEl.style.display='block';}
@@ -884,7 +923,7 @@ async function loadAdminData(){
     let html='';
     cSnap.forEach(d=>{
       const c=d.data();
-      const tagClass=c.tag==='VIP'?'tag-vip':c.tag==='Atacado'?'tag-at':'tag-var';
+      const tagClass=c.tag==='VIP'?'tag-vip':c.tag==='Atacado'?'tag-at':c.tag==='SemPreco'?'tag-var':'tag-var';
       html+=`<div class="client-card">
         <div style="flex:1;min-width:0;">
           <div class="client-name">${c.nome}</div>
@@ -1003,7 +1042,7 @@ function closeModal(id){document.getElementById(id).classList.add('hidden');}
 // ===== ADMIN TABS =====
 function setAdminTab(tab){
   document.querySelectorAll('.admin-tab').forEach((t,i)=>{
-    t.classList.toggle('active',['clientes','produtos','pedidos','promo','financeiro'][i]===tab);
+    t.classList.toggle('active',['clientes','produtos','pedidos','promo','financeiro','sorteio'][i]===tab);
   });
   document.getElementById('tab-clientes').style.display=tab==='clientes'?'block':'none';
   document.getElementById('tab-produtos').style.display=tab==='produtos'?'block':'none';
@@ -1011,6 +1050,8 @@ function setAdminTab(tab){
   document.getElementById('tab-promo').style.display=tab==='promo'?'block':'none';
   document.getElementById('tab-financeiro').style.display=tab==='financeiro'?'block':'none';
   if(tab==='financeiro') loadFinanceiro();
+  if(document.getElementById('tab-sorteio')) document.getElementById('tab-sorteio').style.display=tab==='sorteio'?'block':'none';
+  if(tab==='sorteio') loadCupons();
   if(tab==='produtos') loadProdutos();
   if(tab==='pedidos') loadPedidos();
   if(tab==='promo') loadPromoAdmin();
@@ -1356,6 +1397,7 @@ function setcat(c){catAtiva=c;renderCatalog();}
 
 function renderCatalog(){
   renderTabs();
+  const _ocPreco = (currentClientData && currentClientData.ocultarPreco) || (currentClientData && currentClientData.tag==='SemPreco');
   const search=document.getElementById('search').value.toLowerCase();
   const produtos=getProdutos();
   const el=document.getElementById('catalog');
@@ -1440,6 +1482,7 @@ function repetirPedido(){
 let _pedidoAtual = null;
 
 function abrirPedidoSheet(){
+  const _ocPreco = (currentClientData && currentClientData.ocultarPreco) || (currentClientData && currentClientData.tag==='SemPreco');
   const produtos = getProdutos();
   const catsFiltradas = cats.filter(c=>c.nome!=="Todos").map(c=>c.nome);
   let itensHtml = '';
@@ -1489,15 +1532,23 @@ function fecharPedidoSheet(){
 
 function confirmarEnvio(){
   if(!_pedidoAtual) return;
-  const {linhas, total, totalItens, itensSalvar, itensList} = _pedidoAtual;
+  const {linhas, total, totalItens, itensSalvar, itensList, cupons} = _pedidoAtual;
 
   const numero = WHATS.replace(/\D/g,'');
   const texto = encodeURIComponent(linhas.join('\n'));
   const urlWA = 'https://api.whatsapp.com/send?phone='+numero+'&text='+texto;
 
-  window.open(urlWA,'_blank');
+  // Usa <a> com click simulado — funciona em todos os celulares
+  const a = document.createElement('a');
+  a.href = urlWA;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>a.remove(), 500);
+
   fecharPedidoSheet();
-  mostrarSucesso(fmt(total), totalItens);
+  mostrarSucesso(fmt(total), totalItens, cupons||0);
   salvarUltimoPedido(itensSalvar, fmt(total));
   salvarPedidoComItens(currentUser.id, currentClientData.nome, totalItens, fmt(total), itensList||[]);
   _pedidoAtual = null;
@@ -2067,6 +2118,12 @@ function imprimirNotinha(pedidoId, pedidoData){
     </tfoot>
   </table>
 
+  ${pedidoData.cupons && pedidoData.cupons.length ? `
+  <div style="background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:12px;padding:14px;margin-bottom:16px;text-align:center;color:#fff;">
+    <div style="font-size:12px;color:#FFD700;font-weight:700;margin-bottom:8px;">🏆 PROMOÇÃO COPA — CUPOM(S) DE SORTEIO</div>
+    ${pedidoData.cupons.map(num=>`<div style="font-size:28px;font-weight:800;color:#FFD700;letter-spacing:4px;font-family:Georgia,serif;">🎟 ${num}</div>`).join('')}
+    <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:6px;">Sorteio: 18/07/2026</div>
+  </div>` : ''}
   <div class="rodape">
     <div class="row">
       <div class="col">
@@ -2240,7 +2297,10 @@ async function imprimirNotinhaPedido(pedidoId){
       });
     }
 
-    imprimirNotinha(pedidoId, {...o, clienteData, itensList});
+    // Busca cupons deste pedido
+    const cuponsSnap = await db.collection('cupons').where('pedidoId','==',pedidoId).get().catch(()=>({docs:[]}));
+    const cuponsNums = cuponsSnap.docs ? cuponsSnap.docs.map(d=>d.data().numero) : [];
+    imprimirNotinha(pedidoId, {...o, clienteData, itensList, cupons:cuponsNums});
   } catch(e){ alert('Erro: '+e.message); }
 }
 
@@ -2296,13 +2356,15 @@ async function salvarPedidoComItens(clienteId, clienteNome, itens, total, itensL
     const prazo = clienteData.prazo||0;
     const hoje = new Date();
     const vencimento = new Date(hoje.getTime()+prazo*24*60*60*1000);
-    await db.collection('pedidos').add({
+    const pedRef = await db.collection('pedidos').add({
       clienteId, clienteNome, itens, total,
       itensList, clienteData,
       status:0, pago:false, valorPago:0,
       vencimento: firebase.firestore.Timestamp.fromDate(vencimento),
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
+    // Gera cupons do sorteio se promoção ativa
+    salvarCuponsDosPedido(pedRef.id, clienteId, clienteNome, total).catch(e=>{});
   } catch(e){ console.log('Erro ao salvar pedido',e); }
 }
 
@@ -2600,6 +2662,220 @@ function gerarListaCliente(){
   const url = URL.createObjectURL(blob);
   window.open(url,'_blank');
   setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+
+// ===== SISTEMA DE SORTEIO COPA =====
+const SORTEIO_CONFIG = {
+  inicio: new Date('2026-06-16'),
+  fim: new Date('2026-07-16T23:59:59'),
+  sorteio: new Date('2026-07-18'),
+  valorCupom: 500
+};
+
+function isPromoAtiva(){
+  const agora = new Date();
+  return agora >= SORTEIO_CONFIG.inicio && agora <= SORTEIO_CONFIG.fim;
+}
+
+function gerarNumeroCupom(seed){
+  // Gera número de cupom de 6 dígitos baseado no seed
+  const num = (seed * 7919 + 12345) % 999999;
+  return String(num).padStart(6,'0');
+}
+
+function calcularCupons(totalCompras){
+  return Math.floor(totalCompras / SORTEIO_CONFIG.valorCupom);
+}
+
+// Mostra banner de promoção no catálogo do cliente
+async function loadPromoSorteio(){
+  const el = document.getElementById('promo-sorteio-banner');
+  if(!el) return;
+
+  const agora = new Date();
+  const fimPromo = SORTEIO_CONFIG.fim;
+  const inicioPromo = SORTEIO_CONFIG.inicio;
+
+  if(agora < inicioPromo || agora > fimPromo){ el.innerHTML=''; return; }
+
+  // Busca total de compras do cliente no período
+  try {
+    const snap = await db.collection('pedidos')
+      .where('clienteId','==',currentUser.id)
+      .get();
+
+    let totalCompras = 0;
+    snap.forEach(d=>{
+      const o = d.data();
+      const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : new Date();
+      if(dt >= inicioPromo && dt <= fimPromo){
+        const val = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'));
+        if(!isNaN(val)) totalCompras += val;
+      }
+    });
+
+    const cuponsGanhos = calcularCupons(totalCompras);
+    const faltaProximo = SORTEIO_CONFIG.valorCupom - (totalCompras % SORTEIO_CONFIG.valorCupom);
+    const pct = Math.min(100, ((totalCompras % SORTEIO_CONFIG.valorCupom) / SORTEIO_CONFIG.valorCupom)*100);
+
+    el.innerHTML = `<div class="sorteio-banner">
+      <div class="sorteio-titulo">🏆 PROMOÇÃO DISTRIBUIDORA LEÃO</div>
+      <div class="sorteio-sub">A cada R$ 500 em compras você ganha 1 cupom para o sorteio!<br>📅 Sorteio: 18/07/2026</div>
+      <div class="sorteio-cupons">
+        <div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.6);">SEUS CUPONS</div>
+          <div class="sorteio-cupom-badge">🎟 ${cuponsGanhos} cupom${cuponsGanhos!==1?'s':''}</div>
+        </div>
+        <div style="flex:1;">
+          <div class="sorteio-progress"><div class="sorteio-progress-fill" style="width:${pct}%"></div></div>
+          <div class="sorteio-falta">${cuponsGanhos>0?'Próximo cupom: ':'Primeiro cupom: '}falta R$ ${faltaProximo.toFixed(2).replace('.',',')}</div>
+        </div>
+      </div>
+    </div>`;
+  } catch(e){ el.innerHTML=''; }
+}
+
+// Salva cupons quando pedido é feito durante promoção
+async function salvarCuponsDosPedido(pedidoId, clienteId, clienteNome, totalStr){
+  if(!isPromoAtiva()) return;
+  const totalNum = parseFloat((totalStr||'0').replace('R$ ','').replace(',','.'));
+  if(totalNum <= 0) return;
+
+  // Busca total acumulado do cliente
+  const snap = await db.collection('pedidos').where('clienteId','==',clienteId).get();
+  let totalAntes = 0;
+  snap.forEach(d=>{
+    if(d.id === pedidoId) return; // pula o pedido atual
+    const o = d.data();
+    const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : new Date();
+    if(dt >= SORTEIO_CONFIG.inicio && dt <= SORTEIO_CONFIG.fim){
+      const val = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'));
+      if(!isNaN(val)) totalAntes += val;
+    }
+  });
+
+  const totalDepois = totalAntes + totalNum;
+  const cuponsAntes = calcularCupons(totalAntes);
+  const cuponsDepois = calcularCupons(totalDepois);
+  const novosCupons = cuponsDepois - cuponsAntes;
+
+  if(novosCupons <= 0) return;
+
+  // Gera e salva os cupons
+  const batch = db.batch();
+  for(let i=0; i<novosCupons; i++){
+    const seed = Date.now() + i + Math.floor(Math.random()*10000);
+    const numCupom = gerarNumeroCupom(seed);
+    const ref = db.collection('cupons').doc();
+    batch.set(ref, {
+      numero: numCupom,
+      clienteId, clienteNome,
+      pedidoId,
+      totalPedido: totalStr,
+      dataPedido: new Date().toLocaleDateString('pt-BR'),
+      sorteio: '18/07/2026',
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }
+  await batch.commit().catch(e=>console.log('Erro cupons:',e));
+  return novosCupons;
+}
+
+// Admin: Carrega lista de cupons
+async function loadCupons(){
+  const el = document.getElementById('cupons-list');
+  const resumoEl = document.getElementById('sorteio-resumo');
+  if(!el) return;
+  el.innerHTML = '<div class="loading">Carregando...</div>';
+
+  try {
+    const snap = await db.collection('cupons').get();
+    const cupons = [];
+    snap.forEach(d=>{ cupons.push({id:d.id,...d.data()}); });
+    cupons.sort((a,b)=>a.numero.localeCompare(b.numero));
+
+    if(resumoEl) resumoEl.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div style="background:#F0FDF4;border-radius:12px;padding:10px;text-align:center;">
+        <div style="font-size:11px;color:#15803D;font-weight:700;">TOTAL DE CUPONS</div>
+        <div style="font-size:24px;font-weight:800;color:#15803D;">🎟 ${cupons.length}</div>
+      </div>
+      <div style="background:#FEF9C3;border-radius:12px;padding:10px;text-align:center;">
+        <div style="font-size:11px;color:#854D0E;font-weight:700;">CLIENTES</div>
+        <div style="font-size:24px;font-weight:800;color:#854D0E;">${new Set(cupons.map(c=>c.clienteId)).size}</div>
+      </div>
+    </div>`;
+
+    if(!cupons.length){ el.innerHTML='<div class="empty-state">Nenhum cupom gerado ainda.</div>'; return; }
+
+    let html = '';
+    cupons.forEach(cup=>{
+      html += `<div class="cupom-card">
+        <div>
+          <div class="cupom-num">🎟 ${cup.numero}</div>
+          <div class="cupom-info">${cup.clienteNome} • ${cup.dataPedido}</div>
+          <div class="cupom-info">Pedido: ${cup.totalPedido}</div>
+        </div>
+        <button class="btn-del" onclick="deletarCupom('${cup.id}')">🗑</button>
+      </div>`;
+    });
+    el.innerHTML = html;
+  } catch(e){ el.innerHTML='<div class="empty-state">Erro: '+e.message+'</div>'; }
+}
+
+async function deletarCupom(id){
+  if(!confirm('Remover este cupom?')) return;
+  await db.collection('cupons').doc(id).delete();
+  loadCupons();
+}
+
+// Realizar sorteio
+async function realizarSorteio(){
+  const snap = await db.collection('cupons').get();
+  const cupons = [];
+  snap.forEach(d=>{ cupons.push({id:d.id,...d.data()}); });
+  if(!cupons.length){ alert('Nenhum cupom cadastrado ainda.'); return; }
+
+  if(!confirm(`Realizar sorteio entre ${cupons.length} cupons?\n\nEsta ação não pode ser desfeita.`)) return;
+
+  // Sorteio aleatório
+  const vencedor = cupons[Math.floor(Math.random()*cupons.length)];
+  const hoje = new Date().toLocaleDateString('pt-BR');
+
+  const resultado = {
+    cupom: vencedor.numero,
+    cliente: vencedor.clienteNome,
+    pedidoId: vencedor.pedidoId,
+    dataPedido: vencedor.dataPedido,
+    dataSorteio: hoje,
+    totalCupons: cupons.length
+  };
+
+  // Salva resultado
+  await db.collection('config').doc('resultado_sorteio').set(resultado).catch(e=>{});
+
+  const el = document.getElementById('resultado-sorteio-div');
+  if(el) el.innerHTML = `<div class="resultado-sorteio">
+    <div style="font-size:14px;font-weight:700;color:#FFD700;margin-bottom:8px;">🎉 CUPOM SORTEADO!</div>
+    <div class="resultado-cupom">${vencedor.numero}</div>
+    <div style="font-size:16px;font-weight:700;margin-top:12px;">${vencedor.clienteNome}</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;">Pedido de ${vencedor.dataPedido} • Total: ${vencedor.totalPedido}</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:8px;">Data do sorteio: ${hoje} • Total de cupons: ${cupons.length}</div>
+  </div>`;
+}
+
+// Exportar cupons
+async function exportarCupons(){
+  const snap = await db.collection('cupons').get();
+  const linhas = [['Cupom','Cliente','Data do Pedido','Total do Pedido','Data do Sorteio']];
+  snap.forEach(d=>{
+    const o = d.data();
+    linhas.push([o.numero, o.clienteNome||'', o.dataPedido||'', o.totalPedido||'', o.sorteio||'18/07/2026']);
+  });
+  const csv = linhas.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='cupons_sorteio.csv'; a.click();
+  URL.revokeObjectURL(url);
 }
 
 </script>
