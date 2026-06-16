@@ -2156,7 +2156,7 @@ function imprimirNotinha(pedidoId, pedidoData){
         <div style="font-size:20px;margin-bottom:4px;">🖨️</div>
         <div style="font-size:16px;font-weight:700;color:#2D1A00;margin-bottom:16px;">Escolha o tamanho do papel</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
-          <button onclick="gerarImpressao('a4',${JSON.stringify(pedidoId)},${JSON.stringify(pedidoData).replace(/</g,'\\u003c')})" 
+          <button onclick="gerarImpressao('a4')" 
             style="padding:14px;border-radius:12px;border:2px solid #412402;background:#fff;font-size:14px;font-weight:700;cursor:pointer;color:#412402;display:flex;align-items:center;gap:10px;">
             <span style="font-size:24px;">📄</span>
             <div style="text-align:left;">
@@ -2195,9 +2195,10 @@ function imprimirNotinha(pedidoId, pedidoData){
   window._notinhaData = {pedidoId, pedidoData, itensHtml, cuponsHtml, ocultarPreco, fmtData, hoje, vencimento, diaEntrega, prazo, cliente};
 }
 
-function gerarImpressao(formato, pedidoId, pedidoData){
+function gerarImpressao(formato){
   document.getElementById('fmt-selector').remove();
-  const {itensHtml, cuponsHtml, ocultarPreco, fmtData, hoje, vencimento, diaEntrega, prazo, cliente} = window._notinhaData;
+  const {pedidoData, itensHtml, cuponsHtml, ocultarPreco, fmtData, hoje, vencimento, diaEntrega, prazo, cliente} = window._notinhaData;
+  const pedidoId = window._notinhaData.pedidoId;
 
   const FORMATOS = {
     a4: {width:'148mm',fontSize:'12px',titleSize:'18px',numSize:'22px',padding:'16px 20px',pageSize:'@page{size:A4;margin:8mm;}',twoCol:true},
