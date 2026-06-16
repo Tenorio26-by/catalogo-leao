@@ -1535,33 +1535,50 @@ function fecharPedidoSheet(){
   setTimeout(()=>{ overlay.style.display='none'; },350);
 }
 
-function confirmarEnvio(){
+async function confirmarEnvio(){
   if(!_pedidoAtual) return;
-  const {linhas, total, totalItens, itensSalvar, itensList, cupons} = _pedidoAtual;
+  const {linhas, total, totalItens, itensSalvar, itensList} = _pedidoAtual;
 
+  // Fechar sheet antes de abrir WhatsApp
+  fecharPedidoSheet();
+
+  // 1. Salva pedido e gera cupons ANTES de montar mensagem
+  salvarUltimoPedido(itensSalvar, fmt(total));
+  const novosCupons = await salvarPedidoComItensRetornaCupons(
+    currentUser.id, currentClientData.nome, totalItens, fmt(total), itensList||[], total
+  );
+
+  // 2. Monta mensagem com cupom se ganhou
+  const todasLinhas = [...linhas];
+  if(novosCupons && novosCupons.length){
+    todasLinhas.push('');
+    todasLinhas.push('🏆 *PROMOÇÃO COPA LEÃO*');
+    todasLinhas.push('🎟 Cupom(s) gerado(s): ' + novosCupons.join(', '));
+    todasLinhas.push('📅 Sorteio: 18/07/2026');
+    todasLinhas.push('🎁 Prêmio: Camisa Oficial do Brasil!');
+  }
+
+  // 3. Abre WhatsApp em nova aba — cliente FICA no site
   const numero = WHATS.replace(/\D/g,'');
-  const texto = encodeURIComponent(linhas.join('\n'));
+  const texto = encodeURIComponent(todasLinhas.join('\n'));
   const urlWA = 'https://api.whatsapp.com/send?phone='+numero+'&text='+texto;
 
-  // Usa <a> com click simulado — funciona em todos os celulares
   const a = document.createElement('a');
   a.href = urlWA;
-  a.target = '_blank';
+  a.target = '_blank'; // abre em nova aba, não sai do site!
   a.rel = 'noopener noreferrer';
   document.body.appendChild(a);
   a.click();
   setTimeout(()=>a.remove(), 500);
 
-  fecharPedidoSheet();
-  mostrarSucesso(fmt(total), totalItens, total);
-  salvarUltimoPedido(itensSalvar, fmt(total));
-  salvarPedidoComItens(currentUser.id, currentClientData.nome, totalItens, fmt(total), itensList||[]);
+  // 4. Mostra tela de sucesso com cupons
+  mostrarSucesso(fmt(total), totalItens, total, novosCupons||[]);
   _pedidoAtual = null;
 }
 
 function enviarPedido(){ abrirPedidoSheet(); }
 
-async function mostrarSucesso(totalFmt, qtdItens, totalNumerico){
+async function mostrarSucesso(totalFmt, qtdItens, totalNumerico, cuponsGerados){
   const old = document.getElementById('sucesso-overlay');
   if(old) old.remove();
 
@@ -1590,7 +1607,15 @@ async function mostrarSucesso(totalFmt, qtdItens, totalNumerico){
       const falta = 500 - progresso;
       const pct = Math.min(100,(progresso/500)*100);
 
-      if(cuponsNestePedido > 0){
+      // Mostra cupons passados como parâmetro (já gerados)
+      if(cuponsGerados && cuponsGerados.length){
+        cuponsHtml = `<div style="background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:16px;padding:14px;margin:12px 0;text-align:center;">
+          <div style="font-size:12px;color:#FFD700;font-weight:700;margin-bottom:6px;">🏆 VOCÊ GANHOU CUPOM(S) DO SORTEIO!</div>
+          ${cuponsGerados.map(n=>`<div style="font-size:28px;font-weight:800;color:#FFD700;letter-spacing:3px;margin:4px 0;">🎟 ${n}</div>`).join('')}
+          <div style="font-size:12px;color:#FFD700;font-weight:600;margin-top:6px;">🎁 Prêmio: Camisa Oficial do Brasil!</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:4px;">Total: ${cuponsTotal} cupom${cuponsTotal!==1?'s':''} • Sorteio: 18/07/2026</div>
+        </div>`;
+      } else if(cuponsNestePedido > 0){
         cuponsHtml = `<div style="background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:16px;padding:14px;margin:12px 0;text-align:center;">
           <div style="font-size:12px;color:#FFD700;font-weight:700;margin-bottom:6px;">🏆 VOCÊ GANHOU CUPOM(S) DO SORTEIO!</div>
           <div style="font-size:32px;font-weight:800;color:#FFD700;letter-spacing:3px;">🎟 +${cuponsNestePedido}</div>
@@ -2397,6 +2422,10 @@ Falta: R$ ${(totalNum-novoValorPago).toFixed(2).replace('.',',')}`);
 // ===== IMPRIMIR NOTINHA AO CONFIRMAR PEDIDO =====
 // Chamado após confirmarEnvio
 async function salvarPedidoComItens(clienteId, clienteNome, itens, total, itensList){
+  await salvarPedidoComItensRetornaCupons(clienteId, clienteNome, itens, total, itensList, 0);
+}
+
+async function salvarPedidoComItensRetornaCupons(clienteId, clienteNome, itens, total, itensList, totalNumerico){
   try {
     const cliDoc = await db.collection('clientes').doc(clienteId).get();
     const clienteData = cliDoc.exists ? cliDoc.data() : {};
@@ -2410,9 +2439,10 @@ async function salvarPedidoComItens(clienteId, clienteNome, itens, total, itensL
       vencimento: firebase.firestore.Timestamp.fromDate(vencimento),
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
-    // Gera cupons do sorteio se promoção ativa
-    salvarCuponsDosPedido(pedRef.id, clienteId, clienteNome, total).catch(e=>{});
-  } catch(e){ console.log('Erro ao salvar pedido',e); }
+    // Gera cupons e retorna os números gerados
+    const cuponsNums = await salvarCuponsDosPedido(pedRef.id, clienteId, clienteNome, total);
+    return cuponsNums || [];
+  } catch(e){ console.log('Erro ao salvar pedido',e); return []; }
 }
 
 // ===== SUGESTÃO DE REPOSIÇÃO =====
@@ -2816,10 +2846,14 @@ async function salvarCuponsDosPedido(pedidoId, clienteId, clienteNome, totalStr)
   if(novosCupons <= 0) return;
 
   // Gera e salva os cupons
-  const batch = db.batch();
+  const numerosGerados = [];
   for(let i=0; i<novosCupons; i++){
     const seed = Date.now() + i + Math.floor(Math.random()*10000);
-    const numCupom = gerarNumeroCupom(seed);
+    numerosGerados.push(gerarNumeroCupom(seed));
+  }
+
+  const batch = db.batch();
+  numerosGerados.forEach((numCupom, i)=>{
     const ref = db.collection('cupons').doc();
     batch.set(ref, {
       numero: numCupom,
@@ -2830,9 +2864,9 @@ async function salvarCuponsDosPedido(pedidoId, clienteId, clienteNome, totalStr)
       sorteio: '18/07/2026',
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
-  }
+  });
   await batch.commit().catch(e=>console.log('Erro cupons:',e));
-  return novosCupons;
+  return numerosGerados;
 }
 
 // Admin: Carrega lista de cupons
