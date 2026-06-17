@@ -3037,6 +3037,131 @@ async function excluirCobranca(pedidoId){
   } catch(e){ alert('Erro: '+e.message); }
 }
 
+// ===== CONTROLE FINANCEIRO =====
+let _filtroFin = 'todos';
+
+function filtrarFin(tipo){
+  _filtroFin = tipo;
+  document.querySelectorAll('[id^="fin-btn-"]').forEach(b=>b.classList.remove('active'));
+  const el = document.getElementById('fin-btn-'+tipo);
+  if(el) el.classList.add('active');
+  loadFinanceiro();
+}
+
+async function loadFinanceiro(){
+  const finList = document.getElementById('fin-list');
+  const finResumo = document.getElementById('fin-resumo');
+  if(!finList) return;
+  finList.innerHTML='<div class="loading">Carregando...</div>';
+
+  try {
+    const [pedSnap, cliSnap] = await Promise.all([
+      db.collection('pedidos').get(),
+      db.collection('clientes').get()
+    ]);
+
+    const clientes = {};
+    cliSnap.forEach(d=>{ clientes[d.id]={id:d.id,...d.data()}; });
+
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+    let pedidos = [];
+    pedSnap.forEach(d=>{
+      const o = {id:d.id,...d.data()};
+      if(!o.clienteId && !o.clienteNome) return;
+      const cli = clientes[o.clienteId]||{};
+      const prazo = cli.prazo||0;
+      const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : new Date();
+      const venc = new Date(dt.getTime()+prazo*24*60*60*1000);
+      venc.setHours(0,0,0,0);
+      const totalNum = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'));
+      const saldo = totalNum - (o.valorPago||0);
+      o._cli=cli; o._venc=venc; o._totalNum=totalNum; o._saldo=saldo;
+      pedidos.push(o);
+    });
+
+    // Sort by timestamp desc
+    pedidos.sort((a,b)=>{
+      const ta=a.timestamp?a.timestamp.seconds:0;
+      const tb=b.timestamp?b.timestamp.seconds:0;
+      return tb-ta;
+    });
+
+    // Filtro
+    const agora = new Date(); agora.setHours(0,0,0,0);
+    let filtrados = pedidos.filter(o=>{
+      if(_filtroFin==='pago') return o.pago;
+      if(_filtroFin==='pendente') return !o.pago;
+      if(_filtroFin==='atrasado') return !o.pago && o._venc < agora;
+      if(_filtroFin==='vencendo') return !o.pago && o._venc.getTime()===agora.getTime();
+      return true;
+    });
+
+    // Resumo
+    const totalDevedor = filtrados.filter(o=>!o.pago).reduce((s,o)=>s+o._saldo,0);
+    const totalRecebido = filtrados.filter(o=>o.pago).reduce((s,o)=>s+o._totalNum,0);
+    const atrasados = filtrados.filter(o=>!o.pago && o._venc < agora).length;
+
+    if(finResumo) finResumo.innerHTML=`
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">
+        <div style="background:#FEF2F2;border-radius:12px;padding:10px;text-align:center;">
+          <div style="font-size:11px;color:#DC2626;font-weight:700;">A RECEBER</div>
+          <div style="font-size:16px;font-weight:800;color:#DC2626;">R$ ${totalDevedor.toFixed(2).replace('.',',')}</div>
+        </div>
+        <div style="background:#F0FDF4;border-radius:12px;padding:10px;text-align:center;">
+          <div style="font-size:11px;color:#15803D;font-weight:700;">RECEBIDO</div>
+          <div style="font-size:16px;font-weight:800;color:#15803D;">R$ ${totalRecebido.toFixed(2).replace('.',',')}</div>
+        </div>
+        <div style="background:#FEF9C3;border-radius:12px;padding:10px;text-align:center;">
+          <div style="font-size:11px;color:#854D0E;font-weight:700;">ATRASADOS</div>
+          <div style="font-size:16px;font-weight:800;color:#854D0E;">${atrasados}</div>
+        </div>
+      </div>`;
+
+    if(!filtrados.length){
+      finList.innerHTML='<div class="empty-state">Nenhum pedido encontrado.</div>';
+      return;
+    }
+
+    const statusLabels=['Recebido','Separando','Saiu','Entregue'];
+    const statusIcons=['📥','📦','🚚','✅'];
+    let html='';
+    filtrados.forEach(o=>{
+      const cli = o._cli;
+      const atrasado = !o.pago && o._venc < agora;
+      const vencendo = !o.pago && o._venc.getTime()===agora.getTime();
+      const statusCor = o.pago?'#15803D':atrasado?'#DC2626':vencendo?'#D97706':'#1D4ED8';
+      const statusTxt = o.pago?'✅ Pago':atrasado?'🔴 Atrasado':vencendo?'⚠️ Vence hoje':'⏳ Pendente';
+      const dt = o.timestamp?new Date(o.timestamp.seconds*1000).toLocaleDateString('pt-BR'):'---';
+      html+=`<div class="order-card" style="margin-bottom:10px;border-left:4px solid ${statusCor};">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+          <div style="flex:1;">
+            <div class="order-client">${cli.nome||o.clienteNome||''}</div>
+            <div class="order-meta">${cli.bairro||''} ${cli.cidade?'• '+cli.cidade:''}</div>
+            <div class="order-meta">Venc: ${o._venc.toLocaleDateString('pt-BR')} • ${dt}</div>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap;">
+              <span style="font-size:15px;font-weight:700;color:#412402;">${o.total||''}</span>
+              ${o._saldo>0&&!o.pago?`<span style="font-size:12px;color:#DC2626;">Saldo: R$ ${o._saldo.toFixed(2).replace('.',',')}</span>`:''}
+              <span style="font-size:11px;font-weight:700;color:${statusCor};">${statusTxt}</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+            <button class="btn-edit" onclick="abrirEditarPedido('${o.id}',this)" data-nome="${cli.nome||o.clienteNome||''}">✏️</button>
+            ${!o.pago?`<button class="btn-edit" onclick="abrirPagamento('${o.id}','${(cli.nome||o.clienteNome||'').replace(/'/g,"\'")}',${o._totalNum},${o._saldo})">💵 Pagar</button>`:''}
+            <button class="btn-edit" onclick="imprimirNotinhaPedido('${o.id}')">🖨️</button>
+            <button class="btn-del" onclick="excluirCobranca('${o.id}')" title="Excluir">🗑</button>
+          </div>
+        </div>
+        ${o.historicoPage&&o.historicoPage.length?`<div style="font-size:11px;color:#999;margin-top:6px;">Último pagamento: ${o.historicoPage[o.historicoPage.length-1].data} — R$ ${o.historicoPage[o.historicoPage.length-1].valor}</div>`:''}
+      </div>`;
+    });
+    finList.innerHTML=html;
+  } catch(e){
+    finList.innerHTML='<div class="empty-state">Erro: '+e.message+'</div>';
+    console.error('loadFinanceiro erro:', e);
+  }
+}
+
 </script>
 </body>
 </html>
