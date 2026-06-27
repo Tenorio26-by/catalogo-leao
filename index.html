@@ -190,7 +190,7 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 .pcard{position:relative;}
 .pimg{width:100px;height:100px;}
 .pimg-ph{width:100px;height:100px;}
-.pfav-btn{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.9);border:none;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;z-index:3;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+.pfav-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#F5F0EA;border:none;font-size:13px;cursor:pointer;flex-shrink:0;margin-left:6px;vertical-align:middle;}
 .pfav-btn.active{background:#FEE2E2;}
 .badge-maisvendido{background:#FFEDD5;color:#C2410C;}
 .pestoque{font-size:11px;font-weight:600;margin-top:3px;}
@@ -1793,11 +1793,10 @@ function renderCatalog(){
       const isFav = _favoritos.includes(p.id);
 
       html+=`<div class="pcard">
-        <button class="pfav-btn${isFav?' active':''}" onclick="toggleFavorito('${p.id}',event)">${isFav?'❤️':'🤍'}</button>
         ${imgHtml}
         <div class="pinfo">
           ${badgeHtml}
-          <div class="pname">${p.nome}</div>
+          <div class="pname">${p.nome}<button class="pfav-btn${isFav?' active':''}" onclick="toggleFavorito('${p.id}',event)">${isFav?'❤️':'🤍'}</button></div>
           <div class="pdesc">${p.un}</div>
           <div class="pprice">${_ocPreco ? '' : fmt(p.precoFinal)+origHtml}</div>
           ${estoqueHtml}
@@ -4016,10 +4015,9 @@ function renderFavoritosScreen(){
       ? `<img class="pimg" src="${imgSrc}" alt="${p.nome}" loading="lazy" onclick="openFotoModal('${imgSrc}')" style="cursor:zoom-in;">`
       : `<div class="pimg-ph">${cat?cat.icon:'📦'}</div>`;
     html += `<div class="pcard">
-      <button class="pfav-btn active" onclick="toggleFavorito('${p.id}',event);renderFavoritosScreen();">❤️</button>
       ${imgHtml}
       <div class="pinfo">
-        <div class="pname">${p.nome}</div>
+        <div class="pname">${p.nome}<button class="pfav-btn active" onclick="toggleFavorito('${p.id}',event);renderFavoritosScreen();">❤️</button></div>
         <div class="pdesc">${p.un}</div>
         <div class="pprice">${_ocPreco ? '' : fmt(p.precoFinal||p.preco)}</div>
       </div>
@@ -4130,11 +4128,10 @@ function renderNovidadesScreen(){
       : `<div class="pimg-ph">${cat?cat.icon:'📦'}</div>`;
     const isFav = getFavoritos().includes(p.id);
     html += `<div class="pcard">
-      <button class="pfav-btn${isFav?' active':''}" onclick="toggleFavorito('${p.id}',event);renderNovidadesScreen();">${isFav?'❤️':'🤍'}</button>
       <span class="prod-badge badge-novo">✨ Novidade</span>
       ${imgHtml}
       <div class="pinfo">
-        <div class="pname">${p.nome}</div>
+        <div class="pname">${p.nome}<button class="pfav-btn${isFav?' active':''}" onclick="toggleFavorito('${p.id}',event);renderNovidadesScreen();">${isFav?'❤️':'🤍'}</button></div>
         <div class="pdesc">${p.un}</div>
         <div class="pprice">${_ocPreco ? '' : fmt(p.precoFinal||p.preco)}</div>
       </div>
