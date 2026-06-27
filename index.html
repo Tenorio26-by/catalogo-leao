@@ -156,6 +156,7 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 .promo-left .promo-preco{font-size:13px;color:rgba(255,255,255,0.8);margin-top:2px;}
 .promo-left .promo-preco span{font-size:20px;font-weight:700;color:#fff;}
 .promo-img{width:60px;height:60px;object-fit:contain;border-radius:10px;background:rgba(255,255,255,0.2);padding:4px;}
+.promo-btn-comprar{background:#fff;color:#FF6B35;border:none;padding:6px 14px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px;font-family:'Inter',sans-serif;}
 
 /* PEDIDO MÍNIMO */
 .min-order-bar{background:#FEF3C7;border:2px solid #F59E0B;border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:13px;color:#92400E;display:none;}
@@ -184,6 +185,114 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 .notif-badge{position:fixed;top:20px;right:20px;background:#25D366;color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(37,211,102,0.4);z-index:300;display:none;animation:slideIn .3s ease;}
 @keyframes slideIn{from{transform:translateY(-20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* ===== FASE 2: CARD DE PRODUTO MELHORADO ===== */
+.pcard{position:relative;}
+.pimg{width:100px;height:100px;}
+.pimg-ph{width:100px;height:100px;}
+.pfav-btn{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.9);border:none;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;z-index:3;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+.pfav-btn.active{background:#FEE2E2;}
+.badge-maisvendido{background:#FFEDD5;color:#C2410C;}
+.pestoque{font-size:11px;font-weight:600;margin-top:3px;}
+.pestoque-baixo{color:#DC2626;}
+.pestoque-ok{color:#15803D;}
+.pestoque-zero{color:#999;}
+
+
+/* ===== FASE 2: PRODUTOS RELACIONADOS ===== */
+#relacionados-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:550;display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .25s ease;}
+#relacionados-overlay.visible{opacity:1;}
+.rel-sheet{background:#fff;width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:1.25rem 1rem 1.5rem;transform:translateY(100%);transition:transform .3s cubic-bezier(0.34,1.2,0.64,1);max-height:70vh;overflow-y:auto;}
+#relacionados-overlay.visible .rel-sheet{transform:translateY(0);}
+.rel-titulo{font-size:15px;font-weight:700;color:#412402;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.rel-close{background:#F5F0EA;border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;color:#888;}
+.rel-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F5F0EA;}
+.rel-item-img{width:48px;height:48px;border-radius:10px;object-fit:contain;background:#F5F0EA;padding:4px;flex-shrink:0;}
+.rel-item-info{flex:1;min-width:0;}
+.rel-item-nome{font-size:13px;font-weight:600;color:#2D1A00;}
+.rel-item-preco{font-size:12px;color:#7A3F08;font-weight:700;margin-top:2px;}
+.rel-item-add{background:#412402;color:#FAC775;border:none;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;flex-shrink:0;}
+
+
+/* ===== FASE 3: CONTADOR REGRESSIVO PROMOÇÃO ===== */
+.promo-contador{display:flex;gap:6px;margin-top:8px;}
+.promo-contador-bloco{background:rgba(255,255,255,0.25);border-radius:10px;padding:4px 8px;text-align:center;min-width:40px;}
+.promo-contador-num{font-size:14px;font-weight:800;color:#fff;line-height:1;}
+.promo-contador-lbl{font-size:8px;color:rgba(255,255,255,0.8);text-transform:uppercase;}
+
+
+/* ===== FASE 3: TEMA ESCURO (toggle leve, não invasivo) ===== */
+body.tema-escuro{background:#15120D;}
+body.tema-escuro #catalog-screen .cat-body{background:#15120D;}
+body.tema-escuro .dash-card,
+body.tema-escuro .pcard,
+body.tema-escuro .hist-card,
+body.tema-escuro .order-card,
+body.tema-escuro .cupom-card,
+body.tema-escuro .search-input,
+body.tema-escuro #dashboard-cliente .dash-card{
+  background:#241F17!important;border-color:#3A2F1F!important;color:#EDE4D3!important;
+}
+body.tema-escuro .pname,body.tema-escuro .dash-saudacao,body.tema-escuro .hist-titulo,
+body.tema-escuro .order-client,body.tema-escuro .client-name{color:#EDE4D3!important;}
+body.tema-escuro .pdesc,body.tema-escuro .dash-card-label,body.tema-escuro .order-meta,
+body.tema-escuro .hist-data{color:#A8997D!important;}
+body.tema-escuro .section-label{background:#241F17!important;color:#FAC775!important;}
+body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loading{color:#A8997D!important;}
+.theme-toggle-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(250,199,117,0.2);color:#FAC775;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0;}
+
+
+/* ===== FASE 3: ANIMAÇÕES LEVES (CSS puro, sem JS) ===== */
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.pcard{animation:fadeSlideIn .25s ease both;}
+.dash-card{animation:fadeSlideIn .3s ease both;}
+.section-label{animation:fadeSlideIn .2s ease both;}
+
+
+/* ===== FASE 5: DASHBOARD ADMIN ===== */
+.adm-dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.adm-dash-card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #F0E8DA;}
+.adm-dash-card.full{grid-column:1/-1;}
+.adm-dash-label{font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
+.adm-dash-value{font-size:22px;font-weight:800;color:#412402;margin-top:4px;}
+.adm-dash-sub{font-size:11px;color:#aaa;margin-top:2px;}
+.adm-rank-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F5F0EA;}
+.adm-rank-pos{width:24px;height:24px;border-radius:50%;background:#F5F0EA;color:#412402;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.adm-alert-card{background:#FEF2F2;border:1px solid #FCA5A5;border-radius:12px;padding:10px 14px;margin-bottom:8px;font-size:12px;color:#991B1B;}
+.adm-alert-card.warn{background:#FFFBEB;border-color:#FCD34D;color:#92400E;}
+
+/* ===== FASE 1: CABEÇALHO SOFISTICADO ===== */
+.cat-header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.cat-header-icons{display:flex;gap:8px;}
+.cat-icon-btn{position:relative;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(250,199,117,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:#FAC775;flex-shrink:0;}
+.cat-icon-btn:active{background:rgba(255,255,255,0.18);}
+.cat-icon-badge{position:absolute;top:-4px;right:-4px;background:#DC2626;color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 3px;}
+.cat-header-info{text-align:left;flex:1;}
+.cat-header-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;font-size:11px;color:rgba(250,199,117,0.65);}
+
+/* ===== DASHBOARD CLIENTE ===== */
+.dash-wrap{margin-bottom:14px;}
+.dash-saudacao{font-size:18px;font-weight:800;color:#2D1A00;margin-bottom:10px;}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.dash-card{background:#fff;border-radius:14px;padding:12px;box-shadow:0 2px 10px rgba(65,36,2,0.07);border:1px solid #F0E8DA;}
+.dash-card-icon{font-size:18px;margin-bottom:4px;}
+.dash-card-label{font-size:10px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
+.dash-card-value{font-size:15px;font-weight:800;color:#412402;margin-top:2px;line-height:1.2;}
+.dash-card-sub{font-size:10px;color:#aaa;margin-top:1px;}
+.dash-ultimo-pedido{background:linear-gradient(135deg,#412402,#7A3F08);border-radius:16px;padding:14px;color:#fff;margin-bottom:10px;}
+.dash-ultimo-pedido-row{display:flex;justify-content:space-between;align-items:center;}
+.dash-ultimo-label{font-size:11px;color:rgba(250,199,117,0.7);}
+.dash-ultimo-data{font-size:13px;font-weight:600;color:#FAC775;margin-top:2px;}
+.dash-ultimo-valor{font-size:20px;font-weight:800;color:#FAC775;}
+.dash-btn-repetir{background:rgba(250,199,117,0.15);border:1px solid rgba(250,199,117,0.3);color:#FAC775;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;margin-top:10px;width:100%;font-family:'Inter',sans-serif;}
+.dash-btn-repetir:active{background:rgba(250,199,117,0.25);}
+.dash-vip-tag{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#FAEEDA,#FAC775);color:#412402;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;margin-top:6px;}
+.dash-toggle{text-align:center;margin-bottom:4px;}
+.dash-toggle button{background:none;border:none;color:#999;font-size:11px;cursor:pointer;padding:6px;font-family:'Inter',sans-serif;}
+
+/* ===== CARRINHO FIXO MELHORADO ===== */
+/* (regra .bottom-bar já existe na linha 140 - mantemos como está) */
+
 /* ===== PROMOÇÃO SORTEIO ===== */
 .sorteio-banner{background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:16px;padding:1rem 1.25rem;margin-bottom:14px;color:#fff;position:relative;overflow:hidden;}
 .sorteio-banner::before{content:'🏆';position:absolute;right:-10px;top:-10px;font-size:80px;opacity:0.15;}
@@ -311,16 +420,30 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
     <button class="btn-logout" onclick="logout()">Sair</button>
   </div>
   <div class="admin-tabs">
-    <button class="admin-tab active" onclick="setAdminTab('clientes')">👥 Clientes</button>
+    <button class="admin-tab active" onclick="setAdminTab('dashboard')">📊 Dashboard</button>
+    <button class="admin-tab" onclick="setAdminTab('clientes')">👥 Clientes</button>
     <button class="admin-tab" onclick="setAdminTab('produtos')">📦 Produtos</button>
     <button class="admin-tab" onclick="setAdminTab('pedidos')">🛒 Pedidos</button>
     <button class="admin-tab" onclick="setAdminTab('promo')">🔥 Promo</button>
     <button class="admin-tab" onclick="setAdminTab('financeiro')">💰 Financeiro</button>
+    <button class="admin-tab" onclick="setAdminTab('roteiro')">🚚 Roteiro</button>
+    <button class="admin-tab" onclick="setAdminTab('descontos')">🎫 Descontos</button>
     <button class="admin-tab" onclick="setAdminTab('sorteio')">🏆 Sorteio</button>
   </div>
 
   <!-- ABA CLIENTES -->
-  <div id="tab-clientes" class="admin-body">
+  <!-- ===== FASE 5: DASHBOARD ADMIN ===== -->
+  <div id="tab-dashboard" class="admin-body">
+    <div class="section-header">
+      <div class="section-title">📊 Visão Geral</div>
+      <button class="btn-add" onclick="exportarRelatorioPDF()" style="background:#7A3F08;color:#FAC775;">📄 Exportar PDF</button>
+    </div>
+    <div id="adm-dash-alertas"></div>
+    <div id="adm-dash-resumo"></div>
+    <div id="adm-dash-rankings"></div>
+  </div>
+
+  <div id="tab-clientes" class="admin-body" style="display:none;">
     <div class="section-header">
       <div class="section-title">👥 Clientes</div>
       <button class="btn-add" onclick="openAddClient()">+ Adicionar</button>
@@ -371,6 +494,11 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
       <label>Mensagem (opcional)</label>
       <input type="text" id="promo-msg" placeholder="Ex: Só hoje!" style="width:100%;padding:12px 14px;border-radius:12px;border:2px solid #EEE5D8;font-size:14px;font-family:'Inter',sans-serif;">
     </div>
+    <div class="form-group">
+      <label>⏱ Termina em (opcional)</label>
+      <input type="datetime-local" id="promo-expira" style="width:100%;padding:12px 14px;border-radius:12px;border:2px solid #EEE5D8;font-size:14px;font-family:'Inter',sans-serif;">
+      <div style="font-size:11px;color:#999;margin-top:4px;">Se preenchido, mostra contador regressivo pro cliente</div>
+    </div>
     <button class="btn-save" onclick="savePromo()" style="width:100%;padding:12px;background:#FF6B35;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">🔥 Ativar promoção</button>
     <button class="btn-cancel" onclick="removePromo()" style="width:100%;padding:12px;background:#F5F0EA;color:#412402;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-top:8px;">❌ Remover promoção</button>
     <div id="promo-status" style="margin-top:12px;font-size:13px;color:#666;text-align:center;"></div>
@@ -387,6 +515,39 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 </div>
 
 
+<!-- ===== FASE 3: NOTIFICAÇÕES (CLIENTE) ===== -->
+<div id="notificacoes-screen" class="screen">
+  <div class="hist-header">
+    <button class="hist-back" onclick="showScreen('catalog-screen')">←</button>
+    <div class="hist-title">🔔 Notificações</div>
+  </div>
+  <div style="padding:1rem;" id="notificacoes-body">
+    <div class="loading">Carregando...</div>
+  </div>
+</div>
+
+<!-- ===== FASE 3: NOVIDADES (CLIENTE) ===== -->
+<div id="novidades-screen" class="screen">
+  <div class="hist-header">
+    <button class="hist-back" onclick="showScreen('catalog-screen')">←</button>
+    <div class="hist-title">✨ Novidades</div>
+  </div>
+  <div style="padding:1rem;" id="novidades-body">
+    <div class="loading">Carregando...</div>
+  </div>
+</div>
+
+<!-- ===== FASE 2: MEUS FAVORITOS (CLIENTE) ===== -->
+<div id="favoritos-screen" class="screen">
+  <div class="hist-header">
+    <button class="hist-back" onclick="showScreen('catalog-screen')">←</button>
+    <div class="hist-title">❤️ Meus Favoritos</div>
+  </div>
+  <div style="padding:1rem;" id="favoritos-body">
+    <div class="loading">Carregando...</div>
+  </div>
+</div>
+
 <!-- ===== MEUS CUPONS (CLIENTE) ===== -->
 <div id="cupons-screen" class="screen">
   <div class="hist-header">
@@ -399,6 +560,17 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 </div>
 
 <!-- ===== HISTÓRICO DE PEDIDOS ===== -->
+<!-- ===== FASE 4: FINANCEIRO DO CLIENTE ===== -->
+<div id="fin-cliente-screen" class="screen">
+  <div class="hist-header">
+    <button class="hist-back" onclick="showScreen('catalog-screen')">←</button>
+    <div class="hist-title">💰 Meu Financeiro</div>
+  </div>
+  <div style="padding:1rem;" id="fin-cliente-body">
+    <div class="loading">Carregando...</div>
+  </div>
+</div>
+
 <div id="hist-screen" class="screen">
   <div class="hist-header">
     <button class="hist-back" onclick="showScreen('catalog-screen')">←</button>
@@ -411,13 +583,24 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 <!-- ===== CATÁLOGO ===== -->
 <div id="catalog-screen" class="screen">
   <div class="cat-header">
-    <div class="cat-logo">🦁</div>
-    <div class="cat-title">Distribuidora Leão</div>
-    <div class="cat-slogan">Qualidade e tradição direto pra você</div>
-
+    <div class="cat-header-top">
+      <div style="flex:1;text-align:left;">
+        <div style="font-size:28px;line-height:1;">🦁</div>
+        <div style="font-size:16px;font-weight:800;color:#FAC775;font-family:'Georgia',serif;margin-top:2px;">Distribuidora Leão</div>
+      </div>
+      <div class="cat-header-icons">
+        <button class="cat-icon-btn" onclick="abrirNotificacoes()" title="Notificações">
+          🔔<span class="cat-icon-badge" id="notif-icon-badge" style="display:none;">0</span>
+        </button>
+        <button class="cat-icon-btn" onclick="abrirMeuFinanceiro()" title="Financeiro">💰</button>
+        <button class="cat-icon-btn" onclick="abrirMeusCupons()" title="Cupons" id="icon-cupons" style="display:none;">🎟</button>
+      </div>
+    </div>
     <div class="cat-user" id="cat-user-name"></div>
+    <div class="cat-header-meta" id="cat-header-meta"></div>
   </div>
   <div class="cat-body">
+    <div id="dashboard-cliente"></div>
     <div id="promo-banner-wrap"></div>
     <div class="search-wrap">
       <input type="text" class="search-input" id="search" placeholder="🔍 Buscar produto..." oninput="renderCatalog()">
@@ -443,6 +626,17 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
   <div class="notif-badge" id="notif-badge">🛒 Novo pedido recebido!</div>
 
   <!-- TELA DE CONFIRMAÇÃO DO PEDIDO -->
+  <!-- FASE 2: PRODUTOS RELACIONADOS -->
+  <div id="relacionados-overlay" style="display:none;" onclick="if(event.target===this)fecharRelacionados()">
+    <div class="rel-sheet">
+      <div class="rel-titulo">
+        <span id="rel-titulo-texto">Quem compra isso também compra:</span>
+        <button class="rel-close" onclick="fecharRelacionados()">✕</button>
+      </div>
+      <div id="rel-itens-lista"></div>
+    </div>
+  </div>
+
   <div id="pedido-overlay" style="display:none;" onclick="if(event.target===this)fecharPedidoSheet()">
     <div class="pedido-sheet">
       <div class="pedido-handle"></div>
@@ -452,7 +646,14 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
         <div class="pedido-sub" id="pedido-sheet-sub">Revise seus itens antes de enviar</div>
       </div>
       <div class="pedido-itens" id="pedido-sheet-itens"></div>
-      <div class="pedido-total-row" style="margin-top:12px;">
+      <div id="cupom-desconto-wrap" style="padding:0 1.5rem;margin-top:10px;display:none;">
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="cupom-desconto-input" placeholder="🎫 Código do cupom" style="flex:1;padding:10px 14px;border-radius:10px;border:1.5px solid rgba(250,199,117,0.25);background:rgba(255,255,255,0.05);color:#fff;font-size:13px;text-transform:uppercase;">
+          <button onclick="aplicarCupomNoPedido()" style="background:rgba(250,199,117,0.15);border:1px solid rgba(250,199,117,0.3);color:#FAC775;padding:10px 16px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">Aplicar</button>
+        </div>
+        <div id="cupom-desconto-msg" style="font-size:11px;margin-top:6px;"></div>
+      </div>
+      <div class="pedido-total-row" style="margin-top:12px;" id="pedido-total-row-wrap">
         <span class="pedido-total-label">Total</span>
         <span class="pedido-total-val" id="pedido-sheet-total" style="${currentClientData&&currentClientData.ocultarPreco?'display:none':''}"></span>
       </div>
@@ -545,6 +746,74 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
   </div>
 
   <!-- ===== ABA SORTEIO ===== -->
+  <!-- ===== FASE 5: ROTEIRO DE ENTREGA ===== -->
+  <div id="tab-roteiro" class="admin-body" style="display:none;">
+    <div class="section-header">
+      <div class="section-title">🚚 Roteiro de Entrega</div>
+      <button class="btn-add" onclick="exportarRota()" style="background:#15803D;color:#fff;">📊 Exportar Excel</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;">
+      <button onclick="filtrarRoteiroDia(0)" id="rot-dia-0" class="btn-filtro active">Todos</button>
+      <button onclick="filtrarRoteiroDia(1)" id="rot-dia-1" class="btn-filtro">Seg</button>
+      <button onclick="filtrarRoteiroDia(2)" id="rot-dia-2" class="btn-filtro">Ter</button>
+      <button onclick="filtrarRoteiroDia(3)" id="rot-dia-3" class="btn-filtro">Qua</button>
+      <button onclick="filtrarRoteiroDia(4)" id="rot-dia-4" class="btn-filtro">Qui</button>
+      <button onclick="filtrarRoteiroDia(5)" id="rot-dia-5" class="btn-filtro">Sex</button>
+      <button onclick="filtrarRoteiroDia(6)" id="rot-dia-6" class="btn-filtro">Sáb</button>
+      <button onclick="filtrarRoteiroDia(7)" id="rot-dia-7" class="btn-filtro">Dom</button>
+    </div>
+    <div id="roteiro-list"><div class="loading">Carregando...</div></div>
+  </div>
+
+  <!-- ===== FASE 5: CUPONS DE DESCONTO ===== -->
+  <div id="tab-descontos" class="admin-body" style="display:none;">
+    <div class="section-header">
+      <div class="section-title">🎫 Cupons de Desconto</div>
+      <button class="btn-add" onclick="openAddCupomDesconto()">+ Novo cupom</button>
+    </div>
+    <div id="cupons-desconto-list"><div class="loading">Carregando...</div></div>
+  </div>
+
+  <!-- Modal cupom de desconto -->
+  <div class="modal-overlay hidden" id="modal-cupom-desconto">
+    <div class="modal">
+      <div class="modal-title">🎫 Novo Cupom de Desconto</div>
+      <div class="form-group">
+        <label>Código do cupom</label>
+        <input type="text" id="cd-codigo" placeholder="Ex: LEAO10" style="text-transform:uppercase;">
+      </div>
+      <div class="form-group">
+        <label>Tipo de desconto</label>
+        <select id="cd-tipo" class="select-tag" onchange="document.getElementById('cd-valor-label').textContent=this.value==='percentual'?'Percentual de desconto (%)':'Valor de desconto (R$)'">
+          <option value="percentual">Percentual (%)</option>
+          <option value="fixo">Valor fixo (R$)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label id="cd-valor-label">Percentual de desconto (%)</label>
+        <input type="number" id="cd-valor" step="0.01" min="0" placeholder="Ex: 10">
+      </div>
+      <div class="form-group">
+        <label>Cliente específico (opcional)</label>
+        <select id="cd-cliente" class="select-tag">
+          <option value="">Todos os clientes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Válido até (opcional)</label>
+        <input type="date" id="cd-validade">
+      </div>
+      <div class="form-group">
+        <label>Limite de usos (opcional)</label>
+        <input type="number" id="cd-limite" min="1" placeholder="Deixe vazio para uso ilimitado">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal('modal-cupom-desconto')">Cancelar</button>
+        <button class="btn-save" onclick="saveCupomDesconto()">Salvar cupom</button>
+      </div>
+    </div>
+  </div>
+
   <div id="tab-sorteio" class="admin-body" style="display:none;">
     <div class="section-header">
       <div class="section-title">🏆 Promoção Copa</div>
@@ -637,6 +906,10 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
           <option value="7">Domingo</option>
         </select>
       </div>
+      <div class="form-group">
+        <label>💵 Saldo de cashback (R$)</label>
+        <input type="number" id="m-cashback" step="0.01" min="0" placeholder="Ex: 52.00">
+      </div>
     </div>
     <div class="form-group" style="grid-column:1/-1">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
@@ -685,22 +958,38 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
       <input type="file" id="mp-foto" accept="image/*" onchange="previewFoto(this)">
       <div id="mp-preview" style="margin-top:8px;"></div>
     </div>
+    <div class="form-group">
+      <label>🏷️ Tag especial</label>
+      <select id="mp-badge" class="select-tag" style="width:100%;padding:12px 14px;border-radius:12px;border:2px solid #EEE5D8;font-size:14px;font-family:'Inter',sans-serif;">
+        <option value="">Nenhuma</option>
+        <option value="novo">✨ Novidade</option>
+        <option value="destaque">⭐ Destaque</option>
+        <option value="maisvendido">🔥 Mais vendido</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>📦 Estoque (opcional)</label>
+      <input type="number" id="mp-estoque" min="0" placeholder="Deixe vazio para não mostrar aviso de estoque">
+    </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modal-produto')">Cancelar</button>
-      <div class="form-group" style="margin-top:10px;">
-        <label>🏷️ Tag especial</label>
-        <select id="mp-badge" class="select-tag" style="width:100%;padding:12px 14px;border-radius:12px;border:2px solid #EEE5D8;font-size:14px;font-family:'Inter',sans-serif;">
-          <option value="">Nenhuma</option>
-          <option value="novo">✨ Novidade</option>
-          <option value="destaque">⭐ Destaque</option>
-        </select>
-      </div>
       <button class="btn-save" onclick="saveProduto()">Salvar produto</button>
     </div>
   </div>
 </div>
 
 <!-- ===== MODAL PREÇOS ===== -->
+<!-- ===== FASE 5: HISTÓRICO COMPLETO DO CLIENTE (admin) ===== -->
+<div class="modal-overlay hidden" id="modal-historico-completo">
+  <div class="modal" style="max-width:500px;max-height:85vh;overflow-y:auto;">
+    <div class="modal-title" id="hc-titulo">📜 Histórico Completo</div>
+    <div id="hc-conteudo"><div class="loading">Carregando...</div></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-historico-completo')" style="width:100%;">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="modal-prices">
   <div class="modal">
     <div class="modal-title">Preços — <span id="prices-client-name"></span></div>
@@ -752,9 +1041,10 @@ window.addEventListener('load', async ()=>{
       if(btnListaSess) btnListaSess.style.display='block';
       if(session.tag==='VIP') document.getElementById('vip-banner').innerHTML='<div class="vip-banner">⭐ Você tem preços VIP exclusivos!</div>';
       showScreen('catalog-screen');
+      carregarCarrinhoAuto();
       await loadProdutosFirebase();
       renderCatalog();
-      setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();mostrarBotaoCupons();},300);
+      setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();mostrarBotaoCupons();renderDashboardCliente();atualizarHeaderMeta();iniciarListenerPedidosCliente();atualizarBadgeNotificacoes();aplicarTema();},300);
     }
   } catch(e){ localStorage.removeItem('leao_session'); }
 });
@@ -892,7 +1182,7 @@ function doLogin(){
         showScreen('catalog-screen');
         loadProdutosFirebase().then(()=>{
           renderCatalog();
-          setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();mostrarBotaoCupons();},300);
+          setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();mostrarBotaoCupons();renderDashboardCliente();atualizarHeaderMeta();iniciarListenerPedidosCliente();atualizarBadgeNotificacoes();aplicarTema();},300);
         });
       });
     } else {errEl.style.display='block';}
@@ -905,6 +1195,9 @@ function logout(){
   Object.keys(qtds).forEach(k=>delete qtds[k]);
   if(_unsubProdutos){ _unsubProdutos(); _unsubProdutos=null; }
   if(_unsubPromo){ _unsubPromo(); _unsubPromo=null; }
+  pararContadorPromo();
+  pararListenerPedidosCliente();
+  document.body.classList.remove('tema-escuro');
   try{ localStorage.removeItem('leao_session'); }catch(e){}
   document.getElementById('login-user').value='';
   document.getElementById('login-pass').value='';
@@ -932,7 +1225,7 @@ function showScreen(id){
 
 // ===== ADMIN =====
 async function loadAdminData(){
-  setAdminTab('clientes');
+  setAdminTab('dashboard');
   const cSnap = await db.collection('clientes').get();
   const clientsList = document.getElementById('clients-list');
   if(cSnap.empty){
@@ -951,6 +1244,7 @@ async function loadAdminData(){
           <span class="tag ${tagClass}">${c.tag}</span>
           <button class="btn-edit" onclick="editClient('${d.id}')">✏️ Editar</button>
           <button class="btn-edit" onclick="openEditPrices('${d.id}','${c.nome}')">💰 Preços</button>
+          <button class="btn-edit" onclick="abrirHistoricoCompletoCliente('${d.id}','${(c.nome||'').replace(/'/g,"\'")}')" style="background:#412402;color:#FAC775;">📜 Histórico</button>
           <button class="btn-copy" onclick="copyLink('${c.usuario}','${c.senha}')">🔗</button>
           <button class="btn-del" onclick="deleteClient('${d.id}')">🗑</button>
         </div>
@@ -964,8 +1258,15 @@ async function loadAdminData(){
 function openAddClient(){
   editingClientId=null;
   document.getElementById('modal-title').textContent='Novo Cliente';
-  ['m-name','m-user','m-pass'].forEach(id=>document.getElementById(id).value='');
+  ['m-name','m-user','m-pass','m-responsavel','m-cpfcnpj','m-tel','m-cep','m-end','m-bairro','m-cidade','m-prazo','m-cashback'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value='';
+  });
   document.getElementById('m-tag').value='Varejo';
+  const diaEl = document.getElementById('m-dia-entrega');
+  if(diaEl) diaEl.value='';
+  const ocPrecoElAdd = document.getElementById('m-ocultar-preco');
+  if(ocPrecoElAdd) ocPrecoElAdd.checked = false;
   document.getElementById('modal-client').classList.remove('hidden');
 }
 
@@ -974,10 +1275,24 @@ async function editClient(id){
   const c = docSnap.data();
   editingClientId = id;
   document.getElementById('modal-title').textContent = 'Editar Cliente';
-  document.getElementById('m-name').value = c.nome;
-  document.getElementById('m-user').value = c.usuario;
-  document.getElementById('m-pass').value = c.senha;
-  document.getElementById('m-tag').value = c.tag;
+  document.getElementById('m-name').value = c.nome||'';
+  document.getElementById('m-user').value = c.usuario||'';
+  document.getElementById('m-pass').value = c.senha||'';
+  document.getElementById('m-tag').value = c.tag||'Varejo';
+  // Campos adicionais (corrigido: não estavam sendo pré-preenchidos)
+  const setIfExists = (id,val)=>{ const el=document.getElementById(id); if(el) el.value = val!==undefined&&val!==null?val:''; };
+  setIfExists('m-responsavel', c.responsavel);
+  setIfExists('m-cpfcnpj', c.cpfcnpj);
+  setIfExists('m-tel', c.tel);
+  setIfExists('m-cep', c.cep);
+  setIfExists('m-end', c.end);
+  setIfExists('m-bairro', c.bairro);
+  setIfExists('m-cidade', c.cidade);
+  setIfExists('m-prazo', c.prazo);
+  setIfExists('m-dia-entrega', c.diaEntrega||'');
+  setIfExists('m-cashback', c.cashback);
+  const ocPrecoEl = document.getElementById('m-ocultar-preco');
+  if(ocPrecoEl) ocPrecoEl.checked = !!c.ocultarPreco;
   document.getElementById('modal-client').classList.remove('hidden');
 }
 
@@ -997,7 +1312,9 @@ async function saveClient(){
   const diaEntrega=document.getElementById('m-dia-entrega').value||'';
   if(!nome||!usuario||!senha){alert('Preencha nome, usuário e senha!');return;}
   const ocultarPreco = document.getElementById('m-ocultar-preco').checked;
-  const data={nome,responsavel,cpfcnpj,tel,cep,end,bairro,cidade,usuario,senha,tag,prazo,diaEntrega,ocultarPreco,bloqueado:false};
+  const cashbackEl = document.getElementById('m-cashback');
+  const cashback = cashbackEl && cashbackEl.value !== '' ? parseFloat(cashbackEl.value) : 0;
+  const data={nome,responsavel,cpfcnpj,tel,cep,end,bairro,cidade,usuario,senha,tag,prazo,diaEntrega,ocultarPreco,cashback,bloqueado:false};
   try {
     if(editingClientId){
       const existing = await db.collection('clientes').doc(editingClientId).get();
@@ -1060,14 +1377,20 @@ function closeModal(id){document.getElementById(id).classList.add('hidden');}
 // ===== ADMIN TABS =====
 function setAdminTab(tab){
   document.querySelectorAll('.admin-tab').forEach((t,i)=>{
-    t.classList.toggle('active',['clientes','produtos','pedidos','promo','financeiro','sorteio'][i]===tab);
+    t.classList.toggle('active',['dashboard','clientes','produtos','pedidos','promo','financeiro','roteiro','descontos','sorteio'][i]===tab);
   });
+  if(document.getElementById('tab-dashboard')) document.getElementById('tab-dashboard').style.display=tab==='dashboard'?'block':'none';
   document.getElementById('tab-clientes').style.display=tab==='clientes'?'block':'none';
   document.getElementById('tab-produtos').style.display=tab==='produtos'?'block':'none';
   document.getElementById('tab-pedidos').style.display=tab==='pedidos'?'block':'none';
   document.getElementById('tab-promo').style.display=tab==='promo'?'block':'none';
   document.getElementById('tab-financeiro').style.display=tab==='financeiro'?'block':'none';
+  if(document.getElementById('tab-roteiro')) document.getElementById('tab-roteiro').style.display=tab==='roteiro'?'block':'none';
+  if(document.getElementById('tab-descontos')) document.getElementById('tab-descontos').style.display=tab==='descontos'?'block':'none';
+  if(tab==='dashboard') loadDashboardAdmin();
   if(tab==='financeiro') loadFinanceiro();
+  if(tab==='roteiro') loadRoteiro();
+  if(tab==='descontos') loadCuponsDesconto();
   if(document.getElementById('tab-sorteio')) document.getElementById('tab-sorteio').style.display=tab==='sorteio'?'block':'none';
   if(tab==='sorteio') loadCupons();
   if(tab==='produtos') loadProdutos();
@@ -1086,6 +1409,10 @@ function openAddProduto(){
   document.getElementById('mp-preco').value='';
   document.getElementById('mp-preview').innerHTML='';
   document.getElementById('mp-foto').value='';
+  const badgeElNovo = document.getElementById('mp-badge');
+  if(badgeElNovo) badgeElNovo.value = '';
+  const estoqueElNovo = document.getElementById('mp-estoque');
+  if(estoqueElNovo) estoqueElNovo.value = '';
   document.getElementById('modal-produto').classList.remove('hidden');
 }
 
@@ -1131,7 +1458,11 @@ async function saveProduto(){
       fotoBase64 = canvas.toDataURL('image/jpeg',0.7);
     }
 
-    const data = {nome,cat,un,preco,foto:fotoBase64,ativo:true};
+    const badgeEl = document.getElementById('mp-badge');
+    const badge = badgeEl ? badgeEl.value : '';
+    const estoqueEl = document.getElementById('mp-estoque');
+    const estoque = (estoqueEl && estoqueEl.value !== '') ? parseInt(estoqueEl.value) : null;
+    const data = {nome,cat,un,preco,foto:fotoBase64,badge,estoque,ativo:true};
     if(editingProdutoId && editingProdutoId.startsWith('base_')){
       // Save override for base product
       const baseId = editingProdutoId.replace('base_','');
@@ -1216,6 +1547,10 @@ async function editProdutoBase(id, origem){
     document.getElementById('mp-cat').value = p.cat;
     document.getElementById('mp-un').value = p.un;
     document.getElementById('mp-preco').value = p.preco;
+    const badgeElB = document.getElementById('mp-badge');
+    if(badgeElB) badgeElB.value = p.badge || '';
+    const estoqueElB = document.getElementById('mp-estoque');
+    if(estoqueElB) estoqueElB.value = (p.estoque!==undefined && p.estoque!==null) ? p.estoque : '';
     const imgSrc = p.img && IMGS[p.img] ? IMGS[p.img] : '';
     document.getElementById('mp-preview').innerHTML = imgSrc ? 
       `<img src="${imgSrc}" style="width:80px;height:80px;object-fit:contain;border-radius:10px;background:#F5F0EA;padding:4px;">` : '';
@@ -1234,6 +1569,10 @@ async function editProduto(id){
   document.getElementById('mp-cat').value=p.cat;
   document.getElementById('mp-un').value=p.un;
   document.getElementById('mp-preco').value=p.preco;
+  const badgeElF = document.getElementById('mp-badge');
+  if(badgeElF) badgeElF.value = p.badge || '';
+  const estoqueElF = document.getElementById('mp-estoque');
+  if(estoqueElF) estoqueElF.value = (p.estoque!==undefined && p.estoque!==null) ? p.estoque : '';
   document.getElementById('mp-preview').innerHTML=p.foto?`<img src="${p.foto}" style="width:80px;height:80px;object-fit:contain;border-radius:10px;background:#F5F0EA;padding:4px;">`:'';
   document.getElementById('modal-produto').classList.remove('hidden');
 }
@@ -1360,28 +1699,28 @@ async function loadProdutosFirebase(){
     if(currentUser && currentUser.role === 'cliente'){
       if(!docSnap.exists || !docSnap.data().ativo){
         document.getElementById('promo-banner-wrap').innerHTML='';
-  const btnListaLogout = document.getElementById('lista-btn-wrap');
-  if(btnListaLogout) btnListaLogout.style.display='none';
         return;
       }
       const p = docSnap.data();
       const prod = getProdutos().find(x=>x.id===p.produtoId);
-      if(!prod){ document.getElementById('promo-banner-wrap').innerHTML='';
-  const btnListaLogout = document.getElementById('lista-btn-wrap');
-  if(btnListaLogout) btnListaLogout.style.display='none'; return; }
+      if(!prod){ document.getElementById('promo-banner-wrap').innerHTML=''; return; }
       const imgSrc = prod.foto || (prod.img && IMGS[prod.img]) || '';
       const imgHtml = imgSrc
         ? `<img class="promo-img" src="${imgSrc}" alt="${prod.nome}">`
         : `<div class="promo-img" style="display:flex;align-items:center;justify-content:center;font-size:28px;">🔥</div>`;
       document.getElementById('promo-banner-wrap').innerHTML = `
-        <div class="promo-banner" onclick="addPromoToCart('${p.produtoId}')">
+        <div class="promo-banner">
           <div class="promo-left">
             <div class="promo-tag">🔥 ${p.msg||'Oferta do dia'}</div>
             <div class="promo-nome">${prod.nome}</div>
             <div class="promo-preco">De ${fmt(prod.preco)} por <span>${fmt(p.preco)}</span></div>
+            ${p.expiraEm?'<div class="promo-contador" id="promo-contador"></div>':''}
+            <button class="promo-btn-comprar" onclick="addPromoToCart('${p.produtoId}')">Comprar agora</button>
           </div>
           ${imgHtml}
         </div>`;
+      if(p.expiraEm) iniciarContadorPromo(p.expiraEm);
+      else pararContadorPromo();
     }
   }, ()=>{});
 }
@@ -1391,7 +1730,7 @@ function getProdutos(){
   // Apply overrides to base products
   const base = produtosBase.map(p=>{
     const ov = overrides[p.id];
-    if(ov) return {...p, nome:ov.nome||p.nome, preco:ov.preco||p.preco, foto:ov.foto||'', un:ov.un||p.un, cat:ov.cat||p.cat, ativo:ov.ativo};
+    if(ov) return {...p, nome:ov.nome||p.nome, preco:ov.preco||p.preco, foto:ov.foto||'', un:ov.un||p.un, cat:ov.cat||p.cat, badge:ov.badge||p.badge||'', estoque:(ov.estoque!==undefined?ov.estoque:p.estoque), ativo:ov.ativo};
     return p;
   }).filter(p=>p.ativo!==false);
   // Add new Firebase products (not overrides)
@@ -1416,6 +1755,7 @@ function setcat(c){catAtiva=c;renderCatalog();}
 function renderCatalog(){
   renderTabs();
   const _ocPreco = (currentClientData && currentClientData.ocultarPreco) || (currentClientData && currentClientData.tag==='SemPreco');
+  const _favoritos = getFavoritos();
   const search=document.getElementById('search').value.toLowerCase();
   const produtos=getProdutos();
   const el=document.getElementById('catalog');
@@ -1435,12 +1775,32 @@ function renderCatalog(){
         ?`<img class="pimg" src="${imgSrc}" alt="${p.nome}" loading="lazy" onclick="openFotoModal('${imgSrc}')" style="cursor:zoom-in;">`
         :`<div class="pimg-ph">${cat.icon}</div>`;
       const origHtml='';
+
+      // Badge (Novidade/Destaque/Mais vendido)
+      const badgeLabels={novo:'✨ Novidade',destaque:'⭐ Destaque',maisvendido:'🔥 Mais vendido'};
+      const badgeHtml = p.badge && badgeLabels[p.badge]
+        ? `<span class="prod-badge badge-${p.badge}">${badgeLabels[p.badge]}</span>` : '';
+
+      // Estoque (opcional - só mostra se admin definiu um valor)
+      let estoqueHtml = '';
+      if(p.estoque !== undefined && p.estoque !== null){
+        if(p.estoque <= 0) estoqueHtml = `<div class="pestoque pestoque-zero">Esgotado</div>`;
+        else if(p.estoque <= 5) estoqueHtml = `<div class="pestoque pestoque-baixo">⚠️ Restam só ${p.estoque}</div>`;
+        else estoqueHtml = `<div class="pestoque pestoque-ok">✅ Disponível</div>`;
+      }
+
+      // Favorito
+      const isFav = _favoritos.includes(p.id);
+
       html+=`<div class="pcard">
+        <button class="pfav-btn${isFav?' active':''}" onclick="toggleFavorito('${p.id}',event)">${isFav?'❤️':'🤍'}</button>
         ${imgHtml}
         <div class="pinfo">
+          ${badgeHtml}
           <div class="pname">${p.nome}</div>
           <div class="pdesc">${p.un}</div>
           <div class="pprice">${_ocPreco ? '' : fmt(p.precoFinal)+origHtml}</div>
+          ${estoqueHtml}
         </div>
         <div class="qty-ctrl">
           <button class="qty-btn" onclick="alter('${p.id}',1)">+</button>
@@ -1457,7 +1817,46 @@ function renderCatalog(){
   document.getElementById('wbtn').disabled = !count;
 }
 
-function alter(id,d){qtds[id]=Math.max(0,(qtds[id]||0)+d);renderCatalog();}
+function alter(id,d){
+  const eraZero = !qtds[id] || qtds[id]===0;
+  qtds[id]=Math.max(0,(qtds[id]||0)+d);
+  renderCatalog();
+  salvarCarrinhoAuto();
+  // Mostra relacionados só quando adiciona o 1º item desse produto (não no F5 de quantidade)
+  if(eraZero && d>0 && qtds[id]>0){
+    mostrarRelacionados(id);
+  }
+}
+
+// ===== SALVAR CARRINHO AUTOMATICAMENTE (persiste ao minimizar/fechar) =====
+function salvarCarrinhoAuto(){
+  if(!currentUser || !currentUser.id) return;
+  try {
+    const carrinhoLimpo = {};
+    Object.keys(qtds).forEach(k=>{ if(qtds[k]>0) carrinhoLimpo[k]=qtds[k]; });
+    localStorage.setItem('carrinho_'+currentUser.id, JSON.stringify(carrinhoLimpo));
+  } catch(e){}
+}
+
+function carregarCarrinhoAuto(){
+  if(!currentUser || !currentUser.id) return;
+  try {
+    const saved = localStorage.getItem('carrinho_'+currentUser.id);
+    if(saved){
+      const carrinhoSalvo = JSON.parse(saved);
+      const temItens = Object.keys(carrinhoSalvo).some(k=>carrinhoSalvo[k]>0);
+      Object.keys(carrinhoSalvo).forEach(k=>{ qtds[k]=carrinhoSalvo[k]; });
+      if(temItens){
+        setTimeout(()=>showNotif('🛒 Seu carrinho foi restaurado!'), 600);
+      }
+    }
+  } catch(e){}
+}
+
+function limparCarrinhoSalvo(){
+  if(!currentUser || !currentUser.id) return;
+  try { localStorage.removeItem('carrinho_'+currentUser.id); } catch(e){}
+}
 
 function salvarUltimoPedido(itens, total){
   try {
@@ -1528,14 +1927,22 @@ function abrirPedidoSheet(){
     linhas.push('');
   });
 
-  linhas.push('💰 *Total: '+fmt(total)+'*');
-  linhas.push('_Aguardo confirmação e endereço de entrega!_');
+  // Reseta cupom de desconto aplicado anteriormente (cada pedido começa limpo)
+  _cupomDescontoAplicado = null;
+  const cupomInput = document.getElementById('cupom-desconto-input');
+  if(cupomInput) cupomInput.value = '';
+  const cupomMsg = document.getElementById('cupom-desconto-msg');
+  if(cupomMsg) cupomMsg.textContent = '';
 
   _pedidoAtual = {linhas, total, totalItens, itensSalvar, itensList};
 
   document.getElementById('pedido-sheet-itens').innerHTML = itensHtml;
   document.getElementById('pedido-sheet-total').textContent = fmt(total);
   document.getElementById('pedido-sheet-sub').textContent = totalItens+' item'+(totalItens!==1?'s':'')+' no pedido';
+
+  // Mostra campo de cupom só quando o preço é visível
+  const cupomWrap = document.getElementById('cupom-desconto-wrap');
+  if(cupomWrap) cupomWrap.style.display = _ocPreco ? 'none' : 'block';
 
   const overlay = document.getElementById('pedido-overlay');
   overlay.style.display = 'flex';
@@ -1550,10 +1957,27 @@ function fecharPedidoSheet(){
 
 async function confirmarEnvio(){
   if(!_pedidoAtual) return;
-  const {linhas, total, totalItens, itensSalvar, itensList} = _pedidoAtual;
+  const {linhas, total: totalOriginal, totalItens, itensSalvar, itensList} = _pedidoAtual;
+
+  // Aplica desconto do cupom (se houver) ANTES de salvar/enviar
+  const descontoAplicado = calcularDescontoCupom(totalOriginal);
+  const total = totalOriginal - descontoAplicado;
+  const cupomUsado = _cupomDescontoAplicado;
 
   // Fechar sheet antes de abrir WhatsApp
   fecharPedidoSheet();
+
+  // Monta linhas com o desconto refletido no total final
+  const linhasComDesconto = [...linhas];
+  if(descontoAplicado > 0){
+    // Substitui a linha de total original pela versão com desconto
+    const idxTotal = linhasComDesconto.findIndex(l=>l.startsWith('💰'));
+    if(idxTotal !== -1){
+      linhasComDesconto.splice(idxTotal, 0,
+        `🎫 Cupom ${cupomUsado.id}: -${fmt(descontoAplicado)}`);
+      linhasComDesconto[idxTotal+1] = '💰 *Total: '+fmt(total)+'*';
+    }
+  }
 
   // 1. Salva pedido e gera cupons ANTES de montar mensagem
   salvarUltimoPedido(itensSalvar, fmt(total));
@@ -1561,8 +1985,17 @@ async function confirmarEnvio(){
     currentUser.id, currentClientData.nome, totalItens, fmt(total), itensList||[], total
   );
 
+  // Registra o uso do cupom de desconto (incrementa contador real)
+  if(cupomUsado){
+    try {
+      await db.collection('cupons_desconto').doc(cupomUsado.id).update({
+        usos: firebase.firestore.FieldValue.increment(1)
+      });
+    } catch(e){}
+  }
+
   // 2. Monta mensagem com cupom se ganhou
-  const todasLinhas = [...linhas];
+  const todasLinhas = [...linhasComDesconto];
   if(novosCupons && novosCupons.length){
     todasLinhas.push('');
     todasLinhas.push('🏆 *PROMOÇÃO COPA LEÃO*');
@@ -1628,6 +2061,7 @@ async function mostrarSucesso(totalFmt, qtdItens, totalNumerico, cuponsGerados){
           <div style="font-size:12px;color:#FFD700;font-weight:600;margin-top:6px;">🎁 Prêmio: Camisa Oficial do Brasil!</div>
           <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:4px;">Total: ${cuponsTotal} cupom${cuponsTotal!==1?'s':''} • Sorteio: 18/07/2026</div>
         </div>`;
+        adicionarNotificacao('cupom', 'Novo cupom do sorteio!', `Você ganhou ${cuponsGerados.length} cupom(s): ${cuponsGerados.join(', ')}`);
       } else if(cuponsNestePedido > 0){
         cuponsHtml = `<div style="background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:16px;padding:14px;margin:12px 0;text-align:center;">
           <div style="font-size:12px;color:#FFD700;font-weight:700;margin-bottom:6px;">🏆 VOCÊ GANHOU CUPOM(S) DO SORTEIO!</div>
@@ -1658,6 +2092,7 @@ async function mostrarSucesso(totalFmt, qtdItens, totalNumerico, cuponsGerados){
   document.body.appendChild(el);
   setTimeout(()=>{ el.style.opacity='1'; el.querySelector('.sucesso-box').style.transform='translateY(0)'; },10);
   Object.keys(qtds).forEach(k=>delete qtds[k]);
+  limparCarrinhoSalvo();
   renderCatalog();
 }
 
@@ -1676,6 +2111,7 @@ function closeFotoModal(){
 }
 
 // ===== PROMOÇÃO DO DIA =====
+let _ultimaPromoNotificada = null;
 async function loadPromo(){
   try {
     const doc = await db.collection('config').doc('promo').get();
@@ -1684,23 +2120,33 @@ async function loadPromo(){
     if(!p.ativo) return;
     const prod = getProdutos().find(x=>x.id===p.produtoId);
     if(!prod) return;
+    // Notifica só quando é uma promoção nova (produto diferente da última vista)
+    if(_ultimaPromoNotificada !== p.produtoId){
+      adicionarNotificacao('promocao', 'Nova promoção!', `${prod.nome} por ${fmt(p.preco)} — confira no catálogo!`);
+      _ultimaPromoNotificada = p.produtoId;
+    }
     const imgSrc = prod.foto || (prod.img && IMGS[prod.img]) || '';
     const imgHtml = imgSrc ? `<img class="promo-img" src="${imgSrc}" alt="${prod.nome}">` : `<div class="promo-img" style="display:flex;align-items:center;justify-content:center;font-size:28px;">🔥</div>`;
     document.getElementById('promo-banner-wrap').innerHTML = `
-      <div class="promo-banner" onclick="addPromoToCart('${p.produtoId}')">
+      <div class="promo-banner">
         <div class="promo-left">
           <div class="promo-tag">🔥 ${p.msg||'Oferta do dia'}</div>
           <div class="promo-nome">${prod.nome}</div>
           <div class="promo-preco">De ${fmt(prod.preco)} por <span>${fmt(p.preco)}</span></div>
+          ${p.expiraEm?'<div class="promo-contador" id="promo-contador"></div>':''}
+          <button class="promo-btn-comprar" onclick="addPromoToCart('${p.produtoId}')">Comprar agora</button>
         </div>
         ${imgHtml}
       </div>`;
+    if(p.expiraEm) iniciarContadorPromo(p.expiraEm);
+    else pararContadorPromo();
   } catch(e){}
 }
 
 function addPromoToCart(id){
   qtds[id]=(qtds[id]||0)+1;
   renderCatalog();
+  salvarCarrinhoAuto();
   showNotif('✅ Produto adicionado ao carrinho!');
 }
 
@@ -1729,8 +2175,10 @@ async function savePromo(){
   const produtoId = document.getElementById('promo-produto').value;
   const preco = parseFloat(document.getElementById('promo-preco').value);
   const msg = document.getElementById('promo-msg').value.trim();
+  const expiraInput = document.getElementById('promo-expira').value;
+  const expiraEm = expiraInput ? new Date(expiraInput).getTime() : null;
   if(!produtoId||!preco){alert('Preencha produto e preço!');return;}
-  await db.collection('config').doc('promo').set({produtoId,preco,msg,ativo:true});
+  await db.collection('config').doc('promo').set({produtoId,preco,msg,expiraEm,ativo:true});
   document.getElementById('promo-status').textContent = '✅ Promoção ativada!';
   document.getElementById('promo-status').style.color = '#27500A';
 }
@@ -2388,7 +2836,7 @@ async function loadSugestaoReposicao(){
     snap.forEach(d=>{
       const o = d.data();
       if(o.itensList) o.itensList.forEach(i=>{
-        contagem[i.id] = (contagem[i.id]||{nome:i.nome,qty:0});
+        contagem[i.id] = (contagem[i.id]||{id:i.id,nome:i.nome,qty:0});
         contagem[i.id].qty += i.qty;
       });
     });
@@ -2397,10 +2845,19 @@ async function loadSugestaoReposicao(){
     if(!top.length) return;
 
     el.innerHTML = `<div style="background:linear-gradient(135deg,#FFF7ED,#FEF3C7);border:1.5px solid #F59E0B;border-radius:14px;padding:12px 16px;margin-bottom:12px;">
-      <div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:6px;">🔄 Hora de repor!</div>
-      <div style="font-size:13px;color:#412402;">${top.map(t=>`<span style="background:#fff;border-radius:20px;padding:4px 10px;margin:2px;display:inline-block;font-size:12px;">📦 ${t.nome}</span>`).join('')}</div>
+      <div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:8px;">🔄 Você costuma comprar:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${top.map(t=>`<button onclick="comprarNovamente('${t.id}')" style="background:#fff;border:1px solid #F59E0B;border-radius:20px;padding:5px 12px;font-size:12px;color:#412402;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">📦 ${t.nome} +</button>`).join('')}
+      </div>
     </div>`;
   } catch(e){}
+}
+
+function comprarNovamente(produtoId){
+  qtds[produtoId] = (qtds[produtoId]||0) + 1;
+  renderCatalog();
+  salvarCarrinhoAuto();
+  showNotif('✅ Adicionado ao carrinho!');
 }
 
 // ===== EDITAR PEDIDO =====
@@ -3159,6 +3616,1336 @@ async function loadFinanceiro(){
   } catch(e){
     finList.innerHTML='<div class="empty-state">Erro: '+e.message+'</div>';
     console.error('loadFinanceiro erro:', e);
+  }
+}
+
+// ===== SALVAR CARRINHO QUANDO MINIMIZA / FECHA / TROCA DE ABA =====
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'hidden'){
+    salvarCarrinhoAuto();
+  }
+});
+window.addEventListener('pagehide', salvarCarrinhoAuto);
+window.addEventListener('beforeunload', salvarCarrinhoAuto);
+
+// ===== FASE 1: DASHBOARD DO CLIENTE =====
+let _dashboardColapsado = false;
+
+function saudacaoHora(){
+  const h = new Date().getHours();
+  if(h < 12) return 'Bom dia';
+  if(h < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
+
+async function renderDashboardCliente(){
+  const el = document.getElementById('dashboard-cliente');
+  if(!el || !currentUser || currentUser.role !== 'cliente') return;
+
+  if(_dashboardColapsado){
+    el.innerHTML = `<div class="dash-toggle"><button onclick="_dashboardColapsado=false;renderDashboardCliente();">▼ Mostrar resumo</button></div>`;
+    return;
+  }
+
+  const nome = (currentClientData.nome||'').split(' ')[0];
+  const saudacao = saudacaoHora();
+
+  // Dia de entrega
+  const diasNomes=['','Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  const diaEntrega = currentClientData.diaEntrega ? diasNomes[currentClientData.diaEntrega] : '-';
+
+  // Último pedido salvo localmente
+  let ultimoPedidoHtml = '';
+  try {
+    const saved = localStorage.getItem('ultimo_pedido_'+currentUser.id);
+    if(saved){
+      const pedido = JSON.parse(saved);
+      ultimoPedidoHtml = `<div class="dash-ultimo-pedido">
+        <div class="dash-ultimo-pedido-row">
+          <div>
+            <div class="dash-ultimo-label">📦 Último pedido</div>
+            <div class="dash-ultimo-data">${pedido.data}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="dash-ultimo-label">Valor</div>
+            <div class="dash-ultimo-valor">${pedido.total}</div>
+          </div>
+        </div>
+        <button class="dash-btn-repetir" onclick="repetirPedido()">🔄 Repetir último pedido</button>
+      </div>`;
+    }
+  } catch(e){}
+
+  // Cupons (se promoção ativa)
+  let cuponsCount = 0;
+  try {
+    const agora = new Date();
+    const inicioPromo = new Date('2026-06-16');
+    const fimPromo = new Date('2026-07-18');
+    if(agora >= inicioPromo && agora <= fimPromo){
+      const snap = await db.collection('cupons').where('clienteId','==',currentUser.id).get();
+      cuponsCount = snap.size;
+    }
+  } catch(e){}
+
+  const vipTag = currentClientData.tag==='VIP' ? `<div class="dash-vip-tag">⭐ Cliente VIP</div>` : '';
+  const favoritosCount = getFavoritos().length;
+  const novidadesCount = getProdutos().filter(p=>p.badge==='novo').length;
+
+  // Cashback - busca saldo atualizado direto do Firestore (controlado pelo admin)
+  let cashbackSaldo = 0;
+  try {
+    const cliDoc = await db.collection('clientes').doc(currentUser.id).get();
+    if(cliDoc.exists) cashbackSaldo = cliDoc.data().cashback || 0;
+  } catch(e){}
+  const cashbackHtml = cashbackSaldo > 0 ? `<div style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);border-radius:14px;padding:12px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <div style="font-size:11px;color:#92400E;font-weight:600;">💵 Você possui</div>
+      <div style="font-size:20px;font-weight:800;color:#78350F;">${fmt(cashbackSaldo)}</div>
+      <div style="font-size:10px;color:#92400E;">de crédito disponível</div>
+    </div>
+    <div style="font-size:32px;">💰</div>
+  </div>` : '';
+
+  el.innerHTML = `
+    <div class="dash-wrap">
+      <div class="dash-toggle" style="display:flex;justify-content:space-between;">
+        <button onclick="toggleTema()">${getTemaPreferido()?'☀️ Modo claro':'🌙 Modo escuro'}</button>
+        <button onclick="_dashboardColapsado=true;renderDashboardCliente();">▲ Ocultar resumo</button>
+      </div>
+      <div class="dash-saudacao">${saudacao}, ${nome}! ${vipTag}</div>
+      <div class="dash-grid">
+        <div class="dash-card">
+          <div class="dash-card-icon">🚚</div>
+          <div class="dash-card-label">Próxima entrega</div>
+          <div class="dash-card-value">${diaEntrega}</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-icon">🎟</div>
+          <div class="dash-card-label">Cupons sorteio</div>
+          <div class="dash-card-value">${cuponsCount}</div>
+        </div>
+        <div class="dash-card" onclick="abrirFavoritos()" style="cursor:pointer;">
+          <div class="dash-card-icon">❤️</div>
+          <div class="dash-card-label">Favoritos</div>
+          <div class="dash-card-value">${favoritosCount} item${favoritosCount!==1?'s':''}</div>
+        </div>
+        <div class="dash-card" onclick="abrirHistorico()" style="cursor:pointer;">
+          <div class="dash-card-icon">📋</div>
+          <div class="dash-card-label">Meus pedidos</div>
+          <div class="dash-card-value">Ver histórico</div>
+        </div>
+        ${novidadesCount>0?`<div class="dash-card" onclick="abrirNovidades()" style="cursor:pointer;grid-column:1/-1;background:linear-gradient(135deg,#DCFCE7,#F0FDF4);border-color:#86EFAC;">
+          <div class="dash-card-icon">✨</div>
+          <div class="dash-card-label">Novidades</div>
+          <div class="dash-card-value">${novidadesCount} produto${novidadesCount!==1?'s':''} novo${novidadesCount!==1?'s':''}!</div>
+        </div>`:''}
+      </div>
+      ${cashbackHtml}
+      ${ultimoPedidoHtml}
+    </div>`;
+}
+
+// ===== FASE 1: METADADOS DO CABEÇALHO =====
+function atualizarHeaderMeta(){
+  const el = document.getElementById('cat-header-meta');
+  if(!el || !currentClientData) return;
+  const diasNomes=['','Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  const partes = [];
+  if(currentClientData.cidade) partes.push('📍 '+currentClientData.cidade);
+  if(currentClientData.diaEntrega) partes.push('🚚 '+(diasNomes[currentClientData.diaEntrega]||''));
+  el.innerHTML = partes.map(p=>'<span>'+p+'</span>').join('');
+
+  // Mostra ícone de cupons se promoção ativa
+  const agora = new Date();
+  const inicioPromo = new Date('2026-06-16');
+  const fimPromo = new Date('2026-07-18');
+  const iconCupons = document.getElementById('icon-cupons');
+  if(iconCupons) iconCupons.style.display = (agora>=inicioPromo && agora<=fimPromo) ? 'flex' : 'none';
+}
+
+// ===== FASE 3: CENTRAL DE NOTIFICAÇÕES (CLIENTE) =====
+// Notificações são geradas a partir de eventos reais e guardadas por cliente
+function getNotificacoes(){
+  if(!currentUser || !currentUser.id) return [];
+  try {
+    const saved = localStorage.getItem('notif_'+currentUser.id);
+    return saved ? JSON.parse(saved) : [];
+  } catch(e){ return []; }
+}
+
+function adicionarNotificacao(tipo, titulo, texto){
+  if(!currentUser || !currentUser.id) return;
+  try {
+    let notifs = getNotificacoes();
+    notifs.unshift({
+      id: Date.now()+'_'+Math.floor(Math.random()*1000),
+      tipo, titulo, texto,
+      data: new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),
+      lida: false
+    });
+    notifs = notifs.slice(0,30); // mantém só as 30 mais recentes
+    localStorage.setItem('notif_'+currentUser.id, JSON.stringify(notifs));
+    atualizarBadgeNotificacoes();
+  } catch(e){}
+}
+
+function atualizarBadgeNotificacoes(){
+  const badge = document.getElementById('notif-icon-badge');
+  if(!badge) return;
+  const naoLidas = getNotificacoes().filter(n=>!n.lida).length;
+  if(naoLidas > 0){
+    badge.textContent = naoLidas > 9 ? '9+' : naoLidas;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function abrirNotificacoes(){
+  showScreen('notificacoes-screen');
+  // Marca todas como lidas ao abrir
+  try {
+    let notifs = getNotificacoes();
+    notifs.forEach(n=>n.lida=true);
+    localStorage.setItem('notif_'+currentUser.id, JSON.stringify(notifs));
+  } catch(e){}
+  atualizarBadgeNotificacoes();
+  renderNotificacoesScreen();
+}
+
+function renderNotificacoesScreen(){
+  const body = document.getElementById('notificacoes-body');
+  if(!body) return;
+  const notifs = getNotificacoes();
+  if(!notifs.length){
+    body.innerHTML = `<div style="text-align:center;padding:3rem 1rem;">
+      <div style="font-size:48px;margin-bottom:12px;">🔔</div>
+      <div style="font-size:16px;font-weight:700;color:#412402;margin-bottom:8px;">Nenhuma notificação ainda</div>
+      <div style="font-size:13px;color:#999;">Avisos sobre pedidos, promoções e cupons aparecem aqui.</div>
+    </div>`;
+    return;
+  }
+  const icones = {pedido:'📦', promocao:'🔥', cupom:'🎟', sistema:'🔔'};
+  let html = '';
+  notifs.forEach(n=>{
+    html += `<div style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.05);display:flex;gap:10px;align-items:flex-start;">
+      <div style="font-size:22px;flex-shrink:0;">${icones[n.tipo]||'🔔'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:#412402;">${n.titulo}</div>
+        <div style="font-size:12px;color:#666;margin-top:2px;">${n.texto}</div>
+        <div style="font-size:10px;color:#aaa;margin-top:4px;">${n.data}</div>
+      </div>
+    </div>`;
+  });
+  body.innerHTML = html;
+}
+
+// ===== FASE 4: FINANCEIRO DO CLIENTE (dados reais, somente leitura) =====
+function abrirMeuFinanceiro(){
+  showScreen('fin-cliente-screen');
+  renderFinanceiroCliente();
+}
+
+async function renderFinanceiroCliente(){
+  const body = document.getElementById('fin-cliente-body');
+  if(!body) return;
+  body.innerHTML = '<div class="loading">Carregando...</div>';
+
+  try {
+    const snap = await db.collection('pedidos').where('clienteId','==',currentUser.id).get();
+    let pedidos = [];
+    snap.forEach(d=>{ pedidos.push({id:d.id,...d.data()}); });
+
+    if(!pedidos.length){
+      body.innerHTML = `<div style="text-align:center;padding:3rem 1rem;">
+        <div style="font-size:48px;margin-bottom:12px;">💰</div>
+        <div style="font-size:16px;font-weight:700;color:#412402;">Nenhum pedido ainda</div>
+        <div style="font-size:13px;color:#999;margin-top:6px;">Seu histórico financeiro aparece aqui depois do primeiro pedido.</div>
+      </div>`;
+      return;
+    }
+
+    const prazo = currentClientData.prazo || 0;
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+    let totalAberto = 0, totalPago = 0, proximoVencimento = null;
+    const historicoPagamentos = [];
+    const pedidosAbertos = [];
+
+    pedidos.forEach(o=>{
+      const totalNum = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'))||0;
+      const valorPago = o.valorPago||0;
+      const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : new Date();
+      const venc = new Date(dt.getTime() + prazo*24*60*60*1000);
+
+      if(o.pago){
+        totalPago += totalNum;
+      } else {
+        const saldo = totalNum - valorPago;
+        totalAberto += saldo;
+        if(!proximoVencimento || venc < proximoVencimento) proximoVencimento = venc;
+        pedidosAbertos.push({id:o.id, saldo, venc, total:o.total});
+      }
+
+      if(o.historicoPage && o.historicoPage.length){
+        o.historicoPage.forEach(h=>{ historicoPagamentos.push(h); });
+      }
+    });
+
+    historicoPagamentos.reverse();
+    pedidosAbertos.sort((a,b)=>a.venc-b.venc);
+
+    const vencHtml = proximoVencimento
+      ? `<div class="dash-card-value" style="color:${proximoVencimento<hoje?'#DC2626':'#412402'};">${proximoVencimento.toLocaleDateString('pt-BR')}</div>`
+      : `<div class="dash-card-value">—</div>`;
+
+    let html = `
+      <div class="dash-grid" style="margin-bottom:10px;">
+        <div class="dash-card">
+          <div class="dash-card-icon">📤</div>
+          <div class="dash-card-label">Em aberto</div>
+          <div class="dash-card-value" style="color:${totalAberto>0?'#DC2626':'#412402'};">${fmt(totalAberto)}</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-icon">✅</div>
+          <div class="dash-card-label">Total pago</div>
+          <div class="dash-card-value" style="color:#15803D;">${fmt(totalPago)}</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-icon">📅</div>
+          <div class="dash-card-label">Próximo vencimento</div>
+          ${vencHtml}
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-icon">⏱</div>
+          <div class="dash-card-label">Prazo de pagamento</div>
+          <div class="dash-card-value">${prazo>0?prazo+' dias':'À vista'}</div>
+        </div>
+      </div>`;
+
+    // FASE 4: Segunda via - copiar código Pix de cada pedido em aberto
+    if(pedidosAbertos.length){
+      html += `<div style="font-size:13px;font-weight:700;color:#412402;margin:14px 0 8px;">📱 Pagar com Pix</div>`;
+      pedidosAbertos.forEach(p=>{
+        html += `<div style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 6px rgba(0,0,0,0.05);">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#412402;">${fmt(p.saldo)}</div>
+            <div style="font-size:11px;color:#999;">Vencimento: ${p.venc.toLocaleDateString('pt-BR')}</div>
+          </div>
+          <button onclick="copiarCodigoPix(${p.saldo},'${p.id.slice(-6)}')" style="background:linear-gradient(135deg,#32BCAD,#0D9488);color:#fff;border:none;padding:9px 14px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;">
+            📋 Copiar Pix
+          </button>
+        </div>`;
+      });
+      html += `<div style="font-size:11px;color:#999;margin:4px 0 14px;text-align:center;">Cole o código copiado no app do seu banco, na opção "Pix Copia e Cola"</div>`;
+    }
+
+    html += `<div style="font-size:13px;font-weight:700;color:#412402;margin:14px 0 8px;">📜 Histórico de pagamentos</div>`;
+    if(!historicoPagamentos.length){
+      html += `<div style="text-align:center;padding:1.5rem;color:#999;font-size:13px;background:#fff;border-radius:14px;">Nenhum pagamento registrado ainda.</div>`;
+    } else {
+      historicoPagamentos.forEach(h=>{
+        html += `<div style="background:#fff;border-radius:12px;padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 6px rgba(0,0,0,0.04);">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#2D1A00;">R$ ${h.valor}</div>
+            <div style="font-size:11px;color:#999;">${h.forma||'Pagamento'} ${h.obs?'• '+h.obs:''}</div>
+          </div>
+          <div style="font-size:11px;color:#999;">${h.data}</div>
+        </div>`;
+      });
+    }
+
+    body.innerHTML = html;
+  } catch(e){
+    body.innerHTML = '<div style="text-align:center;padding:2rem;color:#999;">Erro ao carregar dados financeiros.</div>';
+  }
+}
+
+// ===== FASE 2: FAVORITOS =====
+function getFavoritos(){
+  if(!currentUser || !currentUser.id) return [];
+  try {
+    const saved = localStorage.getItem('favoritos_'+currentUser.id);
+    return saved ? JSON.parse(saved) : [];
+  } catch(e){ return []; }
+}
+
+function toggleFavorito(id, event){
+  if(event) event.stopPropagation();
+  if(!currentUser || !currentUser.id) return;
+  try {
+    let favs = getFavoritos();
+    if(favs.includes(id)) favs = favs.filter(f=>f!==id);
+    else favs.push(id);
+    localStorage.setItem('favoritos_'+currentUser.id, JSON.stringify(favs));
+    renderCatalog();
+  } catch(e){}
+}
+
+// ===== FASE 2: RENDERIZAR TELA DE FAVORITOS =====
+function abrirFavoritos(){
+  showScreen('favoritos-screen');
+  renderFavoritosScreen();
+}
+
+function renderFavoritosScreen(){
+  const body = document.getElementById('favoritos-body');
+  if(!body) return;
+  const favs = getFavoritos();
+  const produtos = getProdutos();
+  const _ocPreco = (currentClientData && currentClientData.ocultarPreco) || (currentClientData && currentClientData.tag==='SemPreco');
+
+  if(!favs.length){
+    body.innerHTML = `<div style="text-align:center;padding:3rem 1rem;">
+      <div style="font-size:48px;margin-bottom:12px;">🤍</div>
+      <div style="font-size:16px;font-weight:700;color:#412402;margin-bottom:8px;">Você ainda não tem favoritos</div>
+      <div style="font-size:13px;color:#999;">Toque no coração de um produto para adicionar aqui!</div>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  favs.forEach(id=>{
+    const p = produtos.find(x=>x.id===id);
+    if(!p) return;
+    const q = qtds[p.id]||0;
+    const imgSrc = p.foto||(p.img&&IMGS[p.img])||'';
+    const cat = cats.find(c=>c.nome===p.cat);
+    const imgHtml = imgSrc
+      ? `<img class="pimg" src="${imgSrc}" alt="${p.nome}" loading="lazy" onclick="openFotoModal('${imgSrc}')" style="cursor:zoom-in;">`
+      : `<div class="pimg-ph">${cat?cat.icon:'📦'}</div>`;
+    html += `<div class="pcard">
+      <button class="pfav-btn active" onclick="toggleFavorito('${p.id}',event);renderFavoritosScreen();">❤️</button>
+      ${imgHtml}
+      <div class="pinfo">
+        <div class="pname">${p.nome}</div>
+        <div class="pdesc">${p.un}</div>
+        <div class="pprice">${_ocPreco ? '' : fmt(p.precoFinal||p.preco)}</div>
+      </div>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="alter('${p.id}',1);renderFavoritosScreen();">+</button>
+        <span class="qty-num${q>0?' active':''}">${q}</span>
+        <button class="qty-btn" onclick="alter('${p.id}',-1);renderFavoritosScreen();">−</button>
+      </div>
+    </div>`;
+  });
+  body.innerHTML = html || `<div style="text-align:center;padding:2rem;color:#999;">Produtos favoritos não encontrados no catálogo atual.</div>`;
+}
+
+// ===== FASE 2: PRODUTOS RELACIONADOS =====
+let _relUltimoMostrado = null;
+function mostrarRelacionados(produtoId){
+  // Evita mostrar repetido pro mesmo produto em sequência rápida
+  if(_relUltimoMostrado === produtoId) return;
+
+  const produtos = getProdutos();
+  const prod = produtos.find(p=>p.id===produtoId);
+  if(!prod) return;
+
+  // Pega outros produtos da mesma categoria, que não estão no carrinho ainda
+  const relacionados = produtos.filter(p=>
+    p.cat === prod.cat && p.id !== produtoId && (!qtds[p.id] || qtds[p.id]===0)
+  ).slice(0,4);
+
+  if(!relacionados.length) return; // nada pra sugerir
+
+  _relUltimoMostrado = produtoId;
+  const _ocPreco = (currentClientData && currentClientData.ocultarPreco) || (currentClientData && currentClientData.tag==='SemPreco');
+
+  document.getElementById('rel-titulo-texto').textContent = 'Quem compra ' + prod.nome.split(' ').slice(0,2).join(' ') + ' também compra:';
+
+  let html = '';
+  relacionados.forEach(p=>{
+    const imgSrc = p.foto||(p.img&&IMGS[p.img])||'';
+    const cat = cats.find(c=>c.nome===p.cat);
+    const imgHtml = imgSrc ? `<img class="rel-item-img" src="${imgSrc}" alt="${p.nome}" loading="lazy">` : `<div class="rel-item-img" style="display:flex;align-items:center;justify-content:center;font-size:20px;">${cat?cat.icon:'📦'}</div>`;
+    html += `<div class="rel-item">
+      ${imgHtml}
+      <div class="rel-item-info">
+        <div class="rel-item-nome">${p.nome}</div>
+        ${_ocPreco?'':'<div class="rel-item-preco">'+fmt(p.precoFinal)+'</div>'}
+      </div>
+      <button class="rel-item-add" onclick="alterSemRelacionado('${p.id}',1);atualizarItemRelacionado('${p.id}')">+</button>
+    </div>`;
+  });
+  document.getElementById('rel-itens-lista').innerHTML = html;
+
+  const overlay = document.getElementById('relacionados-overlay');
+  overlay.style.display = 'flex';
+  setTimeout(()=>overlay.classList.add('visible'), 10);
+
+  // Auto-fecha depois de um tempo se o cliente não interagir
+  clearTimeout(window._relAutoClose);
+  window._relAutoClose = setTimeout(fecharRelacionados, 8000);
+}
+
+// Adiciona item sem reabrir o ciclo de relacionados (evita loop infinito de sheets)
+function alterSemRelacionado(id, d){
+  qtds[id] = Math.max(0,(qtds[id]||0)+d);
+  renderCatalog();
+  salvarCarrinhoAuto();
+}
+
+function atualizarItemRelacionado(id){
+  showNotif('✅ Adicionado ao carrinho!');
+}
+
+function fecharRelacionados(){
+  const overlay = document.getElementById('relacionados-overlay');
+  overlay.classList.remove('visible');
+  clearTimeout(window._relAutoClose);
+  setTimeout(()=>{ overlay.style.display='none'; }, 250);
+}
+
+// ===== FASE 3: NOVIDADES (produtos marcados como "novo") =====
+function abrirNovidades(){
+  showScreen('novidades-screen');
+  renderNovidadesScreen();
+}
+
+function renderNovidadesScreen(){
+  const body = document.getElementById('novidades-body');
+  if(!body) return;
+  const produtos = getProdutos();
+  const _ocPreco = (currentClientData && currentClientData.ocultarPreco) || (currentClientData && currentClientData.tag==='SemPreco');
+  const novidades = produtos.filter(p=>p.badge==='novo');
+
+  if(!novidades.length){
+    body.innerHTML = `<div style="text-align:center;padding:3rem 1rem;">
+      <div style="font-size:48px;margin-bottom:12px;">✨</div>
+      <div style="font-size:16px;font-weight:700;color:#412402;margin-bottom:8px;">Nenhuma novidade no momento</div>
+      <div style="font-size:13px;color:#999;">Quando chegarem produtos novos, eles aparecem aqui!</div>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  novidades.forEach(p=>{
+    const q = qtds[p.id]||0;
+    const imgSrc = p.foto||(p.img&&IMGS[p.img])||'';
+    const cat = cats.find(c=>c.nome===p.cat);
+    const imgHtml = imgSrc
+      ? `<img class="pimg" src="${imgSrc}" alt="${p.nome}" loading="lazy" onclick="openFotoModal('${imgSrc}')" style="cursor:zoom-in;">`
+      : `<div class="pimg-ph">${cat?cat.icon:'📦'}</div>`;
+    const isFav = getFavoritos().includes(p.id);
+    html += `<div class="pcard">
+      <button class="pfav-btn${isFav?' active':''}" onclick="toggleFavorito('${p.id}',event);renderNovidadesScreen();">${isFav?'❤️':'🤍'}</button>
+      <span class="prod-badge badge-novo">✨ Novidade</span>
+      ${imgHtml}
+      <div class="pinfo">
+        <div class="pname">${p.nome}</div>
+        <div class="pdesc">${p.un}</div>
+        <div class="pprice">${_ocPreco ? '' : fmt(p.precoFinal||p.preco)}</div>
+      </div>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="alterSemRelacionado('${p.id}',1);renderNovidadesScreen();">+</button>
+        <span class="qty-num${q>0?' active':''}">${q}</span>
+        <button class="qty-btn" onclick="alterSemRelacionado('${p.id}',-1);renderNovidadesScreen();">−</button>
+      </div>
+    </div>`;
+  });
+  body.innerHTML = html;
+}
+
+// ===== FASE 3: CONTADOR REGRESSIVO DA PROMOÇÃO =====
+let _intervalContadorPromo = null;
+
+function iniciarContadorPromo(expiraEmMs){
+  pararContadorPromo();
+  pararListenerPedidosCliente();
+  document.body.classList.remove('tema-escuro');
+  function atualizar(){
+    const el = document.getElementById('promo-contador');
+    if(!el){ pararContadorPromo(); return; }
+    const agora = Date.now();
+    const restante = expiraEmMs - agora;
+    if(restante <= 0){
+      el.innerHTML = '<div style="color:#fff;font-size:11px;font-weight:700;">⏰ Promoção encerrada</div>';
+      pararContadorPromo();
+  pararListenerPedidosCliente();
+  document.body.classList.remove('tema-escuro');
+      // Recarrega a promoção pra esconder o banner se já passou
+      setTimeout(()=>{ if(currentUser&&currentUser.role==='cliente') loadPromo(); }, 1500);
+      return;
+    }
+    const h = Math.floor(restante/3600000);
+    const m = Math.floor((restante%3600000)/60000);
+    const s = Math.floor((restante%60000)/1000);
+    el.innerHTML = `
+      <div class="promo-contador-bloco"><div class="promo-contador-num">${String(h).padStart(2,'0')}</div><div class="promo-contador-lbl">h</div></div>
+      <div class="promo-contador-bloco"><div class="promo-contador-num">${String(m).padStart(2,'0')}</div><div class="promo-contador-lbl">min</div></div>
+      <div class="promo-contador-bloco"><div class="promo-contador-num">${String(s).padStart(2,'0')}</div><div class="promo-contador-lbl">seg</div></div>
+    `;
+  }
+  atualizar();
+  _intervalContadorPromo = setInterval(atualizar, 1000);
+}
+
+function pararContadorPromo(){
+  if(_intervalContadorPromo){ clearInterval(_intervalContadorPromo); _intervalContadorPromo = null; }
+}
+
+// ===== FASE 3: LISTENER DE STATUS DO PEDIDO (gera notificações reais) =====
+let _unsubPedidosCliente = null;
+let _statusPedidosConhecidos = {};
+
+function iniciarListenerPedidosCliente(){
+  if(!currentUser || currentUser.role !== 'cliente') return;
+  if(_unsubPedidosCliente) _unsubPedidosCliente();
+
+  const statusLabels=['Recebido','Separando','Saiu para entrega','Entregue'];
+
+  _unsubPedidosCliente = db.collection('pedidos')
+    .where('clienteId','==',currentUser.id)
+    .onSnapshot(snap=>{
+      snap.forEach(doc=>{
+        const o = doc.data();
+        const statusAtual = o.status||0;
+        const statusAnterior = _statusPedidosConhecidos[doc.id];
+
+        if(statusAnterior !== undefined && statusAnterior !== statusAtual){
+          // Status mudou - gera notificação real
+          adicionarNotificacao('pedido', 'Pedido atualizado',
+            `Seu pedido de ${o.total} agora está: ${statusLabels[statusAtual]||'Atualizado'}`);
+        }
+        _statusPedidosConhecidos[doc.id] = statusAtual;
+      });
+    }, ()=>{});
+}
+
+function pararListenerPedidosCliente(){
+  if(_unsubPedidosCliente){ _unsubPedidosCliente(); _unsubPedidosCliente=null; }
+  _statusPedidosConhecidos = {};
+}
+
+// ===== FASE 3: TEMA ESCURO =====
+function getTemaPreferido(){
+  if(!currentUser || !currentUser.id) return false;
+  try { return localStorage.getItem('tema_'+currentUser.id) === 'escuro'; } catch(e){ return false; }
+}
+
+function aplicarTema(){
+  const escuro = getTemaPreferido();
+  document.body.classList.toggle('tema-escuro', escuro);
+}
+
+function toggleTema(){
+  if(!currentUser || !currentUser.id) return;
+  try {
+    const atual = getTemaPreferido();
+    localStorage.setItem('tema_'+currentUser.id, atual ? 'claro' : 'escuro');
+    aplicarTema();
+    showNotif(atual ? '☀️ Modo claro ativado' : '🌙 Modo escuro ativado');
+    renderDashboardCliente();
+  } catch(e){}
+}
+
+// ===== FASE 4: GERADOR DE CÓDIGO PIX (padrão BR Code / EMV) =====
+const PIX_CONFIG = {
+  chave: '43841828000185', // CNPJ
+  nome: 'DISTRIBUIDORA LEAO',
+  cidade: 'BELO HORIZONTE'
+};
+
+function pixEMV(id, valor){
+  const len = String(valor.length).padStart(2,'0');
+  return id + len + valor;
+}
+
+function gerarPixPayload(valorNum, descricao){
+  const valor = valorNum.toFixed(2);
+  const txid = 'PED' + Date.now().toString().slice(-10);
+
+  const merchantAccountInfo =
+    pixEMV('00','br.gov.bcb.pix') +
+    pixEMV('01', PIX_CONFIG.chave);
+
+  const additionalData = pixEMV('05', txid);
+
+  let payload =
+    pixEMV('00','01') +
+    pixEMV('26', merchantAccountInfo) +
+    pixEMV('52','0000') +
+    pixEMV('53','986') +
+    pixEMV('54', valor) +
+    pixEMV('58','BR') +
+    pixEMV('59', PIX_CONFIG.nome.substring(0,25)) +
+    pixEMV('60', PIX_CONFIG.cidade.substring(0,15)) +
+    pixEMV('62', additionalData);
+
+  payload += '6304'; // CRC placeholder antes do cálculo
+  const crc = calcularCRC16(payload);
+  payload += crc;
+  return payload;
+}
+
+function calcularCRC16(payload){
+  let polinomio = 0x1021;
+  let resultado = 0xFFFF;
+  for(let i=0; i<payload.length; i++){
+    resultado ^= (payload.charCodeAt(i) << 8);
+    for(let j=0; j<8; j++){
+      if((resultado & 0x8000) !== 0) resultado = ((resultado << 1) ^ polinomio) & 0xFFFF;
+      else resultado = (resultado << 1) & 0xFFFF;
+    }
+  }
+  return resultado.toString(16).toUpperCase().padStart(4,'0');
+}
+
+async function copiarCodigoPix(valorNum, pedidoIdRef){
+  try {
+    const payload = gerarPixPayload(valorNum, 'Pedido '+pedidoIdRef);
+    await navigator.clipboard.writeText(payload);
+    showNotif('✅ Código Pix copiado! Cole no app do seu banco.');
+  } catch(e){
+    // Fallback se clipboard API falhar
+    const textarea = document.createElement('textarea');
+    textarea.value = gerarPixPayload(valorNum, 'Pedido '+pedidoIdRef);
+    document.body.appendChild(textarea);
+    textarea.select();
+    try { document.execCommand('copy'); showNotif('✅ Código Pix copiado!'); }
+    catch(e2){ alert('Não foi possível copiar. Tente novamente.'); }
+    textarea.remove();
+  }
+}
+
+// ===== FASE 5: DASHBOARD ADMIN (dados reais do Firestore) =====
+async function loadDashboardAdmin(){
+  const resumoEl = document.getElementById('adm-dash-resumo');
+  const rankEl = document.getElementById('adm-dash-rankings');
+  const alertEl = document.getElementById('adm-dash-alertas');
+  if(!resumoEl) return;
+  resumoEl.innerHTML = '<div class="loading">Carregando dashboard...</div>';
+  rankEl.innerHTML = '';
+  alertEl.innerHTML = '';
+
+  try {
+    const [pedSnap, cliSnap] = await Promise.all([
+      db.collection('pedidos').get(),
+      db.collection('clientes').get()
+    ]);
+
+    const clientes = {};
+    cliSnap.forEach(d=>{ clientes[d.id] = {id:d.id, ...d.data()}; });
+
+    const agora = new Date();
+    const hoje = new Date(agora.getFullYear(),agora.getMonth(),agora.getDate());
+    const inicioSemana = new Date(hoje); inicioSemana.setDate(hoje.getDate()-7);
+    const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
+    const ha30dias = new Date(hoje); ha30dias.setDate(hoje.getDate()-30);
+
+    let fatHoje=0, fatSemana=0, fatMes=0;
+    let totalPedidos=0, pendentes=0, entregues=0, atrasados=0;
+    let contasReceber=0;
+    const produtoVendas={}; // id -> {nome, qty, valor}
+    const clienteCompras={}; // id -> {nome, total, ultimaCompra}
+    const clientesComPedido = new Set();
+
+    pedSnap.forEach(d=>{
+      const o = d.data();
+      const totalNum = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'))||0;
+      const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : null;
+      const cli = clientes[o.clienteId];
+      const prazo = cli ? (cli.prazo||0) : 0;
+
+      totalPedidos++;
+      if((o.status||0) < 3) pendentes++; else entregues++;
+
+      if(dt){
+        if(dt >= hoje) fatHoje += totalNum;
+        if(dt >= inicioSemana) fatSemana += totalNum;
+        if(dt >= inicioMes) fatMes += totalNum;
+
+        if(o.clienteId){
+          clientesComPedido.add(o.clienteId);
+          if(!clienteCompras[o.clienteId]) clienteCompras[o.clienteId] = {nome:o.clienteNome||(cli?cli.nome:''), total:0, ultimaCompra:dt};
+          clienteCompras[o.clienteId].total += totalNum;
+          if(dt > clienteCompras[o.clienteId].ultimaCompra) clienteCompras[o.clienteId].ultimaCompra = dt;
+        }
+
+        const venc = new Date(dt.getTime()+prazo*24*60*60*1000);
+        if(!o.pago && venc < hoje) atrasados++;
+      }
+
+      if(!o.pago){
+        contasReceber += (totalNum - (o.valorPago||0));
+      }
+
+      if(o.itensList){
+        o.itensList.forEach(i=>{
+          if(!produtoVendas[i.id]) produtoVendas[i.id] = {nome:i.nome, qty:0, valor:0};
+          produtoVendas[i.id].qty += (i.qty||0);
+          produtoVendas[i.id].valor += (i.qty||0)*(i.unit||0);
+        });
+      }
+    });
+
+    const ticketMedio = totalPedidos>0 ? (fatMes||fatSemana||fatHoje||0)/Math.max(1,totalPedidos) : 0;
+    const totalClientes = cliSnap.size;
+    const clientesAtivos = clientesComPedido.size;
+    const clientesInativos = Math.max(0, totalClientes - clientesAtivos);
+
+    resumoEl.innerHTML = `
+      <div class="adm-dash-grid">
+        <div class="adm-dash-card">
+          <div class="adm-dash-label">📅 Faturamento hoje</div>
+          <div class="adm-dash-value">${fmt(fatHoje)}</div>
+        </div>
+        <div class="adm-dash-card">
+          <div class="adm-dash-label">📆 Faturamento semana</div>
+          <div class="adm-dash-value">${fmt(fatSemana)}</div>
+        </div>
+        <div class="adm-dash-card full" style="background:linear-gradient(135deg,#412402,#7A3F08);">
+          <div class="adm-dash-label" style="color:rgba(250,199,117,0.7);">🗓 Faturamento do mês</div>
+          <div class="adm-dash-value" style="color:#FAC775;font-size:28px;">${fmt(fatMes)}</div>
+        </div>
+        <div class="adm-dash-card">
+          <div class="adm-dash-label">🛒 Total de pedidos</div>
+          <div class="adm-dash-value">${totalPedidos}</div>
+        </div>
+        <div class="adm-dash-card">
+          <div class="adm-dash-label">⏳ Pendentes</div>
+          <div class="adm-dash-value" style="color:#D97706;">${pendentes}</div>
+        </div>
+        <div class="adm-dash-card">
+          <div class="adm-dash-label">✅ Entregues</div>
+          <div class="adm-dash-value" style="color:#15803D;">${entregues}</div>
+        </div>
+        <div class="adm-dash-card">
+          <div class="adm-dash-label">🔴 Em atraso</div>
+          <div class="adm-dash-value" style="color:#DC2626;">${atrasados}</div>
+        </div>
+        <div class="adm-dash-card">
+          <div class="adm-dash-label">📤 Contas a receber</div>
+          <div class="adm-dash-value" style="color:#DC2626;">${fmt(contasReceber)}</div>
+        </div>
+        <div class="adm-dash-card">
+          <div class="adm-dash-label">💵 Ticket médio</div>
+          <div class="adm-dash-value">${fmt(ticketMedio)}</div>
+        </div>
+        <div class="adm-dash-card">
+          <div class="adm-dash-label">👥 Clientes ativos</div>
+          <div class="adm-dash-value" style="color:#15803D;">${clientesAtivos}</div>
+          <div class="adm-dash-sub">de ${totalClientes} cadastrados</div>
+        </div>
+        <div class="adm-dash-card">
+          <div class="adm-dash-label">😴 Clientes inativos</div>
+          <div class="adm-dash-value" style="color:#999;">${clientesInativos}</div>
+          <div class="adm-dash-sub">nunca fizeram pedido</div>
+        </div>
+      </div>`;
+
+    // ===== RANKINGS (item 22) =====
+    const topClientes = Object.values(clienteCompras).sort((a,b)=>b.total-a.total).slice(0,10);
+    const topProdutos = Object.values(produtoVendas).sort((a,b)=>b.qty-a.qty).slice(0,10);
+    const piorProdutos = Object.values(produtoVendas).sort((a,b)=>a.qty-b.qty).slice(0,5);
+
+    let rankHtml = '';
+    if(topClientes.length){
+      rankHtml += `<div class="adm-dash-card full" style="margin-bottom:12px;">
+        <div class="adm-dash-label" style="margin-bottom:8px;">🏅 Top 10 clientes</div>
+        ${topClientes.map((c,i)=>`<div class="adm-rank-item">
+          <div style="display:flex;align-items:center;gap:8px;"><div class="adm-rank-pos">${i+1}</div><div style="font-size:13px;color:#2D1A00;">${c.nome}</div></div>
+          <div style="font-size:13px;font-weight:700;color:#412402;">${fmt(c.total)}</div>
+        </div>`).join('')}
+      </div>`;
+    }
+    if(topProdutos.length){
+      rankHtml += `<div class="adm-dash-card full" style="margin-bottom:12px;">
+        <div class="adm-dash-label" style="margin-bottom:8px;">🔥 Top 10 produtos mais vendidos</div>
+        ${topProdutos.map((p,i)=>`<div class="adm-rank-item">
+          <div style="display:flex;align-items:center;gap:8px;"><div class="adm-rank-pos">${i+1}</div><div style="font-size:13px;color:#2D1A00;">${p.nome}</div></div>
+          <div style="font-size:12px;color:#999;">${p.qty} unid.</div>
+        </div>`).join('')}
+      </div>`;
+    }
+    if(piorProdutos.length){
+      rankHtml += `<div class="adm-dash-card full">
+        <div class="adm-dash-label" style="margin-bottom:8px;">📉 Produtos com menor venda</div>
+        ${piorProdutos.map(p=>`<div class="adm-rank-item">
+          <div style="font-size:13px;color:#2D1A00;">${p.nome}</div>
+          <div style="font-size:12px;color:#999;">${p.qty} unid.</div>
+        </div>`).join('')}
+      </div>`;
+    }
+    rankEl.innerHTML = rankHtml;
+
+    // ===== ALERTAS AUTOMÁTICOS (item 23) =====
+    let alertHtml = '';
+    // Clientes há mais de 30 dias sem comprar
+    const clientesSemComprar30d = Object.values(clienteCompras).filter(c=>c.ultimaCompra < ha30dias);
+    if(clientesSemComprar30d.length){
+      alertHtml += `<div class="adm-alert-card warn">⏰ <strong>${clientesSemComprar30d.length} cliente(s)</strong> sem comprar há mais de 30 dias: ${clientesSemComprar30d.slice(0,3).map(c=>c.nome).join(', ')}${clientesSemComprar30d.length>3?'...':''}</div>`;
+    }
+    // Clientes inadimplentes (pedido atrasado)
+    if(atrasados > 0){
+      alertHtml += `<div class="adm-alert-card">🔴 <strong>${atrasados} pedido(s)</strong> em atraso de pagamento. Confira a aba Financeiro.</div>`;
+    }
+    // Produtos com estoque baixo/zerado (usa campo real de estoque cadastrado)
+    try {
+      const produtosAtuais = getProdutos();
+      const estoqueBaixo = produtosAtuais.filter(p=>p.estoque!==undefined && p.estoque!==null && p.estoque<=5);
+      if(estoqueBaixo.length){
+        alertHtml += `<div class="adm-alert-card warn">📦 <strong>${estoqueBaixo.length} produto(s)</strong> com estoque baixo: ${estoqueBaixo.slice(0,3).map(p=>p.nome+' ('+p.estoque+')').join(', ')}${estoqueBaixo.length>3?'...':''}</div>`;
+      }
+    } catch(e){}
+    // Promoção terminando em menos de 2 horas
+    try {
+      const promoDoc = await db.collection('config').doc('promo').get();
+      if(promoDoc.exists){
+        const pd = promoDoc.data();
+        if(pd.ativo && pd.expiraEm){
+          const restante = pd.expiraEm - Date.now();
+          if(restante > 0 && restante < 2*3600000){
+            const minRestantes = Math.floor(restante/60000);
+            alertHtml += `<div class="adm-alert-card warn">⏱ Promoção termina em <strong>${minRestantes} minutos</strong>!</div>`;
+          }
+        }
+      }
+    } catch(e){}
+    if(alertHtml) alertEl.innerHTML = alertHtml;
+
+  } catch(e){
+    resumoEl.innerHTML = '<div class="empty-state">Erro ao carregar dashboard: '+e.message+'</div>';
+  }
+}
+
+// ===== FASE 5: ROTEIRO DE ENTREGA (organiza clientes por dia) =====
+let _roteiroFiltroDia = 0; // 0 = todos
+
+function filtrarRoteiroDia(dia){
+  _roteiroFiltroDia = dia;
+  document.querySelectorAll('[id^="rot-dia-"]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('rot-dia-'+dia).classList.add('active');
+  loadRoteiro();
+}
+
+async function loadRoteiro(){
+  const el = document.getElementById('roteiro-list');
+  if(!el) return;
+  el.innerHTML = '<div class="loading">Carregando...</div>';
+
+  try {
+    const [cliSnap, pedSnap] = await Promise.all([
+      db.collection('clientes').get(),
+      db.collection('pedidos').get()
+    ]);
+
+    const diasNomes=['','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'];
+    const clientes = [];
+    cliSnap.forEach(d=>{ clientes.push({id:d.id, ...d.data()}); });
+
+    // Calcula saldo em aberto por cliente (dados reais)
+    const saldoPorCliente = {};
+    pedSnap.forEach(d=>{
+      const o = d.data();
+      if(o.pago) return;
+      const totalNum = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'))||0;
+      const saldo = totalNum - (o.valorPago||0);
+      if(saldo <= 0) return;
+      saldoPorCliente[o.clienteId] = (saldoPorCliente[o.clienteId]||0) + saldo;
+    });
+
+    // Filtra por dia selecionado
+    let clientesFiltrados = clientes.filter(c=>c.diaEntrega);
+    if(_roteiroFiltroDia > 0){
+      clientesFiltrados = clientesFiltrados.filter(c=>parseInt(c.diaEntrega)===_roteiroFiltroDia);
+    }
+
+    if(!clientesFiltrados.length){
+      el.innerHTML = '<div class="empty-state">Nenhum cliente com dia de entrega cadastrado' + (_roteiroFiltroDia>0?' para este dia':'') + '.</div>';
+      return;
+    }
+
+    // Agrupa por dia
+    const porDia = {};
+    clientesFiltrados.forEach(c=>{
+      const dia = parseInt(c.diaEntrega);
+      if(!porDia[dia]) porDia[dia] = [];
+      porDia[dia].push(c);
+    });
+
+    let html = '';
+    Object.keys(porDia).sort((a,b)=>a-b).forEach(dia=>{
+      const lista = porDia[dia];
+      html += `<div style="font-size:13px;font-weight:700;color:#412402;margin:14px 0 8px;">📅 ${diasNomes[dia]} — ${lista.length} cliente${lista.length!==1?'s':''}</div>`;
+      lista.forEach(cli=>{
+        const saldo = saldoPorCliente[cli.id]||0;
+        const endereco = [cli.end, cli.bairro, cli.cidade].filter(Boolean).join(', ') || 'Endereço não cadastrado';
+        html += `<div class="order-card" style="margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div style="flex:1;">
+              <div class="order-client">${cli.nome}</div>
+              <div class="order-meta">📍 ${endereco}</div>
+              ${cli.tel?`<div class="order-meta">📱 ${cli.tel}</div>`:''}
+            </div>
+            ${saldo>0?`<div style="text-align:right;flex-shrink:0;">
+              <div style="font-size:13px;font-weight:700;color:#DC2626;">${fmt(saldo)}</div>
+              <div style="font-size:10px;color:#999;">a receber</div>
+            </div>`:''}
+          </div>
+        </div>`;
+      });
+    });
+
+    el.innerHTML = html;
+  } catch(e){
+    el.innerHTML = '<div class="empty-state">Erro ao carregar roteiro: '+e.message+'</div>';
+  }
+}
+
+// ===== FASE 5: CUPONS DE DESCONTO (admin) =====
+function openAddCupomDesconto(){
+  document.getElementById('cd-codigo').value = '';
+  document.getElementById('cd-tipo').value = 'percentual';
+  document.getElementById('cd-valor-label').textContent = 'Percentual de desconto (%)';
+  document.getElementById('cd-valor').value = '';
+  document.getElementById('cd-validade').value = '';
+  document.getElementById('cd-limite').value = '';
+
+  // Popula select de clientes
+  const sel = document.getElementById('cd-cliente');
+  sel.innerHTML = '<option value="">Todos os clientes</option>';
+  db.collection('clientes').get().then(snap=>{
+    snap.forEach(d=>{
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = d.data().nome;
+      sel.appendChild(opt);
+    });
+  });
+
+  document.getElementById('modal-cupom-desconto').classList.remove('hidden');
+}
+
+async function saveCupomDesconto(){
+  const codigo = document.getElementById('cd-codigo').value.trim().toUpperCase();
+  const tipo = document.getElementById('cd-tipo').value;
+  const valor = parseFloat(document.getElementById('cd-valor').value);
+  const clienteId = document.getElementById('cd-cliente').value || null;
+  const validadeStr = document.getElementById('cd-validade').value;
+  const limiteStr = document.getElementById('cd-limite').value;
+
+  if(!codigo || !valor){ alert('Preencha código e valor do desconto!'); return; }
+
+  const data = {
+    codigo, tipo, valor,
+    clienteId,
+    validade: validadeStr ? new Date(validadeStr+'T23:59:59').getTime() : null,
+    limiteUsos: limiteStr ? parseInt(limiteStr) : null,
+    usos: 0,
+    ativo: true,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    await db.collection('cupons_desconto').doc(codigo).set(data);
+    closeModal('modal-cupom-desconto');
+    loadCuponsDesconto();
+    alert('✅ Cupom criado!');
+  } catch(e){ alert('Erro: '+e.message); }
+}
+
+async function loadCuponsDesconto(){
+  const el = document.getElementById('cupons-desconto-list');
+  if(!el) return;
+  el.innerHTML = '<div class="loading">Carregando...</div>';
+
+  try {
+    const [cupSnap, cliSnap] = await Promise.all([
+      db.collection('cupons_desconto').get(),
+      db.collection('clientes').get()
+    ]);
+    const clientes = {};
+    cliSnap.forEach(d=>{ clientes[d.id] = d.data().nome; });
+
+    if(cupSnap.empty){
+      el.innerHTML = '<div class="empty-state">Nenhum cupom de desconto criado ainda.</div>';
+      return;
+    }
+
+    let html = '';
+    cupSnap.forEach(d=>{
+      const cp = d.data();
+      const valorTxt = cp.tipo==='percentual' ? cp.valor+'%' : fmt(cp.valor);
+      const validadeTxt = cp.validade ? new Date(cp.validade).toLocaleDateString('pt-BR') : 'Sem validade';
+      const limiteTxt = cp.limiteUsos ? `${cp.usos||0}/${cp.limiteUsos} usos` : `${cp.usos||0} usos`;
+      const clienteTxt = cp.clienteId ? (clientes[cp.clienteId]||'Cliente removido') : 'Todos os clientes';
+      const expirado = cp.validade && cp.validade < Date.now();
+
+      html += `<div class="cupom-card" style="${!cp.ativo||expirado?'opacity:0.5;':''}">
+        <div>
+          <div class="cupom-num" style="font-size:18px;">🎫 ${cp.codigo}</div>
+          <div class="cupom-info">${valorTxt} de desconto • ${clienteTxt}</div>
+          <div class="cupom-info">Válido até: ${validadeTxt} • ${limiteTxt}</div>
+          ${expirado?'<span style="font-size:11px;color:#DC2626;font-weight:700;">EXPIRADO</span>':''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <button class="btn-del" onclick="toggleCupomDesconto('${d.id}',${cp.ativo})">${cp.ativo?'⏸':'▶'}</button>
+          <button class="btn-del" onclick="deleteCupomDesconto('${d.id}')">🗑</button>
+        </div>
+      </div>`;
+    });
+    el.innerHTML = html;
+  } catch(e){ el.innerHTML = '<div class="empty-state">Erro: '+e.message+'</div>'; }
+}
+
+async function toggleCupomDesconto(id, ativo){
+  await db.collection('cupons_desconto').doc(id).update({ativo: !ativo});
+  loadCuponsDesconto();
+}
+
+async function deleteCupomDesconto(id){
+  if(!confirm('Excluir este cupom de desconto?')) return;
+  await db.collection('cupons_desconto').doc(id).delete();
+  loadCuponsDesconto();
+}
+
+// ===== FASE 5: APLICAR CUPOM DE DESCONTO (cliente) =====
+let _cupomDescontoAplicado = null;
+
+async function validarCupomDesconto(codigo){
+  codigo = codigo.trim().toUpperCase();
+  if(!codigo) return {valido:false, msg:'Digite um código.'};
+
+  try {
+    const doc = await db.collection('cupons_desconto').doc(codigo).get();
+    if(!doc.exists) return {valido:false, msg:'Cupom não encontrado.'};
+    const cp = doc.data();
+
+    if(!cp.ativo) return {valido:false, msg:'Este cupom não está mais ativo.'};
+    if(cp.validade && cp.validade < Date.now()) return {valido:false, msg:'Este cupom expirou.'};
+    if(cp.limiteUsos && (cp.usos||0) >= cp.limiteUsos) return {valido:false, msg:'Este cupom já atingiu o limite de usos.'};
+    if(cp.clienteId && cp.clienteId !== currentUser.id) return {valido:false, msg:'Este cupom não é válido para sua conta.'};
+
+    return {valido:true, cupom:{...cp, id:codigo}};
+  } catch(e){
+    return {valido:false, msg:'Erro ao validar cupom.'};
+  }
+}
+
+function calcularDescontoCupom(total){
+  if(!_cupomDescontoAplicado) return 0;
+  const cp = _cupomDescontoAplicado;
+  if(cp.tipo === 'percentual') return total * (cp.valor/100);
+  return Math.min(cp.valor, total); // não deixa desconto maior que o total
+}
+
+// ===== FASE 5: APLICAR CUPOM NA TELA DE CONFIRMAÇÃO =====
+async function aplicarCupomNoPedido(){
+  const input = document.getElementById('cupom-desconto-input');
+  const msgEl = document.getElementById('cupom-desconto-msg');
+  if(!input || !_pedidoAtual) return;
+
+  const codigo = input.value.trim();
+  if(!codigo){ msgEl.textContent = 'Digite um código de cupom.'; msgEl.style.color = '#DC2626'; return; }
+
+  msgEl.textContent = 'Validando...'; msgEl.style.color = 'rgba(250,199,117,0.6)';
+
+  const resultado = await validarCupomDesconto(codigo);
+  if(!resultado.valido){
+    msgEl.textContent = '❌ ' + resultado.msg;
+    msgEl.style.color = '#FCA5A5';
+    _cupomDescontoAplicado = null;
+    atualizarTotalComDesconto();
+    return;
+  }
+
+  _cupomDescontoAplicado = resultado.cupom;
+  const desconto = calcularDescontoCupom(_pedidoAtual.total);
+  msgEl.textContent = `✅ Cupom aplicado! Desconto de ${fmt(desconto)}`;
+  msgEl.style.color = '#86EFAC';
+  atualizarTotalComDesconto();
+}
+
+function atualizarTotalComDesconto(){
+  if(!_pedidoAtual) return;
+  const desconto = calcularDescontoCupom(_pedidoAtual.total);
+  const totalComDesconto = _pedidoAtual.total - desconto;
+  const totalEl = document.getElementById('pedido-sheet-total');
+  if(totalEl){
+    if(desconto > 0){
+      totalEl.innerHTML = `<span style="text-decoration:line-through;color:rgba(255,255,255,0.4);font-size:14px;margin-right:6px;">${fmt(_pedidoAtual.total)}</span>${fmt(totalComDesconto)}`;
+    } else {
+      totalEl.textContent = fmt(_pedidoAtual.total);
+    }
+  }
+}
+
+// ===== FASE 5: EXPORTAR RELATÓRIO EM PDF (via impressão do navegador) =====
+async function exportarRelatorioPDF(){
+  try {
+    const [pedSnap, cliSnap] = await Promise.all([
+      db.collection('pedidos').get(),
+      db.collection('clientes').get()
+    ]);
+
+    const clientes = {};
+    cliSnap.forEach(d=>{ clientes[d.id] = {id:d.id, ...d.data()}; });
+
+    const agora = new Date();
+    const hoje = new Date(agora.getFullYear(),agora.getMonth(),agora.getDate());
+    const inicioSemana = new Date(hoje); inicioSemana.setDate(hoje.getDate()-7);
+    const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
+
+    let fatHoje=0, fatSemana=0, fatMes=0, totalPedidos=0, pendentes=0, entregues=0, contasReceber=0;
+    const produtoVendas={}; const clienteCompras={};
+
+    pedSnap.forEach(d=>{
+      const o = d.data();
+      const totalNum = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'))||0;
+      const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : null;
+      totalPedidos++;
+      if((o.status||0) < 3) pendentes++; else entregues++;
+      if(dt){
+        if(dt >= hoje) fatHoje += totalNum;
+        if(dt >= inicioSemana) fatSemana += totalNum;
+        if(dt >= inicioMes) fatMes += totalNum;
+        if(o.clienteId){
+          if(!clienteCompras[o.clienteId]) clienteCompras[o.clienteId] = {nome:o.clienteNome||(clientes[o.clienteId]?clientes[o.clienteId].nome:''), total:0};
+          clienteCompras[o.clienteId].total += totalNum;
+        }
+      }
+      if(!o.pago) contasReceber += (totalNum - (o.valorPago||0));
+      if(o.itensList) o.itensList.forEach(i=>{
+        if(!produtoVendas[i.id]) produtoVendas[i.id] = {nome:i.nome, qty:0};
+        produtoVendas[i.id].qty += (i.qty||0);
+      });
+    });
+
+    const topClientes = Object.values(clienteCompras).sort((a,b)=>b.total-a.total).slice(0,10);
+    const topProdutos = Object.values(produtoVendas).sort((a,b)=>b.qty-a.qty).slice(0,10);
+    const ticketMedio = totalPedidos>0 ? (fatMes||fatSemana||fatHoje)/Math.max(1,totalPedidos) : 0;
+
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="UTF-8"><title>Relatório — Distribuidora Leão</title>
+<style>
+  @page{size:A4;margin:14mm;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Arial,sans-serif;font-size:12px;color:#000;}
+  .topo{text-align:center;border-bottom:2px solid #2D1100;padding-bottom:10px;margin-bottom:16px;}
+  .topo h1{font-size:20px;color:#2D1100;}
+  .topo p{font-size:11px;color:#666;margin-top:2px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;}
+  .card{background:#F5F0EA;border-radius:8px;padding:10px;text-align:center;}
+  .card .lbl{font-size:10px;color:#888;}
+  .card .val{font-size:16px;font-weight:800;color:#412402;margin-top:3px;}
+  table{width:100%;border-collapse:collapse;margin-bottom:16px;}
+  th{background:#2D1100;color:#FAC775;padding:6px;text-align:left;font-size:11px;}
+  td{padding:5px 6px;border-bottom:1px solid #eee;font-size:11px;}
+  h2{font-size:14px;color:#412402;margin-bottom:8px;}
+  @media print{body{-webkit-print-color-adjust:exact;}}
+</style></head><body>
+  <div class="topo">
+    <h1>🦁 Distribuidora Leão</h1>
+    <p>Relatório Geral — Gerado em ${new Date().toLocaleString('pt-BR')}</p>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="lbl">Faturamento Hoje</div><div class="val">${fmt(fatHoje)}</div></div>
+    <div class="card"><div class="lbl">Faturamento Semana</div><div class="val">${fmt(fatSemana)}</div></div>
+    <div class="card"><div class="lbl">Faturamento Mês</div><div class="val">${fmt(fatMes)}</div></div>
+    <div class="card"><div class="lbl">Total Pedidos</div><div class="val">${totalPedidos}</div></div>
+    <div class="card"><div class="lbl">Pendentes / Entregues</div><div class="val">${pendentes} / ${entregues}</div></div>
+    <div class="card"><div class="lbl">Contas a Receber</div><div class="val">${fmt(contasReceber)}</div></div>
+    <div class="card"><div class="lbl">Ticket Médio</div><div class="val">${fmt(ticketMedio)}</div></div>
+    <div class="card"><div class="lbl">Clientes Cadastrados</div><div class="val">${cliSnap.size}</div></div>
+  </div>
+  <h2>🏅 Top 10 Clientes</h2>
+  <table><thead><tr><th>#</th><th>Cliente</th><th>Total Comprado</th></tr></thead><tbody>
+    ${topClientes.map((c,i)=>`<tr><td>${i+1}</td><td>${c.nome}</td><td>${fmt(c.total)}</td></tr>`).join('')}
+  </tbody></table>
+  <h2>🔥 Top 10 Produtos Mais Vendidos</h2>
+  <table><thead><tr><th>#</th><th>Produto</th><th>Quantidade Vendida</th></tr></thead><tbody>
+    ${topProdutos.map((p,i)=>`<tr><td>${i+1}</td><td>${p.nome}</td><td>${p.qty}</td></tr>`).join('')}
+  </tbody></table>
+  <div style="text-align:center;margin-top:20px;font-size:10px;color:#aaa;">Distribuidora Leão — Relatório gerado automaticamente pelo sistema</div>
+<scr'+'ipt>window.onload=function(){window.print();};</scr'+'ipt>
+</body></html>`;
+
+    const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); }, 3000);
+  } catch(e){ alert('Erro ao gerar relatório: '+e.message); }
+}
+
+// ===== FASE 5: HISTÓRICO COMPLETO DO CLIENTE (admin, dados reais agregados) =====
+async function abrirHistoricoCompletoCliente(clienteId, nomeCliente){
+  document.getElementById('hc-titulo').textContent = '📜 Histórico — ' + nomeCliente;
+  document.getElementById('hc-conteudo').innerHTML = '<div class="loading">Carregando...</div>';
+  document.getElementById('modal-historico-completo').classList.remove('hidden');
+
+  try {
+    const [pedSnap, cupSnap] = await Promise.all([
+      db.collection('pedidos').where('clienteId','==',clienteId).get(),
+      db.collection('cupons').where('clienteId','==',clienteId).get()
+    ]);
+
+    let pedidos = [];
+    pedSnap.forEach(d=>{ pedidos.push({id:d.id, ...d.data()}); });
+    pedidos.sort((a,b)=>{
+      const ta=a.timestamp?a.timestamp.seconds:0, tb=b.timestamp?b.timestamp.seconds:0;
+      return tb-ta;
+    });
+
+    const totalComprado = pedidos.reduce((s,o)=>s+(parseFloat((o.total||'0').replace('R$ ','').replace(',','.'))||0),0);
+    const totalPedidos = pedidos.length;
+    const todosPagamentos = [];
+    pedidos.forEach(o=>{ if(o.historicoPage) o.historicoPage.forEach(h=>todosPagamentos.push(h)); });
+
+    let html = `
+      <div class="dash-grid" style="margin-bottom:14px;">
+        <div class="dash-card"><div class="dash-card-label">Total comprado</div><div class="dash-card-value">${fmt(totalComprado)}</div></div>
+        <div class="dash-card"><div class="dash-card-label">Total de pedidos</div><div class="dash-card-value">${totalPedidos}</div></div>
+        <div class="dash-card"><div class="dash-card-label">Pagamentos registrados</div><div class="dash-card-value">${todosPagamentos.length}</div></div>
+        <div class="dash-card"><div class="dash-card-label">Cupons do sorteio</div><div class="dash-card-value">🎟 ${cupSnap.size}</div></div>
+      </div>`;
+
+    html += '<div style="font-size:13px;font-weight:700;color:#412402;margin-bottom:8px;">🛒 Todas as compras</div>';
+    if(!pedidos.length){
+      html += '<div class="empty-state" style="margin-bottom:14px;">Nenhuma compra ainda.</div>';
+    } else {
+      const statusLabels=['Recebido','Separando','Saiu','Entregue'];
+      pedidos.forEach(o=>{
+        const dt = o.timestamp ? new Date(o.timestamp.seconds*1000).toLocaleDateString('pt-BR') : '---';
+        html += `<div style="background:#fff;border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;justify-content:space-between;font-size:12px;border:1px solid #F5F0EA;">
+          <div>${dt} • ${o.itens||0} itens</div>
+          <div style="font-weight:700;">${o.total} ${o.pago?'✅':'⏳'}</div>
+        </div>`;
+      });
+    }
+
+    html += '<div style="font-size:13px;font-weight:700;color:#412402;margin:14px 0 8px;">💵 Todos os pagamentos</div>';
+    if(!todosPagamentos.length){
+      html += '<div class="empty-state" style="margin-bottom:14px;">Nenhum pagamento registrado.</div>';
+    } else {
+      todosPagamentos.reverse().forEach(h=>{
+        html += `<div style="background:#fff;border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;justify-content:space-between;font-size:12px;border:1px solid #F5F0EA;">
+          <div>${h.data} • ${h.forma||'Pagamento'}</div>
+          <div style="font-weight:700;color:#15803D;">R$ ${h.valor}</div>
+        </div>`;
+      });
+    }
+
+    html += '<div style="font-size:13px;font-weight:700;color:#412402;margin:14px 0 8px;">🎟 Cupons do sorteio</div>';
+    if(cupSnap.empty){
+      html += '<div class="empty-state">Nenhum cupom ganho ainda.</div>';
+    } else {
+      cupSnap.forEach(d=>{
+        const cup = d.data();
+        html += `<div style="background:#fff;border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;justify-content:space-between;font-size:12px;border:1px solid #F5F0EA;">
+          <div>🎟 ${cup.numero}</div>
+          <div style="color:#999;">${cup.dataPedido}</div>
+        </div>`;
+      });
+    }
+
+    document.getElementById('hc-conteudo').innerHTML = html;
+  } catch(e){
+    document.getElementById('hc-conteudo').innerHTML = '<div class="empty-state">Erro: '+e.message+'</div>';
   }
 }
 
