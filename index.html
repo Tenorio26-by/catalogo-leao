@@ -261,6 +261,19 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
 .adm-alert-card{background:#FEF2F2;border:1px solid #FCA5A5;border-radius:12px;padding:10px 14px;margin-bottom:8px;font-size:12px;color:#991B1B;}
 .adm-alert-card.warn{background:#FFFBEB;border-color:#FCD34D;color:#92400E;}
 
+
+/* ===== TELA DE BOAS-VINDAS (1º ACESSO) ===== */
+#boas-vindas-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:800;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;transition:opacity .3s ease;}
+#boas-vindas-overlay.visible{opacity:1;}
+.bv-box{background:#fff;border-radius:24px;padding:2rem 1.75rem;width:100%;max-width:340px;text-align:center;transform:translateY(20px);transition:transform .35s cubic-bezier(0.34,1.56,0.64,1);}
+#boas-vindas-overlay.visible .bv-box{transform:translateY(0);}
+.bv-icon{font-size:48px;margin-bottom:10px;}
+.bv-titulo{font-size:20px;font-weight:800;color:#2D1A00;margin-bottom:8px;}
+.bv-passo{display:flex;align-items:flex-start;gap:10px;text-align:left;margin-bottom:12px;background:#F5F0EA;border-radius:12px;padding:10px 12px;}
+.bv-passo-icon{font-size:20px;flex-shrink:0;}
+.bv-passo-texto{font-size:13px;color:#412402;line-height:1.4;}
+.bv-btn{width:100%;padding:14px;background:linear-gradient(135deg,#412402,#7A3F08);color:#FAC775;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;font-family:'Inter',sans-serif;}
+
 /* ===== FASE 1: CABEÇALHO SOFISTICADO ===== */
 .cat-header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
 .cat-header-icons{display:flex;gap:8px;}
@@ -581,6 +594,28 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
   </div>
 </div>
 <!-- ===== CATÁLOGO ===== -->
+<!-- ===== TELA DE BOAS-VINDAS (1º ACESSO) ===== -->
+<div id="boas-vindas-overlay" style="display:none;">
+  <div class="bv-box">
+    <div class="bv-icon">🦁</div>
+    <div class="bv-titulo" id="bv-titulo">Olá!</div>
+    <div style="font-size:13px;color:#999;margin-bottom:18px;">Veja como é fácil fazer seu pedido:</div>
+    <div class="bv-passo">
+      <div class="bv-passo-icon">🔍</div>
+      <div class="bv-passo-texto">Busque ou navegue pelas categorias para encontrar os produtos</div>
+    </div>
+    <div class="bv-passo">
+      <div class="bv-passo-icon">➕</div>
+      <div class="bv-passo-texto">Toque no + para adicionar a quantidade que quiser ao carrinho</div>
+    </div>
+    <div class="bv-passo">
+      <div class="bv-passo-icon">🛒</div>
+      <div class="bv-passo-texto">No final, toque em "Ver pedido" e envie direto pelo WhatsApp</div>
+    </div>
+    <button class="bv-btn" onclick="fecharBoasVindas()">🛍️ Começar a comprar</button>
+  </div>
+</div>
+
 <div id="catalog-screen" class="screen">
   <div class="cat-header">
     <div class="cat-header-top">
@@ -1020,9 +1055,53 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// ===== LOGIN AUTOMÁTICO VIA QR CODE =====
+async function tentarLoginPorQrCode(){
+  const params = new URLSearchParams(window.location.search);
+  const qru = params.get('qru');
+  const qrp = params.get('qrp');
+  if(!qru || !qrp) return false;
+
+  try {
+    const snap = await db.collection('clientes').get();
+    let encontrado = null;
+    snap.forEach(d=>{
+      const c = d.data();
+      if(c.usuario===qru && c.senha===qrp) encontrado = {id:d.id, ...c};
+    });
+
+    if(!encontrado || encontrado.bloqueado) return false;
+
+    currentUser = {role:'cliente', id:encontrado.id, ...encontrado};
+    currentClientData = encontrado;
+    const pd = await db.doc('precos/'+encontrado.id).get();
+    clientPrices = pd.exists ? pd.data() : {};
+
+    try{ localStorage.setItem('leao_session', JSON.stringify({role:'cliente', id:encontrado.id, ...encontrado})); }catch(e){}
+
+    // Limpa os parâmetros da URL (não deixa usuário/senha visíveis depois do login)
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    showScreen('catalog-screen');
+    document.getElementById('cat-user-name').textContent = 'Olá, '+currentUser.nome+'! ✨';
+    const btnListaQr = document.getElementById('lista-btn-wrap');
+    if(btnListaQr) btnListaQr.style.display = 'block';
+    if(currentUser.tag==='VIP') document.getElementById('vip-banner').innerHTML = '<div class="vip-banner">⭐ Você tem preços VIP exclusivos!</div>';
+    carregarCarrinhoAuto();
+    await loadProdutosFirebase();
+    renderCatalog();
+    setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();mostrarBotaoCupons();renderDashboardCliente();atualizarHeaderMeta();iniciarListenerPedidosCliente();atualizarBadgeNotificacoes();aplicarTema();mostrarBoasVindasSeNovo();},300);
+
+    return true;
+  } catch(e){ return false; }
+}
+
 // ===== RESTAURAR SESSÃO AO DAR F5 =====
 window.addEventListener('load', async ()=>{
   try {
+    const logouQr = await tentarLoginPorQrCode();
+    if(logouQr) return;
+
     const saved = localStorage.getItem('leao_session');
     if(!saved) return;
     const session = JSON.parse(saved);
@@ -1182,7 +1261,7 @@ function doLogin(){
         showScreen('catalog-screen');
         loadProdutosFirebase().then(()=>{
           renderCatalog();
-          setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();mostrarBotaoCupons();renderDashboardCliente();atualizarHeaderMeta();iniciarListenerPedidosCliente();atualizarBadgeNotificacoes();aplicarTema();},300);
+          setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();mostrarBotaoCupons();renderDashboardCliente();atualizarHeaderMeta();iniciarListenerPedidosCliente();atualizarBadgeNotificacoes();aplicarTema();mostrarBoasVindasSeNovo();},300);
         });
       });
     } else {errEl.style.display='block';}
@@ -1246,6 +1325,7 @@ async function loadAdminData(){
           <button class="btn-edit" onclick="openEditPrices('${d.id}','${c.nome}')">💰 Preços</button>
           <button class="btn-edit" onclick="abrirHistoricoCompletoCliente('${d.id}','${(c.nome||'').replace(/'/g,"\'")}')" style="background:#412402;color:#FAC775;">📜 Histórico</button>
           <button class="btn-copy" onclick="copyLink('${c.usuario}','${c.senha}')">🔗</button>
+          <button class="btn-copy" onclick="gerarQrCode('${c.usuario}','${c.senha}','${(c.nome||'').replace(/'/g,"\'")}')">📱</button>
           <button class="btn-del" onclick="deleteClient('${d.id}')">🗑</button>
         </div>
       </div>`;
@@ -1342,8 +1422,37 @@ async function deleteClient(id){
 }
 
 function copyLink(usuario,senha){
-  const txt=window.location.href+'\n\nUsuário: '+usuario+'\nSenha: '+senha;
-  navigator.clipboard.writeText(txt).then(()=>alert('Dados copiados!\nEnvie para o cliente pelo WhatsApp.'));
+  const link = window.location.origin + window.location.pathname;
+  const txt = `🦁 *Bem-vindo à Distribuidora Leão!*
+
+Seu acesso ao catálogo:
+
+🔗 ${link}
+👤 Usuário: ${usuario}
+🔑 Senha: ${senha}
+
+Qualquer dúvida estamos à disposição!`;
+  navigator.clipboard.writeText(txt).then(()=>showNotif('✅ Mensagem copiada! Cole no WhatsApp do cliente.'));
+}
+
+// ===== QR CODE DE ACESSO =====
+function gerarQrCode(usuario, senha, nome){
+  const link = window.location.origin + window.location.pathname;
+  const dadosAcesso = `${link}?qru=${encodeURIComponent(usuario)}&qrp=${encodeURIComponent(senha)}`;
+  const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(dadosAcesso);
+
+  const div = document.createElement('div');
+  div.id = 'modal-qrcode-overlay';
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:700;display:flex;align-items:center;justify-content:center;padding:1rem;';
+  div.innerHTML = `
+    <div style="background:#fff;border-radius:20px;padding:1.5rem;width:100%;max-width:320px;text-align:center;">
+      <div style="font-size:16px;font-weight:700;color:#412402;margin-bottom:4px;">📱 QR Code de Acesso</div>
+      <div style="font-size:12px;color:#999;margin-bottom:14px;">${nome}</div>
+      <img src="${qrUrl}" alt="QR Code" style="width:220px;height:220px;border-radius:12px;border:1px solid #EEE5D8;">
+      <div style="font-size:11px;color:#999;margin:10px 0;">O cliente escaneia e entra direto no catálogo já logado</div>
+      <button onclick="document.getElementById('modal-qrcode-overlay').remove()" style="width:100%;padding:12px;background:#412402;color:#FAC775;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">Fechar</button>
+    </div>`;
+  document.body.appendChild(div);
 }
 
 async function openEditPrices(id,nome){
@@ -1352,7 +1461,8 @@ async function openEditPrices(id,nome){
   const pricesDoc=await db.doc('precos/'+id).get();
   const saved=pricesDoc.exists?pricesDoc.data():{};
   let html='';
-  produtosBase.forEach(p=>{
+  const produtosAtivos = getProdutos().filter(p=>p.ativo!==false);
+  produtosAtivos.forEach(p=>{
     const val=saved[p.id]||'';
     html+=`<div class="price-row">
       <div class="price-name">${p.nome}<br><span style="font-size:11px;color:#999">Padrão: R$ ${p.preco.toFixed(2).replace('.',',')}</span></div>
@@ -1489,11 +1599,25 @@ async function loadProdutos(){
   try {
     const snap = await db.collection('produtos').get();
     const fbProds = [];
-    snap.forEach(d=>fbProds.push({id:d.id,...d.data(),origem:'firebase'}));
-    
+    const overridesAdmin = {};
+    snap.forEach(d=>{
+      const data = {id:d.id,...d.data()};
+      if(data.baseId){ overridesAdmin[data.baseId] = data; }
+      else { fbProds.push({...data,origem:'firebase'}); }
+    });
+
+    // Aplica overrides (incluindo deletados permanentemente) aos produtos base
+    const baseComOverride = produtosBase
+      .map(p=>{
+        const ov = overridesAdmin[p.id];
+        if(ov) return {...p, nome:ov.nome||p.nome, preco:ov.preco||p.preco, foto:ov.foto||p.foto, un:ov.un||p.un, cat:ov.cat||p.cat, badge:ov.badge||p.badge, estoque:(ov.estoque!==undefined?ov.estoque:p.estoque), ativo:ov.ativo, deletado:ov.deletado||false, origem:'base'};
+        return {...p, origem:'base'};
+      })
+      .filter(p=>!p.deletado); // produtos deletados permanentemente NUNCA aparecem, nem no admin
+
     // Combine base + firebase
     const todos = [
-      ...produtosBase.map(p=>({...p,origem:'base'})),
+      ...baseComOverride,
       ...fbProds.filter(p=>!produtosBase.find(b=>b.id===p.id))
     ];
     
@@ -2457,11 +2581,19 @@ async function loadDiaEntrega(){
 // Chamado no loginAdmin
 
 // ===== LISTA DE PRODUTOS SEM PREÇO =====
-function gerarListaSemPreco(){
-  // Garante que produtos base estejam carregados
-  const prods = produtosBase.length > 0 ? 
-    [...produtosBase, ...produtosFirebase.filter(p=>!p.baseId && !produtosBase.find(b=>b.id===p.id))].filter(p=>p.ativo!==false) :
-    getProdutos().filter(p=>p.ativo!==false);
+async function gerarListaSemPreco(){
+  // Garante que os overrides estejam carregados (admin pode não ter passado por loadProdutosFirebase)
+  try {
+    const snap = await db.collection('produtos').get();
+    const overrides = {};
+    snap.forEach(d=>{
+      const p = {id:d.id,...d.data()};
+      if(p.baseId) overrides[p.baseId] = p;
+    });
+    window._prodOverrides = overrides;
+  } catch(e){}
+  // Usa getProdutos() que já aplica overrides e exclui produtos deletados/inativos
+  const prods = getProdutos().filter(p=>p.ativo!==false);
   const cats_unicas = [...new Set(prods.map(p=>p.cat))].sort();
 
   let linhas = '';
@@ -4944,6 +5076,31 @@ async function abrirHistoricoCompletoCliente(clienteId, nomeCliente){
   } catch(e){
     document.getElementById('hc-conteudo').innerHTML = '<div class="empty-state">Erro: '+e.message+'</div>';
   }
+}
+
+// ===== TELA DE BOAS-VINDAS (1º ACESSO) =====
+function mostrarBoasVindasSeNovo(){
+  if(!currentUser || !currentUser.id) return;
+  try {
+    const jaViu = localStorage.getItem('boas_vindas_'+currentUser.id);
+    if(jaViu) return;
+
+    const nome = (currentClientData.nome||'').split(' ')[0];
+    document.getElementById('bv-titulo').textContent = 'Olá, '+nome+'!';
+
+    const overlay = document.getElementById('boas-vindas-overlay');
+    overlay.style.display = 'flex';
+    setTimeout(()=>overlay.classList.add('visible'), 10);
+  } catch(e){}
+}
+
+function fecharBoasVindas(){
+  if(currentUser && currentUser.id){
+    try { localStorage.setItem('boas_vindas_'+currentUser.id, '1'); } catch(e){}
+  }
+  const overlay = document.getElementById('boas-vindas-overlay');
+  overlay.classList.remove('visible');
+  setTimeout(()=>{ overlay.style.display='none'; }, 300);
 }
 
 </script>
