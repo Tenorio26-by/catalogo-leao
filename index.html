@@ -431,7 +431,7 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
 
 <!-- ===== TELA DE CADASTRO DE CLIENTE ===== -->
 <div id="cadastro-screen" class="screen">
-  <div class="login-card">
+  <div class="login-card" style="max-width:420px;">
     <div class="login-logo">🦁</div>
     <div class="login-title">Criar conta</div>
     <div class="login-sub">Preencha seus dados para solicitar acesso</div>
@@ -444,14 +444,32 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
       <input type="tel" id="cad-telefone" placeholder="(31) 99999-9999">
     </div>
     <div class="form-group">
-      <label>Criar senha</label>
-      <input type="password" id="cad-senha" placeholder="••••••" autocomplete="new-password">
+      <label>CPF ou CNPJ</label>
+      <input type="text" id="cad-cpfcnpj" placeholder="000.000.000-00">
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;">
+      <div class="form-group">
+        <label>CEP</label>
+        <input type="text" id="cad-cep" placeholder="00000-000">
+      </div>
+      <div class="form-group">
+        <label>Número</label>
+        <input type="text" id="cad-numero" placeholder="123">
+      </div>
     </div>
     <div class="form-group">
-      <label>Confirmar senha</label>
-      <input type="password" id="cad-senha-confirma" placeholder="••••••" autocomplete="new-password">
+      <label>Endereço</label>
+      <input type="text" id="cad-endereco" placeholder="Rua, avenida...">
     </div>
-    <button class="btn-login" onclick="enviarCadastroCliente()">Criar conta</button>
+    <div class="form-group">
+      <label>Bairro</label>
+      <input type="text" id="cad-bairro" placeholder="Seu bairro">
+    </div>
+    <div class="form-group">
+      <label>Cidade</label>
+      <input type="text" id="cad-cidade" placeholder="Sua cidade">
+    </div>
+    <button class="btn-login" onclick="enviarCadastroCliente()">Solicitar cadastro</button>
     <div class="login-error" id="cadastro-error"></div>
     <div class="login-criar-conta">Já tem uma conta? <a href="#" onclick="showScreen('login-screen');return false;">Entrar</a></div>
   </div>
@@ -1334,20 +1352,16 @@ function doLogin(){
     });
 
     // Se não encontrou como cliente liberado, checa se é um cadastro pendente
+    // (cliente pendente ainda não tem usuário/senha oficial, identifica-se pelo telefone digitado em "Usuário")
     if(!found){
       try {
-        const pendSnap = await db.collection('cadastros_pendentes').get();
-        let achouPendente = false;
-        pendSnap.forEach(d=>{
-          const p = d.data();
-          // Cliente pendente loga com o telefone como usuário (ainda não recebeu usuário oficial)
-          if((p.telefoneLimpo===user.replace(/\D/g,'') || p.telefone===user) && p.senha===pass){
-            achouPendente = true;
+        const telDigitado = user.replace(/\D/g,'');
+        if(telDigitado.length >= 8){
+          const pendSnap = await db.collection('cadastros_pendentes').where('telefoneLimpo','==',telDigitado).get();
+          if(!pendSnap.empty){
+            showScreen('pendente-screen');
+            return;
           }
-        });
-        if(achouPendente){
-          showScreen('pendente-screen');
-          return;
         }
       } catch(e){}
     }
@@ -5209,10 +5223,10 @@ function fecharBoasVindas(){
 
 // ===== CADASTRO DE CLIENTE (autoatendimento, pendente de aprovação) =====
 function abrirCadastroCliente(){
-  document.getElementById('cad-nome').value='';
-  document.getElementById('cad-telefone').value='';
-  document.getElementById('cad-senha').value='';
-  document.getElementById('cad-senha-confirma').value='';
+  ['cad-nome','cad-telefone','cad-cpfcnpj','cad-cep','cad-numero','cad-endereco','cad-bairro','cad-cidade'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
   document.getElementById('cadastro-error').style.display='none';
   showScreen('cadastro-screen');
 }
@@ -5220,23 +5234,17 @@ function abrirCadastroCliente(){
 async function enviarCadastroCliente(){
   const nome = document.getElementById('cad-nome').value.trim();
   const telefone = document.getElementById('cad-telefone').value.trim();
-  const senha = document.getElementById('cad-senha').value.trim();
-  const senhaConfirma = document.getElementById('cad-senha-confirma').value.trim();
+  const cpfcnpj = document.getElementById('cad-cpfcnpj').value.trim();
+  const cep = document.getElementById('cad-cep').value.trim();
+  const numero = document.getElementById('cad-numero').value.trim();
+  const endereco = document.getElementById('cad-endereco').value.trim();
+  const bairro = document.getElementById('cad-bairro').value.trim();
+  const cidade = document.getElementById('cad-cidade').value.trim();
   const errEl = document.getElementById('cadastro-error');
   errEl.style.display = 'none';
 
-  if(!nome || !telefone || !senha || !senhaConfirma){
-    errEl.textContent = 'Preencha todos os campos!';
-    errEl.style.display = 'block';
-    return;
-  }
-  if(senha !== senhaConfirma){
-    errEl.textContent = 'As senhas não coincidem!';
-    errEl.style.display = 'block';
-    return;
-  }
-  if(senha.length < 4){
-    errEl.textContent = 'A senha deve ter pelo menos 4 caracteres.';
+  if(!nome || !telefone || !endereco || !cidade){
+    errEl.textContent = 'Preencha ao menos nome, telefone, endereço e cidade!';
     errEl.style.display = 'block';
     return;
   }
@@ -5251,8 +5259,11 @@ async function enviarCadastroCliente(){
       return;
     }
 
+    const enderecoCompleto = endereco + (numero ? ', '+numero : '');
+
     await db.collection('cadastros_pendentes').add({
-      nome, telefone, telefoneLimpo: telLimpo, senha,
+      nome, telefone, telefoneLimpo: telLimpo,
+      cpfcnpj, cep, end: enderecoCompleto, bairro, cidade,
       status: 'pendente',
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -5289,12 +5300,15 @@ async function loadCadastrosPendentes(){
     snap.forEach(d=>{
       const p = d.data();
       const dt = p.criadoEm ? new Date(p.criadoEm.seconds*1000).toLocaleDateString('pt-BR') : '---';
-      html += `<div class="client-card">
-        <div style="flex:1;min-width:0;">
+      const enderecoTxt = [p.end, p.bairro, p.cidade].filter(Boolean).join(', ');
+      html += `<div class="client-card" style="flex-direction:column;align-items:stretch;">
+        <div style="margin-bottom:10px;">
           <div class="client-name">${p.nome}</div>
-          <div class="client-meta">📱 ${p.telefone} • Cadastrado em ${dt}</div>
+          <div class="client-meta">📱 ${p.telefone}${p.cpfcnpj?' • '+p.cpfcnpj:''}</div>
+          ${enderecoTxt?`<div class="client-meta">📍 ${enderecoTxt}${p.cep?' - CEP '+p.cep:''}</div>`:''}
+          <div class="client-meta" style="color:#aaa;">Cadastrado em ${dt}</div>
         </div>
-        <div class="card-actions">
+        <div class="card-actions" style="justify-content:flex-end;">
           <button class="btn-edit" onclick="abrirLiberarCadastro('${d.id}','${(p.nome||'').replace(/'/g,"\'")}', '${p.telefoneLimpo}')" style="background:#15803D;color:#fff;">✅ Liberar</button>
           <button class="btn-del" onclick="rejeitarCadastro('${d.id}')">🗑</button>
         </div>
@@ -5338,10 +5352,15 @@ async function confirmarLiberacao(){
       if(!confirm('Já existe um cliente com esse usuário. Deseja usar mesmo assim?')) return;
     }
 
-    // Cria o cliente oficial
+    // Cria o cliente oficial com todos os dados informados no cadastro
     await db.collection('clientes').add({
       nome: p.nome,
       tel: p.telefone,
+      cpfcnpj: p.cpfcnpj || '',
+      cep: p.cep || '',
+      end: p.end || '',
+      bairro: p.bairro || '',
+      cidade: p.cidade || '',
       usuario, senha, tag,
       bloqueado: false,
       ocultarPreco: tag==='SemPreco',
