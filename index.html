@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Distribuidora Leão</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
@@ -18,8 +18,12 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 #login-screen{align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(160deg,#F5F0EA 0%,#EDE3D4 100%);}
 .login-card{background:#fff;border-radius:24px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 12px 40px rgba(65,36,2,0.15);}
 .login-logo{font-size:52px;text-align:center;margin-bottom:0.5rem;}
-.login-title{text-align:center;font-size:22px;font-weight:700;color:#2D1A00;margin-bottom:4px;}
+.login-title{text-align:center;font-size:26px;font-weight:800;color:#2D1A00;margin-bottom:4px;font-family:'Playfair Display',Georgia,serif;letter-spacing:0.3px;}
 .login-sub{text-align:center;font-size:13px;color:#999;margin-bottom:1.5rem;}
+.login-frase{text-align:center;font-size:14px;color:#7A3F08;font-weight:600;margin:8px 0 14px;line-height:1.5;padding:0 8px;font-family:'Playfair Display',Georgia,serif;font-style:italic;letter-spacing:0.2px;}
+.login-criar-conta{text-align:center;font-size:13px;color:#999;margin-top:16px;}
+.login-criar-conta a{color:#7A3F08;font-weight:700;text-decoration:none;}
+.login-criar-conta a:active{opacity:0.7;}
 .form-group{margin-bottom:14px;}
 .form-group label{font-size:11px;font-weight:700;color:#633806;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;}
 .form-group input{width:100%;padding:13px 16px;border-radius:12px;border:2px solid #EEE5D8;background:#FAFAF8;font-size:15px;font-family:'Inter',sans-serif;outline:none;transition:border .2s,box-shadow .2s;}
@@ -89,8 +93,8 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 .cat-header{background:linear-gradient(160deg,#2D1100 0%,#6B3000 50%,#412402 100%);padding:1.4rem 1rem 1.2rem;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.35);overflow:hidden;}
 .cat-header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% -20%,rgba(250,199,117,0.18) 0%,transparent 70%);pointer-events:none;}
 .cat-logo{font-size:36px;line-height:1;margin-bottom:4px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));}
-.cat-title{font-size:22px;font-weight:800;color:#FAC775;letter-spacing:1px;text-shadow:0 2px 8px rgba(0,0,0,0.4);font-family:'Georgia',serif;}
-.cat-slogan{font-size:11px;color:rgba(250,199,117,0.75);margin-top:3px;letter-spacing:0.5px;font-style:italic;}
+.cat-title{font-size:22px;font-weight:800;color:#FAC775;letter-spacing:0.5px;text-shadow:0 2px 8px rgba(0,0,0,0.4);font-family:'Playfair Display',Georgia,serif;}
+.cat-slogan{font-size:12px;color:rgba(250,199,117,0.8);margin-top:3px;letter-spacing:0.3px;font-style:italic;font-family:'Playfair Display',Georgia,serif;}
 .cat-user{font-size:12px;color:#EF9F27;margin-top:6px;background:rgba(255,255,255,0.08);display:inline-block;padding:3px 14px;border-radius:20px;}
 
 .cat-body{max-width:640px;margin:0 auto;padding:1rem;}
@@ -409,6 +413,7 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
   <div class="login-card">
     <div class="login-logo">🦁</div>
     <div class="login-title">Distribuidora Leão</div>
+    <div class="login-frase">Compre mais rápido e acompanhe seus pedidos em um só lugar</div>
     <div class="login-sub">Entre com seu usuário e senha</div>
     <div class="form-group">
       <label>Usuário</label>
@@ -420,6 +425,45 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
     </div>
     <button class="btn-login" onclick="doLogin()">Entrar</button>
     <div class="login-error" id="login-error">Usuário ou senha incorretos!</div>
+    <div class="login-criar-conta">Não possui uma conta ainda? <a href="#" onclick="abrirCadastroCliente();return false;">Criar uma conta</a></div>
+  </div>
+</div>
+
+<!-- ===== TELA DE CADASTRO DE CLIENTE ===== -->
+<div id="cadastro-screen" class="screen">
+  <div class="login-card">
+    <div class="login-logo">🦁</div>
+    <div class="login-title">Criar conta</div>
+    <div class="login-sub">Preencha seus dados para solicitar acesso</div>
+    <div class="form-group">
+      <label>Nome completo</label>
+      <input type="text" id="cad-nome" placeholder="Seu nome completo">
+    </div>
+    <div class="form-group">
+      <label>Telefone (WhatsApp)</label>
+      <input type="tel" id="cad-telefone" placeholder="(31) 99999-9999">
+    </div>
+    <div class="form-group">
+      <label>Criar senha</label>
+      <input type="password" id="cad-senha" placeholder="••••••" autocomplete="new-password">
+    </div>
+    <div class="form-group">
+      <label>Confirmar senha</label>
+      <input type="password" id="cad-senha-confirma" placeholder="••••••" autocomplete="new-password">
+    </div>
+    <button class="btn-login" onclick="enviarCadastroCliente()">Criar conta</button>
+    <div class="login-error" id="cadastro-error"></div>
+    <div class="login-criar-conta">Já tem uma conta? <a href="#" onclick="showScreen('login-screen');return false;">Entrar</a></div>
+  </div>
+</div>
+
+<!-- ===== TELA DE CADASTRO PENDENTE ===== -->
+<div id="pendente-screen" class="screen">
+  <div class="login-card" style="text-align:center;">
+    <div class="login-logo">⏳</div>
+    <div class="login-title">Cadastro em análise</div>
+    <div class="login-sub" style="margin-bottom:20px;">Aguarde a liberação do seu acesso. Avisaremos quando estiver tudo certo!</div>
+    <button class="btn-login" onclick="showScreen('login-screen')" style="background:#F5F0EA;color:#412402;">Voltar</button>
   </div>
 </div>
 
@@ -441,6 +485,7 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
     <button class="admin-tab" onclick="setAdminTab('financeiro')">💰 Financeiro</button>
     <button class="admin-tab" onclick="setAdminTab('roteiro')">🚚 Roteiro</button>
     <button class="admin-tab" onclick="setAdminTab('descontos')">🎫 Descontos</button>
+    <button class="admin-tab" onclick="setAdminTab('pendentes')">⏳ Pendentes<span id="pendentes-badge" class="cat-icon-badge" style="display:none;position:relative;top:-8px;margin-left:4px;">0</span></button>
     <button class="admin-tab" onclick="setAdminTab('sorteio')">🏆 Sorteio</button>
   </div>
 
@@ -621,7 +666,7 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
     <div class="cat-header-top">
       <div style="flex:1;text-align:left;">
         <div style="font-size:28px;line-height:1;">🦁</div>
-        <div style="font-size:16px;font-weight:800;color:#FAC775;font-family:'Georgia',serif;margin-top:2px;">Distribuidora Leão</div>
+        <div style="font-size:17px;font-weight:800;color:#FAC775;font-family:'Playfair Display',Georgia,serif;margin-top:2px;letter-spacing:0.3px;">Distribuidora Leão</div>
       </div>
       <div class="cat-header-icons">
         <button class="cat-icon-btn" onclick="abrirNotificacoes()" title="Notificações">
@@ -845,6 +890,43 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeModal('modal-cupom-desconto')">Cancelar</button>
         <button class="btn-save" onclick="saveCupomDesconto()">Salvar cupom</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CADASTROS PENDENTES ===== -->
+  <div id="tab-pendentes" class="admin-body" style="display:none;">
+    <div class="section-header">
+      <div class="section-title">⏳ Cadastros Pendentes</div>
+    </div>
+    <div id="pendentes-list"><div class="loading">Carregando...</div></div>
+  </div>
+
+  <!-- Modal liberar cadastro -->
+  <div class="modal-overlay hidden" id="modal-liberar-cadastro">
+    <div class="modal">
+      <div class="modal-title">✅ Liberar Acesso</div>
+      <div id="liberar-info" style="background:#F5F0EA;border-radius:12px;padding:12px;margin-bottom:14px;font-size:13px;color:#412402;"></div>
+      <div class="form-group">
+        <label>Usuário de login</label>
+        <input type="text" id="lib-usuario" placeholder="Ex: joao">
+      </div>
+      <div class="form-group">
+        <label>Senha de acesso</label>
+        <input type="text" id="lib-senha" placeholder="Ex: 1234">
+      </div>
+      <div class="form-group">
+        <label>Tipo de preço</label>
+        <select class="select-tag" id="lib-tag">
+          <option value="Varejo">Varejo</option>
+          <option value="Atacado">Atacado</option>
+          <option value="VIP">VIP</option>
+          <option value="SemPreco">🚫 Sem Preço</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal('modal-liberar-cadastro')">Cancelar</button>
+        <button class="btn-save" onclick="confirmarLiberacao()">✅ Liberar acesso</button>
       </div>
     </div>
   </div>
@@ -1237,7 +1319,7 @@ function doLogin(){
     errEl.style.display='block';
     return;
   }
-  db.collection('clientes').get().then(snap=>{
+  db.collection('clientes').get().then(async snap=>{
     let found=false;
     snap.forEach(d=>{
       const c=d.data();
@@ -1250,6 +1332,26 @@ function doLogin(){
         found=true;currentUser={role:'cliente',id:d.id,...c};currentClientData=c;
       }
     });
+
+    // Se não encontrou como cliente liberado, checa se é um cadastro pendente
+    if(!found){
+      try {
+        const pendSnap = await db.collection('cadastros_pendentes').get();
+        let achouPendente = false;
+        pendSnap.forEach(d=>{
+          const p = d.data();
+          // Cliente pendente loga com o telefone como usuário (ainda não recebeu usuário oficial)
+          if((p.telefoneLimpo===user.replace(/\D/g,'') || p.telefone===user) && p.senha===pass){
+            achouPendente = true;
+          }
+        });
+        if(achouPendente){
+          showScreen('pendente-screen');
+          return;
+        }
+      } catch(e){}
+    }
+
     if(found){
       db.doc('precos/'+currentUser.id).get().then(pd=>{
         clientPrices=pd.exists?pd.data():{};
@@ -1487,7 +1589,7 @@ function closeModal(id){document.getElementById(id).classList.add('hidden');}
 // ===== ADMIN TABS =====
 function setAdminTab(tab){
   document.querySelectorAll('.admin-tab').forEach((t,i)=>{
-    t.classList.toggle('active',['dashboard','clientes','produtos','pedidos','promo','financeiro','roteiro','descontos','sorteio'][i]===tab);
+    t.classList.toggle('active',['dashboard','clientes','produtos','pedidos','promo','financeiro','roteiro','descontos','pendentes','sorteio'][i]===tab);
   });
   if(document.getElementById('tab-dashboard')) document.getElementById('tab-dashboard').style.display=tab==='dashboard'?'block':'none';
   document.getElementById('tab-clientes').style.display=tab==='clientes'?'block':'none';
@@ -1497,10 +1599,12 @@ function setAdminTab(tab){
   document.getElementById('tab-financeiro').style.display=tab==='financeiro'?'block':'none';
   if(document.getElementById('tab-roteiro')) document.getElementById('tab-roteiro').style.display=tab==='roteiro'?'block':'none';
   if(document.getElementById('tab-descontos')) document.getElementById('tab-descontos').style.display=tab==='descontos'?'block':'none';
+  if(document.getElementById('tab-pendentes')) document.getElementById('tab-pendentes').style.display=tab==='pendentes'?'block':'none';
   if(tab==='dashboard') loadDashboardAdmin();
   if(tab==='financeiro') loadFinanceiro();
   if(tab==='roteiro') loadRoteiro();
   if(tab==='descontos') loadCuponsDesconto();
+  if(tab==='pendentes') loadCadastrosPendentes();
   if(document.getElementById('tab-sorteio')) document.getElementById('tab-sorteio').style.display=tab==='sorteio'?'block':'none';
   if(tab==='sorteio') loadCupons();
   if(tab==='produtos') loadProdutos();
@@ -5101,6 +5205,163 @@ function fecharBoasVindas(){
   const overlay = document.getElementById('boas-vindas-overlay');
   overlay.classList.remove('visible');
   setTimeout(()=>{ overlay.style.display='none'; }, 300);
+}
+
+// ===== CADASTRO DE CLIENTE (autoatendimento, pendente de aprovação) =====
+function abrirCadastroCliente(){
+  document.getElementById('cad-nome').value='';
+  document.getElementById('cad-telefone').value='';
+  document.getElementById('cad-senha').value='';
+  document.getElementById('cad-senha-confirma').value='';
+  document.getElementById('cadastro-error').style.display='none';
+  showScreen('cadastro-screen');
+}
+
+async function enviarCadastroCliente(){
+  const nome = document.getElementById('cad-nome').value.trim();
+  const telefone = document.getElementById('cad-telefone').value.trim();
+  const senha = document.getElementById('cad-senha').value.trim();
+  const senhaConfirma = document.getElementById('cad-senha-confirma').value.trim();
+  const errEl = document.getElementById('cadastro-error');
+  errEl.style.display = 'none';
+
+  if(!nome || !telefone || !senha || !senhaConfirma){
+    errEl.textContent = 'Preencha todos os campos!';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(senha !== senhaConfirma){
+    errEl.textContent = 'As senhas não coincidem!';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(senha.length < 4){
+    errEl.textContent = 'A senha deve ter pelo menos 4 caracteres.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    // Verifica se já existe um cadastro pendente com esse telefone
+    const telLimpo = telefone.replace(/\D/g,'');
+    const existSnap = await db.collection('cadastros_pendentes').where('telefoneLimpo','==',telLimpo).get();
+    if(!existSnap.empty){
+      errEl.textContent = 'Já existe um cadastro pendente com esse telefone. Aguarde a liberação.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    await db.collection('cadastros_pendentes').add({
+      nome, telefone, telefoneLimpo: telLimpo, senha,
+      status: 'pendente',
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    showScreen('pendente-screen');
+  } catch(e){
+    errEl.textContent = 'Erro ao enviar cadastro: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+// ===== ADMIN: CADASTROS PENDENTES =====
+let _pendenteAtualId = null;
+
+async function loadCadastrosPendentes(){
+  const el = document.getElementById('pendentes-list');
+  if(!el) return;
+  el.innerHTML = '<div class="loading">Carregando...</div>';
+
+  try {
+    const snap = await db.collection('cadastros_pendentes').get();
+    const badge = document.getElementById('pendentes-badge');
+    if(badge){
+      if(snap.size > 0){ badge.textContent = snap.size; badge.style.display='inline-flex'; }
+      else badge.style.display = 'none';
+    }
+
+    if(snap.empty){
+      el.innerHTML = '<div class="empty-state">Nenhum cadastro pendente. 🎉</div>';
+      return;
+    }
+
+    let html = '';
+    snap.forEach(d=>{
+      const p = d.data();
+      const dt = p.criadoEm ? new Date(p.criadoEm.seconds*1000).toLocaleDateString('pt-BR') : '---';
+      html += `<div class="client-card">
+        <div style="flex:1;min-width:0;">
+          <div class="client-name">${p.nome}</div>
+          <div class="client-meta">📱 ${p.telefone} • Cadastrado em ${dt}</div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-edit" onclick="abrirLiberarCadastro('${d.id}','${(p.nome||'').replace(/'/g,"\'")}', '${p.telefoneLimpo}')" style="background:#15803D;color:#fff;">✅ Liberar</button>
+          <button class="btn-del" onclick="rejeitarCadastro('${d.id}')">🗑</button>
+        </div>
+      </div>`;
+    });
+    el.innerHTML = html;
+  } catch(e){ el.innerHTML = '<div class="empty-state">Erro: '+e.message+'</div>'; }
+}
+
+function abrirLiberarCadastro(pendenteId, nome, telefoneLimpo){
+  _pendenteAtualId = pendenteId;
+  document.getElementById('liberar-info').innerHTML = `<strong>${nome}</strong><br>Telefone: ${telefoneLimpo}`;
+
+  // Sugere usuário = primeiro nome (minúsculo) e senha = 4 últimos dígitos do telefone
+  const primeiroNome = nome.trim().split(' ')[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const ultimosQuatro = telefoneLimpo.slice(-4);
+
+  document.getElementById('lib-usuario').value = primeiroNome;
+  document.getElementById('lib-senha').value = ultimosQuatro;
+  document.getElementById('lib-tag').value = 'Varejo';
+
+  document.getElementById('modal-liberar-cadastro').classList.remove('hidden');
+}
+
+async function confirmarLiberacao(){
+  if(!_pendenteAtualId) return;
+  const usuario = document.getElementById('lib-usuario').value.trim();
+  const senha = document.getElementById('lib-senha').value.trim();
+  const tag = document.getElementById('lib-tag').value;
+
+  if(!usuario || !senha){ alert('Preencha usuário e senha!'); return; }
+
+  try {
+    const pendDoc = await db.collection('cadastros_pendentes').doc(_pendenteAtualId).get();
+    if(!pendDoc.exists){ alert('Cadastro não encontrado.'); return; }
+    const p = pendDoc.data();
+
+    // Verifica se usuário já existe
+    const existSnap = await db.collection('clientes').where('usuario','==',usuario).get();
+    if(!existSnap.empty){
+      if(!confirm('Já existe um cliente com esse usuário. Deseja usar mesmo assim?')) return;
+    }
+
+    // Cria o cliente oficial
+    await db.collection('clientes').add({
+      nome: p.nome,
+      tel: p.telefone,
+      usuario, senha, tag,
+      bloqueado: false,
+      ocultarPreco: tag==='SemPreco',
+      prazo: 0
+    });
+
+    // Remove da lista de pendentes
+    await db.collection('cadastros_pendentes').doc(_pendenteAtualId).delete();
+
+    closeModal('modal-liberar-cadastro');
+    _pendenteAtualId = null;
+    loadCadastrosPendentes();
+    alert(`✅ Acesso liberado!\n\nUsuário: ${usuario}\nSenha: ${senha}\n\nAgora você pode copiar o link de acesso na aba Clientes.`);
+  } catch(e){ alert('Erro: '+e.message); }
+}
+
+async function rejeitarCadastro(id){
+  if(!confirm('Rejeitar e excluir este cadastro pendente?')) return;
+  await db.collection('cadastros_pendentes').doc(id).delete();
+  loadCadastrosPendentes();
 }
 
 </script>
