@@ -15,7 +15,7 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 .screen.entering{display:flex;flex-direction:column;}
 
 /* ===== LOGIN ===== */
-#login-screen{align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(160deg,#F5F0EA 0%,#EDE3D4 100%);}
+#cadastro-screen,#pendente-screen{align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(160deg,#F5F0EA 0%,#EDE3D4 100%);padding:1.5rem;}
 .login-card{background:#fff;border-radius:24px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 12px 40px rgba(65,36,2,0.15);}
 .login-logo{font-size:52px;text-align:center;margin-bottom:0.5rem;}
 .login-title{text-align:center;font-size:26px;font-weight:800;color:#2D1A00;margin-bottom:4px;font-family:'Playfair Display',Georgia,serif;letter-spacing:0.3px;}
@@ -278,6 +278,82 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
 .bv-passo-texto{font-size:13px;color:#412402;line-height:1.4;}
 .bv-btn{width:100%;padding:14px;background:linear-gradient(135deg,#412402,#7A3F08);color:#FAC775;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;font-family:'Inter',sans-serif;}
 
+
+/* ===== NOVO LOGIN — VITRINE + CARD (estilo premium) ===== */
+#login-screen{
+  align-items:stretch;justify-content:stretch;min-height:100vh;padding:0;
+  background:#0d0a07;
+}
+.login-wrap{display:flex;width:100%;min-height:100vh;}
+.login-vitrine{
+  flex:1.3;position:relative;overflow:hidden;
+  background:
+    radial-gradient(ellipse 800px 500px at 20% 10%, rgba(122,63,8,0.35), transparent 60%),
+    linear-gradient(160deg, #1a0f05 0%, #2d1a08 35%, #1a0f05 70%, #0d0a07 100%);
+  padding:2.5rem 2.5rem 2rem;display:flex;flex-direction:column;
+  color:#fff;
+}
+.login-vitrine::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(115deg, transparent, transparent 60px, rgba(250,199,117,0.025) 60px, rgba(250,199,117,0.025) 61px);
+  pointer-events:none;
+}
+.lv-brand{display:flex;align-items:center;gap:14px;position:relative;z-index:2;}
+.lv-brand-icon{font-size:52px;filter:drop-shadow(0 4px 14px rgba(250,199,117,0.4));flex-shrink:0;}
+.lv-brand-text{line-height:1;}
+.lv-brand-sub{font-size:13px;color:rgba(255,255,255,0.75);letter-spacing:3px;font-weight:600;}
+.lv-brand-name{font-size:42px;font-weight:900;color:#FAC775;font-family:'Playfair Display',Georgia,serif;letter-spacing:1px;text-shadow:0 4px 20px rgba(0,0,0,0.5);margin-top:2px;}
+.lv-brand-tag{font-size:13px;color:rgba(255,255,255,0.6);margin-top:6px;font-style:italic;font-family:'Playfair Display',Georgia,serif;}
+
+.lv-hero{margin-top:3rem;position:relative;z-index:2;}
+.lv-hero-title{font-size:30px;font-weight:800;color:#fff;line-height:1.25;font-family:'Playfair Display',Georgia,serif;}
+.lv-hero-title span{color:#FAC775;}
+.lv-hero-sub{font-size:14px;color:rgba(255,255,255,0.65);margin-top:14px;line-height:1.6;max-width:420px;}
+
+.lv-features{margin-top:auto;padding-top:2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:14px;position:relative;z-index:2;}
+.lv-feature{display:flex;align-items:flex-start;gap:12px;}
+.lv-feature-icon{width:38px;height:38px;border-radius:50%;background:rgba(250,199,117,0.12);border:1px solid rgba(250,199,117,0.25);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.lv-feature-title{font-size:13px;font-weight:700;color:#FAC775;}
+.lv-feature-desc{font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;line-height:1.4;}
+
+.login-card-wrap{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  background:#F5F0EA;padding:2rem 1.5rem;
+}
+.login-card{background:#fff;border-radius:24px;padding:2.5rem 2.25rem;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.12);}
+.lc-icon{font-size:44px;text-align:center;filter:drop-shadow(0 4px 10px rgba(122,63,8,0.25));}
+.lc-titulo{text-align:center;font-size:26px;font-weight:800;color:#2D1A00;margin:10px 0 6px;font-family:'Playfair Display',Georgia,serif;}
+.lc-sub{text-align:center;font-size:13px;color:#999;line-height:1.5;margin-bottom:18px;}
+.lc-divider{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+.lc-divider::before,.lc-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,#EEE5D8);}
+.lc-divider::after{background:linear-gradient(90deg,#EEE5D8,transparent);}
+.lc-divider-dot{width:8px;height:8px;background:#D4A24C;border-radius:50%;flex-shrink:0;transform:rotate(45deg);}
+
+.lc-input-wrap{position:relative;}
+.lc-input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;color:#aaa;pointer-events:none;}
+.lc-input-wrap input{padding-left:42px!important;}
+.lc-eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:15px;color:#aaa;cursor:pointer;padding:4px;}
+
+.lc-row{display:flex;justify-content:space-between;align-items:center;margin:4px 0 18px;font-size:12px;}
+.lc-lembrar{display:flex;align-items:center;gap:6px;color:#666;}
+.lc-lembrar input{width:15px;height:15px;accent-color:#D4A24C;cursor:pointer;}
+.lc-esqueci{color:#C8923A;font-weight:600;text-decoration:none;cursor:pointer;}
+
+.btn-login-novo{width:100%;padding:15px;background:linear-gradient(135deg,#D4A24C,#B8772E);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(184,119,46,0.35);transition:transform .15s,box-shadow .15s;}
+.btn-login-novo:active{transform:scale(0.98);}
+.btn-cadastro-novo{width:100%;padding:14px;background:transparent;color:#C8923A;border:1.5px solid #D4A24C;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.lc-rodape{text-align:center;font-size:12px;color:#999;line-height:1.5;margin-top:16px;}
+
+@media (max-width:860px){
+  .login-wrap{flex-direction:column;}
+  .login-vitrine{flex:none;padding:2rem 1.5rem;min-height:auto;}
+  .lv-hero{margin-top:1.5rem;}
+  .lv-hero-title{font-size:22px;}
+  .lv-features{margin-top:1.5rem;padding-top:0;grid-template-columns:1fr 1fr;}
+  .lv-brand-name{font-size:34px;}
+  .login-card-wrap{flex:none;padding:2rem 1.25rem 3rem;}
+}
+
 /* ===== FASE 1: CABEÇALHO SOFISTICADO ===== */
 .cat-header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
 .cat-header-icons{display:flex;gap:8px;}
@@ -410,22 +486,94 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
 
 <!-- ===== LOGIN ===== -->
 <div id="login-screen" class="screen active">
-  <div class="login-card">
-    <div class="login-logo">🦁</div>
-    <div class="login-title">Distribuidora Leão</div>
-    <div class="login-frase">Compre mais rápido e acompanhe seus pedidos em um só lugar</div>
-    <div class="login-sub">Entre com seu usuário e senha</div>
-    <div class="form-group">
-      <label>Usuário</label>
-      <input type="text" id="login-user" placeholder="seu.usuario" autocomplete="username">
+  <div class="login-wrap">
+
+    <!-- VITRINE DA MARCA -->
+    <div class="login-vitrine">
+      <div class="lv-brand">
+        <div class="lv-brand-icon">🦁</div>
+        <div class="lv-brand-text">
+          <div class="lv-brand-sub">DISTRIBUIDORA</div>
+          <div class="lv-brand-name">LEÃO</div>
+          <div class="lv-brand-tag">Qualidade que move o seu negócio.</div>
+        </div>
+      </div>
+
+      <div class="lv-hero">
+        <div class="lv-hero-title">O lugar certo para<br><span>seus pedidos online!</span></div>
+        <div class="lv-hero-sub">Compre com praticidade, acompanhe suas entregas, aproveite promoções exclusivas e aumente seus resultados.</div>
+      </div>
+
+      <div class="lv-features">
+        <div class="lv-feature">
+          <div class="lv-feature-icon">🚚</div>
+          <div>
+            <div class="lv-feature-title">Entrega rápida</div>
+            <div class="lv-feature-desc">Mais agilidade para o seu negócio</div>
+          </div>
+        </div>
+        <div class="lv-feature">
+          <div class="lv-feature-icon">🏷️</div>
+          <div>
+            <div class="lv-feature-title">Promoções exclusivas</div>
+            <div class="lv-feature-desc">Ofertas especiais para clientes</div>
+          </div>
+        </div>
+        <div class="lv-feature">
+          <div class="lv-feature-icon">📋</div>
+          <div>
+            <div class="lv-feature-title">Histórico de compras</div>
+            <div class="lv-feature-desc">Acompanhe e repita pedidos em 1 clique</div>
+          </div>
+        </div>
+        <div class="lv-feature">
+          <div class="lv-feature-icon">📱</div>
+          <div>
+            <div class="lv-feature-title">Atendimento via WhatsApp</div>
+            <div class="lv-feature-desc">Fale com nossa equipe rapidinho</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label>Senha</label>
-      <input type="password" id="login-pass" placeholder="••••••" autocomplete="current-password">
+
+    <!-- CARD DE LOGIN -->
+    <div class="login-card-wrap">
+      <div class="login-card">
+        <div class="lc-icon">🦁</div>
+        <div class="lc-titulo">Bem-vindo!</div>
+        <div class="lc-sub">Entre com seu usuário e senha para acessar sua conta.</div>
+        <div class="lc-divider"><div class="lc-divider-dot"></div></div>
+
+        <div class="form-group">
+          <label>Usuário</label>
+          <div class="lc-input-wrap">
+            <span class="lc-input-icon">👤</span>
+            <input type="text" id="login-user" placeholder="Digite seu usuário" autocomplete="username">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <div class="lc-input-wrap">
+            <span class="lc-input-icon">🔒</span>
+            <input type="password" id="login-pass" placeholder="Digite sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+            <button type="button" class="lc-eye-btn" onclick="toggleSenhaVisivel('login-pass',this)">👁️</button>
+          </div>
+        </div>
+
+        <div class="lc-row">
+          <label class="lc-lembrar"><input type="checkbox" checked disabled> Lembrar meu acesso</label>
+          <a class="lc-esqueci" onclick="alert('Entre em contato com a Distribuidora Leão pelo WhatsApp para recuperar sua senha.')">Esqueci minha senha</a>
+        </div>
+
+        <button class="btn-login-novo" onclick="doLogin()">→ Entrar</button>
+        <div class="login-error" id="login-error">Usuário ou senha incorretos!</div>
+
+        <button class="btn-cadastro-novo" onclick="abrirCadastroCliente()">👤+ Solicitar Cadastro</button>
+
+        <div class="lc-rodape">Ainda não é cliente da Distribuidora Leão?<br>Solicite seu cadastro e nossa equipe entrará em contato.</div>
+      </div>
     </div>
-    <button class="btn-login" onclick="doLogin()">Entrar</button>
-    <div class="login-error" id="login-error">Usuário ou senha incorretos!</div>
-    <div class="login-criar-conta">Não possui uma conta ainda? <a href="#" onclick="abrirCadastroCliente();return false;">Criar uma conta</a></div>
+
   </div>
 </div>
 
@@ -3202,17 +3350,87 @@ async function salvarEdicaoPedido(){
   if(!itensValidos.length){ alert('O pedido deve ter pelo menos 1 item.'); return; }
   const total = itensValidos.reduce((s,i)=>s+i.qty*i.unit,0);
   const totalItens = itensValidos.reduce((s,i)=>s+i.qty,0);
+  const novoTotalStr = 'R$ '+total.toFixed(2).replace('.',',');
+
   try {
+    // Busca dados do pedido ANTES de editar, para comparar
+    const pedDocAntes = await db.collection('pedidos').doc(_editandoPedidoId).get();
+    const dadosAntes = pedDocAntes.exists ? pedDocAntes.data() : {};
+
     await db.collection('pedidos').doc(_editandoPedidoId).update({
       itensList: itensValidos,
       itens: totalItens,
-      total: 'R$ '+total.toFixed(2).replace('.',',')
+      total: novoTotalStr
     });
+
+    // Recalcula cupons do sorteio deste pedido específico (ajusta se o total mudou)
+    let msgCupom = '';
+    try {
+      msgCupom = await recalcularCuponsDoPedido(_editandoPedidoId, dadosAntes.clienteId, novoTotalStr);
+    } catch(e){}
+
     closeModal('modal-edit-pedido');
-    alert('✅ Pedido atualizado!');
+    alert('✅ Pedido atualizado!' + msgCupom);
     loadFinanceiro();
     loadPedidos();
   } catch(e){ alert('Erro: '+e.message); }
+}
+
+// ===== RECALCULA CUPONS DE UM PEDIDO ESPECÍFICO APÓS EDIÇÃO =====
+// Garante que o pedido tenha exatamente os cupons que merece pelo valor atual,
+// removendo os excedentes ou criando os que faltam.
+async function recalcularCuponsDoPedido(pedidoId, clienteId, novoTotalStr){
+  if(!clienteId) return '';
+
+  // O sorteio é ACUMULATIVO (soma de todos os pedidos do cliente no período).
+  // Recalcula o total acumulado real do cliente (a edição já foi salva no Firestore antes desta chamada).
+  const pedSnap = await db.collection('pedidos').where('clienteId','==',clienteId).get();
+  let totalAcumulado = 0;
+  pedSnap.forEach(d=>{
+    const o = d.data();
+    const dt = o.timestamp ? new Date(o.timestamp.seconds*1000) : new Date();
+    if(dt >= SORTEIO_CONFIG.inicio && dt <= SORTEIO_CONFIG.fim){
+      const val = parseFloat((o.total||'0').replace('R$ ','').replace(',','.'));
+      if(!isNaN(val)) totalAcumulado += val;
+    }
+  });
+
+  const cuponsQueDeveriaTer = calcularCupons(totalAcumulado);
+
+  const cuponsClienteSnap = await db.collection('cupons').where('clienteId','==',clienteId).get();
+  const cuponsCliente = [];
+  cuponsClienteSnap.forEach(d=>{ cuponsCliente.push({id:d.id, ...d.data()}); });
+
+  const diferenca = cuponsQueDeveriaTer - cuponsCliente.length;
+  if(diferenca === 0) return '';
+
+  if(diferenca < 0){
+    const doEstePedido = cuponsCliente.filter(c=>c.pedidoId===pedidoId);
+    const deOutros = cuponsCliente.filter(c=>c.pedidoId!==pedidoId);
+    const aRemover = [...doEstePedido, ...deOutros].slice(0, Math.abs(diferenca));
+    const batch = db.batch();
+    aRemover.forEach(cup=>{ batch.delete(db.collection('cupons').doc(cup.id)); });
+    await batch.commit();
+    return `\n\n🎟 ${Math.abs(diferenca)} cupom(s) removido(s) automaticamente (total acumulado do cliente: ${fmt(totalAcumulado)}).`;
+  } else {
+    const cliDoc = await db.collection('clientes').doc(clienteId).get();
+    const clienteNome = cliDoc.exists ? cliDoc.data().nome : '';
+    const batch = db.batch();
+    for(let i=0; i<diferenca; i++){
+      const seed = Date.now() + i + Math.floor(Math.random()*10000);
+      const numCupom = gerarNumeroCupom(seed);
+      const ref = db.collection('cupons').doc();
+      batch.set(ref, {
+        numero: numCupom, clienteId, clienteNome, pedidoId,
+        totalPedido: novoTotalStr,
+        dataPedido: new Date().toLocaleDateString('pt-BR'),
+        sorteio: '18/07/2026',
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    await batch.commit();
+    return `\n\n🎟 ${diferenca} cupom(s) novo(s) gerado(s) automaticamente (total acumulado do cliente: ${fmt(totalAcumulado)}).`;
+  }
 }
 
 // ===== EXPORTAR ROTA COM SELEÇÃO DE CLIENTES =====
@@ -3550,7 +3768,7 @@ async function loadCupons(){
           <span style="display:inline-block;margin-top:4px;font-size:11px;font-weight:700;color:${statusCor};background:${statusBg};padding:2px 10px;border-radius:20px;">${statusTxt}</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-          ${!pago ? `<button class="btn-del" title="Excluir cupom não pago" onclick="deletarCupom('${cup.id}')">🗑</button>` : ''}
+          <button class="btn-del" title="Remover este cupom (não afeta o pedido)" onclick="deletarCupom('${cup.id}')">🗑</button>
         </div>
       </div>`;
     });
@@ -3576,9 +3794,10 @@ async function loadCupons(){
 }
 
 async function deletarCupom(id){
-  if(!confirm('Remover este cupom?')) return;
+  if(!confirm('Remover este cupom do sorteio?\n\nO pedido relacionado NÃO será apagado, só o cupom.')) return;
   await db.collection('cupons').doc(id).delete();
   loadCupons();
+  alert('✅ Cupom removido!');
 }
 
 // Realizar sorteio
@@ -5381,6 +5600,19 @@ async function rejeitarCadastro(id){
   if(!confirm('Rejeitar e excluir este cadastro pendente?')) return;
   await db.collection('cadastros_pendentes').doc(id).delete();
   loadCadastrosPendentes();
+}
+
+// ===== MOSTRAR/OCULTAR SENHA (ícone de olho) =====
+function toggleSenhaVisivel(inputId, btn){
+  const input = document.getElementById(inputId);
+  if(!input) return;
+  if(input.type === 'password'){
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁️';
+  }
 }
 
 </script>
