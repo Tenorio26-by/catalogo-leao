@@ -1004,9 +1004,6 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
         <button class="pr-icon-circle" onclick="abrirMeusCupons()" title="Cupons" id="icon-cupons" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9a2 2 0 012-2h14a2 2 0 012 2v1.5a1.5 1.5 0 000 3V15a2 2 0 01-2 2H5a2 2 0 01-2-2v-1.5a1.5 1.5 0 000-3V9z"/><path d="M12 7v10" stroke-dasharray="2 2"/></svg>
         </button>
-        <button class="pr-icon-circle" onclick="toggleTema()" title="Alternar tema" id="icon-tema">
-          <span id="icon-tema-emoji">🌙</span>
-        </button>
       </div>
     </div>
   </div>
@@ -2420,14 +2417,9 @@ function renderCatalog(){
 }
 
 function alter(id,d){
-  const eraZero = !qtds[id] || qtds[id]===0;
   qtds[id]=Math.max(0,(qtds[id]||0)+d);
   renderCatalog();
   salvarCarrinhoAuto();
-  // Mostra relacionados só quando adiciona o 1º item desse produto (não no F5 de quantidade)
-  if(eraZero && d>0 && qtds[id]>0){
-    mostrarRelacionados(id);
-  }
 }
 
 // ===== SALVAR CARRINHO AUTOMATICAMENTE (persiste ao minimizar/fechar) =====
@@ -4346,8 +4338,7 @@ async function renderDashboardCliente(){
 
   el.innerHTML = `
     <div class="dash-wrap">
-      <div class="dash-toggle" style="display:flex;justify-content:space-between;">
-        <button onclick="toggleTema()" style="color:var(--pr-text-muted);">${getTemaPreferido()?'☀️ Modo claro':'🌙 Modo escuro'}</button>
+      <div class="dash-toggle" style="display:flex;justify-content:flex-end;">
         <button onclick="_dashboardColapsado=true;renderDashboardCliente();" style="color:var(--pr-text-muted);">▲ Ocultar resumo</button>
       </div>
       ${vipTag}
@@ -4861,27 +4852,8 @@ function pararListenerPedidosCliente(){
 }
 
 // ===== FASE 3: TEMA ESCURO (claro é o padrão) =====
-function getTemaPreferido(){
-  if(!currentUser || !currentUser.id) return false;
-  try { return localStorage.getItem('tema_'+currentUser.id) === 'escuro'; } catch(e){ return false; }
-}
-
 function aplicarTema(){
-  const escuro = getTemaPreferido();
-  document.body.classList.toggle('tema-escuro', escuro);
-  const iconEl = document.getElementById('icon-tema-emoji');
-  if(iconEl) iconEl.textContent = escuro ? '☀️' : '🌙';
-}
-
-function toggleTema(){
-  if(!currentUser || !currentUser.id) return;
-  try {
-    const atual = getTemaPreferido();
-    localStorage.setItem('tema_'+currentUser.id, atual ? 'claro' : 'escuro');
-    aplicarTema();
-    showNotif(atual ? '☀️ Modo claro ativado' : '🌙 Modo escuro ativado');
-    renderDashboardCliente();
-  } catch(e){}
+  document.body.classList.add('tema-escuro');
 }
 
 // ===== FASE 4: GERADOR DE CÓDIGO PIX (padrão BR Code / EMV) =====
