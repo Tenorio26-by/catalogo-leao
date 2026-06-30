@@ -1016,6 +1016,12 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
         </div>
       </div>
       <div class="cat-header-icons" style="gap:8px;">
+        <button class="pr-icon-circle" onclick="abrirFavoritos()" title="Favoritos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        </button>
+        <button class="pr-icon-circle" onclick="abrirHistorico()" title="Meus Pedidos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H3v9a1 1 0 001 1h16a1 1 0 001-1v-9h-6M9 11V5a3 3 0 016 0v6M9 11h6"/></svg>
+        </button>
         <button class="pr-icon-circle" onclick="abrirNotificacoes()" title="Notificações">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
           <span class="cat-icon-badge" id="notif-icon-badge" style="display:none;">0</span>
@@ -1298,7 +1304,7 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
       <div style="font-size:15px;font-weight:800;color:#FFD700;">🏆 DISTRIBUIDORA LEÃO — PROMOÇÃO COPA</div>
       <div style="font-size:13px;color:#FFD700;font-weight:700;margin-top:4px;">🎁 PRÊMIO: Camisa Oficial da Seleção Brasileira Original!</div>
       <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:8px;line-height:1.7;">
-        ✅ Se a primeira compra do cliente for de R$ 500,00 ou mais = 1 cupom de sorteio (não acumula com compras seguintes)<br>
+        ✅ A cada R$ 500,00 em um pedido = 1 cupom de sorteio (vale em qualquer pedido, soma cupons em vários pedidos)<br>
         📅 Período: 16/06/2026 a 16/07/2026<br>
         🎲 Data do sorteio: 18/07/2026<br>
         📋 O número do cupom aparece na notinha do cliente<br>
@@ -2651,30 +2657,25 @@ async function mostrarSucesso(totalFmt, qtdItens, totalNumerico, cuponsGerados){
   const old = document.getElementById('sucesso-overlay');
   if(old) old.remove();
 
-  // Mostra mensagem do cupom (válido apenas na primeira compra, se >= R$500)
+  // Mostra mensagem do cupom (1 cupom a cada R$500 em qualquer pedido)
   let cuponsHtml = '';
   let faltaHtml = '';
   try {
     if(isPromoAtiva()){
       if(cuponsGerados && cuponsGerados.length){
         cuponsHtml = `<div style="background:linear-gradient(135deg,#1a472a,#2d6a4f);border-radius:16px;padding:14px;margin:12px 0;text-align:center;">
-          <div style="font-size:12px;color:#FFD700;font-weight:700;margin-bottom:6px;">🏆 VOCÊ GANHOU O CUPOM DO SORTEIO!</div>
+          <div style="font-size:12px;color:#FFD700;font-weight:700;margin-bottom:6px;">🏆 VOCÊ GANHOU ${cuponsGerados.length>1?cuponsGerados.length+' CUPONS':'1 CUPOM'} DO SORTEIO!</div>
           ${cuponsGerados.map(n=>`<div style="font-size:28px;font-weight:800;color:#FFD700;letter-spacing:3px;margin:4px 0;">🎟 ${n}</div>`).join('')}
           <div style="font-size:12px;color:#FFD700;font-weight:600;margin-top:6px;">🎁 Prêmio: Camisa Oficial do Brasil!</div>
           <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:4px;">Sorteio: 18/07/2026</div>
         </div>`;
-        adicionarNotificacao('cupom', 'Novo cupom do sorteio!', `Você ganhou o cupom ${cuponsGerados.join(', ')} por sua primeira compra!`);
-      } else {
-        // Verifica se esse foi o primeiro pedido para mostrar mensagem correta
-        const snap = await db.collection('pedidos').where('clienteId','==',currentUser.id).get();
-        const ehPrimeiraCompra = snap.size <= 1;
-        if(ehPrimeiraCompra && totalNumerico < SORTEIO_CONFIG.valorCupom){
-          const falta = SORTEIO_CONFIG.valorCupom - totalNumerico;
-          faltaHtml = `<div style="background:#F0FDF4;border-radius:12px;padding:10px 14px;margin:8px 0;font-size:12px;color:#15803D;">
-            <div style="font-weight:700;margin-bottom:4px;">🏆 Promoção Copa Leão</div>
-            <div>Sua primeira compra precisava de mais R$ ${falta.toFixed(2).replace('.',',')} para ganhar o cupom do sorteio. Essa promoção vale só na primeira compra.</div>
-          </div>`;
-        }
+        adicionarNotificacao('cupom', 'Novo cupom do sorteio!', `Você ganhou ${cuponsGerados.length>1?cuponsGerados.length+' cupons':'o cupom '+cuponsGerados[0]}: ${cuponsGerados.join(', ')}!`);
+      } else if(totalNumerico < SORTEIO_CONFIG.valorCupom){
+        const falta = SORTEIO_CONFIG.valorCupom - totalNumerico;
+        faltaHtml = `<div style="background:#F0FDF4;border-radius:12px;padding:10px 14px;margin:8px 0;font-size:12px;color:#15803D;">
+          <div style="font-weight:700;margin-bottom:4px;">🏆 Promoção Copa Leão</div>
+          <div>Faltaram R$ ${falta.toFixed(2).replace('.',',')} neste pedido para ganhar um cupom do sorteio. A cada R$ ${SORTEIO_CONFIG.valorCupom},00 em compras você ganha 1 cupom!</div>
+        </div>`;
       }
     }
   } catch(e){}
@@ -3635,53 +3636,50 @@ async function salvarEdicaoPedido(){
 }
 
 // ===== RECALCULA CUPONS DE UM PEDIDO ESPECÍFICO APÓS EDIÇÃO =====
-// Garante que o pedido tenha exatamente os cupons que merece pelo valor atual,
-// removendo os excedentes ou criando os que faltam.
+// Garante que o pedido tenha exatamente os cupons que merece pelo valor atual
+// (1 cupom a cada R$500), removendo excedentes ou criando os que faltam.
 async function recalcularCuponsDoPedido(pedidoId, clienteId, novoTotalStr){
   if(!clienteId) return '';
-
-  // Regra atual: o cupom só vale para a PRIMEIRA compra do cliente, e só se ela for >= R$500.
-  // Verifica se este pedido é o primeiro do cliente (cronologicamente / por ausência de outros).
-  const pedSnap = await db.collection('pedidos').where('clienteId','==',clienteId).get();
-  let pedidos = [];
-  pedSnap.forEach(d=>{ pedidos.push({id:d.id, ...d.data()}); });
-  pedidos.sort((a,b)=>{
-    const ta=a.timestamp?a.timestamp.seconds:0, tb=b.timestamp?b.timestamp.seconds:0;
-    return ta-tb;
-  });
-  const primeiroPedido = pedidos[0];
-  const ehPrimeiraCompra = primeiroPedido && primeiroPedido.id === pedidoId;
+  if(!isPromoAtiva()) return '';
 
   const novoTotalNum = parseFloat((novoTotalStr||'0').replace('R$ ','').replace(',','.'))||0;
-  const deveriaTerCupom = ehPrimeiraCompra && novoTotalNum >= SORTEIO_CONFIG.valorCupom;
+  const deveriaTer = calcularCupons(novoTotalNum);
 
-  const cuponsClienteSnap = await db.collection('cupons').where('clienteId','==',clienteId).get();
-  const cuponsCliente = [];
-  cuponsClienteSnap.forEach(d=>{ cuponsCliente.push({id:d.id, ...d.data()}); });
+  const cuponsPedidoSnap = await db.collection('cupons').where('pedidoId','==',pedidoId).get();
+  const cuponsPedido = [];
+  cuponsPedidoSnap.forEach(d=>{ cuponsPedido.push({id:d.id, ...d.data()}); });
+  const temAtualmente = cuponsPedido.length;
 
-  if(deveriaTerCupom && cuponsCliente.length === 0){
+  if(deveriaTer === temAtualmente) return '';
+
+  if(deveriaTer > temAtualmente){
     const cliDoc = await db.collection('clientes').doc(clienteId).get();
     const clienteNome = cliDoc.exists ? cliDoc.data().nome : '';
-    const seed = Date.now() + Math.floor(Math.random()*10000);
-    const numCupom = gerarNumeroCupom(seed);
-    await db.collection('cupons').doc().set({
-      numero: numCupom, clienteId, clienteNome, pedidoId,
-      totalPedido: novoTotalStr,
-      dataPedido: new Date().toLocaleDateString('pt-BR'),
-      sorteio: '18/07/2026',
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    return `\n\n🎟 1 cupom gerado automaticamente (primeira compra ajustada para ${novoTotalStr}).`;
-  }
-
-  if(!deveriaTerCupom && cuponsCliente.length > 0){
+    const faltam = deveriaTer - temAtualmente;
     const batch = db.batch();
-    cuponsCliente.forEach(cup=>{ batch.delete(db.collection('cupons').doc(cup.id)); });
+    const novosNumeros = [];
+    for(let i=0; i<faltam; i++){
+      const seed = Date.now() + i + Math.floor(Math.random()*10000);
+      const numCupom = gerarNumeroCupom(seed);
+      novosNumeros.push(numCupom);
+      batch.set(db.collection('cupons').doc(), {
+        numero: numCupom, clienteId, clienteNome, pedidoId,
+        totalPedido: novoTotalStr,
+        dataPedido: new Date().toLocaleDateString('pt-BR'),
+        sorteio: '18/07/2026',
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
     await batch.commit();
-    return `\n\n🎟 Cupom(s) removido(s) — a primeira compra ajustada (${novoTotalStr}) não atinge mais R$500.`;
+    return `\n\n🎟 ${faltam} cupom(ns) gerado(s) automaticamente (total ajustado para ${novoTotalStr}).`;
   }
 
-  return '';
+  // deveriaTer < temAtualmente: remove o excedente
+  const excedente = temAtualmente - deveriaTer;
+  const batch = db.batch();
+  cuponsPedido.slice(0, excedente).forEach(cup=>{ batch.delete(db.collection('cupons').doc(cup.id)); });
+  await batch.commit();
+  return `\n\n🎟 ${excedente} cupom(ns) removido(s) — o total ajustado (${novoTotalStr}) gera menos cupons.`;
 }
 
 // ===== EXPORTAR ROTA COM SELEÇÃO DE CLIENTES =====
@@ -3877,15 +3875,8 @@ async function loadPromoSorteio(){
 
   if(agora < inicioPromo || agora > fimPromo){ el.innerHTML=''; return; }
 
-  // Verifica se o cliente já fez algum pedido (cupom só vale na primeira compra)
+  // Verifica quantos cupons o cliente já ganhou no total
   try {
-    const snap = await db.collection('pedidos')
-      .where('clienteId','==',currentUser.id)
-      .get();
-
-    const jaTemPedido = !snap.empty;
-
-    // Verifica se já ganhou cupom (apenas para exibir status)
     const cupSnap = await db.collection('cupons').where('clienteId','==',currentUser.id).get();
     const cuponsGanhos = cupSnap.size;
 
@@ -3893,17 +3884,15 @@ async function loadPromoSorteio(){
     if(cuponsGanhos > 0){
       statusHtml = `<div class="sorteio-cupons" style="margin-top:12px;">
         <div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.6);">SEU CUPOM</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.6);">SEUS CUPONS</div>
           <div class="sorteio-cupom-badge">🎟 ${cuponsGanhos} cupom${cuponsGanhos!==1?'s':''}</div>
         </div>
         <div style="flex:1;">
-          <div class="sorteio-falta">Parabéns! Sua primeira compra garantiu o cupom 🎉</div>
+          <div class="sorteio-falta">Continue comprando: a cada R$ 500 você ganha mais 1 cupom! 🎉</div>
         </div>
       </div>`;
-    } else if(jaTemPedido){
-      statusHtml = `<div class="sorteio-falta" style="margin-top:10px;">Este cupom é válido apenas na <strong>primeira compra</strong> — não acumula com pedidos seguintes.</div>`;
     } else {
-      statusHtml = `<div class="sorteio-falta" style="margin-top:10px;">Faça sua <strong>primeira compra de R$ 500 ou mais</strong> e ganhe 1 cupom para o sorteio!</div>`;
+      statusHtml = `<div class="sorteio-falta" style="margin-top:10px;">A cada <strong>R$ 500 em um pedido</strong> você ganha 1 cupom para o sorteio!</div>`;
     }
 
     el.innerHTML = `<div class="sorteio-banner">
@@ -3911,7 +3900,7 @@ async function loadPromoSorteio(){
       <div style="font-size:13px;color:#FFD700;font-weight:700;margin-top:4px;">🎁 PRÊMIO: Camisa Oficial da Seleção Brasileira!</div>
       <div class="sorteio-sub" style="margin-top:6px;">
         <strong style="color:#FFD700;">REGULAMENTO:</strong><br>
-        ✅ Se a sua <u>primeira compra</u> for de R$ 500,00 ou mais, você ganha 1 cupom<br>
+        ✅ A cada R$ 500,00 em um pedido, você ganha 1 cupom (some quantos pedidos quiser)<br>
         📅 Período: 16/06/2026 a 16/07/2026<br>
         🎲 Sorteio: 18/07/2026<br>
         🏆 O cupom sorteado garante a camisa oficial do Brasil original!<br>
@@ -3922,38 +3911,36 @@ async function loadPromoSorteio(){
   } catch(e){ el.innerHTML=''; }
 }
 
-// Salva cupom apenas se este for o PRIMEIRO pedido do cliente e o valor for >= R$500
-// (não soma compras anteriores — é avaliado pedido a pedido, só o primeiro conta)
+// Gera 1 cupom para cada R$500 (ou fração configurada) do valor TOTAL do pedido,
+// válido em qualquer pedido (não só o primeiro), enquanto a promoção estiver ativa.
 async function salvarCuponsDosPedido(pedidoId, clienteId, clienteNome, totalStr){
   if(!isPromoAtiva()) return;
   const totalNum = parseFloat((totalStr||'0').replace('R$ ','').replace(',','.'));
   if(totalNum <= 0) return;
 
-  // Verifica se o cliente já tem algum outro pedido (além deste) — se tiver, não é o primeiro
-  const snap = await db.collection('pedidos').where('clienteId','==',clienteId).get();
-  let jaTemOutroPedido = false;
-  snap.forEach(d=>{
-    if(d.id !== pedidoId) jaTemOutroPedido = true;
-  });
+  const qtdCupons = calcularCupons(totalNum);
+  if(qtdCupons <= 0) return; // não atingiu R$500 neste pedido
 
-  if(jaTemOutroPedido) return; // só a primeira compra do cliente pode gerar cupom
-  if(totalNum < SORTEIO_CONFIG.valorCupom) return; // primeira compra precisa ser >= R$500
+  const numerosGerados = [];
+  const batch = db.batch();
+  for(let i=0; i<qtdCupons; i++){
+    const seed = Date.now() + i + Math.floor(Math.random()*10000);
+    const numCupom = gerarNumeroCupom(seed);
+    numerosGerados.push(numCupom);
+    batch.set(db.collection('cupons').doc(), {
+      numero: numCupom,
+      clienteId, clienteNome,
+      pedidoId,
+      totalPedido: totalStr,
+      dataPedido: new Date().toLocaleDateString('pt-BR'),
+      sorteio: '18/07/2026',
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }
 
-  // Gera exatamente 1 cupom para essa primeira compra premiada
-  const seed = Date.now() + Math.floor(Math.random()*10000);
-  const numCupom = gerarNumeroCupom(seed);
+  try { await batch.commit(); } catch(e){ console.log('Erro cupons:',e); return []; }
 
-  await db.collection('cupons').doc().set({
-    numero: numCupom,
-    clienteId, clienteNome,
-    pedidoId,
-    totalPedido: totalStr,
-    dataPedido: new Date().toLocaleDateString('pt-BR'),
-    sorteio: '18/07/2026',
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  }).catch(e=>console.log('Erro cupons:',e));
-
-  return [numCupom];
+  return numerosGerados;
 }
 
 // Admin: Carrega lista de cupons
@@ -4115,7 +4102,7 @@ async function abrirMeusCupons(){
       body.innerHTML = `<div style="text-align:center;padding:3rem 1rem;">
         <div style="font-size:48px;margin-bottom:12px;">🎟</div>
         <div style="font-size:16px;font-weight:700;color:#412402;margin-bottom:8px;">Você ainda não tem cupons</div>
-        <div style="font-size:13px;color:#999;">Sua primeira compra de R$ 500 ou mais garante 1 cupom para o sorteio!</div>
+        <div style="font-size:13px;color:#999;">A cada R$ 500 em um pedido você ganha 1 cupom para o sorteio!</div>
         <div style="margin-top:16px;font-size:12px;color:#666;background:#FEF9C3;border-radius:12px;padding:12px;">
           🎁 Prêmio: Camisa Oficial da Seleção Brasileira<br>
           📅 Sorteio: 18/07/2026
@@ -4343,6 +4330,12 @@ function saudacaoHora(){
 }
 
 async function renderDashboardCliente(){
+  // Resumo removido a pedido — Favoritos e Meus Pedidos agora ficam nos ícones do topo.
+  const el = document.getElementById('dashboard-cliente');
+  if(el) el.innerHTML = '';
+  return;
+}
+async function renderDashboardClienteDesativado(){
   const el = document.getElementById('dashboard-cliente');
   if(!el || !currentUser || currentUser.role !== 'cliente') return;
 
