@@ -529,6 +529,7 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
 /* ===== PROMOÇÃO SORTEIO ===== */
 .sorteio-banner{background:linear-gradient(135deg,#1a472a,#2d6a4f);border:1px solid rgba(255,215,0,0.3);border-radius:20px;padding:1rem 1.25rem;margin-bottom:14px;color:#fff;position:relative;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.35);}
 .sorteio-banner::before{content:'🏆';position:absolute;right:-10px;top:-10px;font-size:80px;opacity:0.15;}
+@keyframes pulso-ouro{from{box-shadow:0 0 20px rgba(212,175,55,0.3);}to{box-shadow:0 0 40px rgba(212,175,55,0.7),0 0 80px rgba(212,175,55,0.3);}}
 .sorteio-titulo{font-size:15px;font-weight:800;color:#FFD700;letter-spacing:0.5px;}
 .sorteio-sub{font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px;line-height:1.4;}
 .sorteio-cupons{display:flex;align-items:center;gap:8px;margin-top:10px;}
@@ -3869,46 +3870,129 @@ async function loadPromoSorteio(){
   const el = document.getElementById('promo-sorteio-banner');
   if(!el) return;
 
-  const agora = new Date();
-  const fimPromo = SORTEIO_CONFIG.fim;
-  const inicioPromo = SORTEIO_CONFIG.inicio;
+  // ===== SORTEIO ENCERRADO — EXIBIR GANHADORA PARA TODOS OS CLIENTES =====
+  const GANHADORA = {
+    nome: 'Vilma',
+    premio: 'Camisa Oficial da Seleção Brasileira 🇧🇷',
+    dataSorteio: '18/07/2026'
+  };
 
-  if(agora < inicioPromo || agora > fimPromo){ el.innerHTML=''; return; }
+  // Verifica se este cliente é a ganhadora (para mensagem especial)
+  const nomeCliente = (currentClientData && currentClientData.nome) ? currentClientData.nome.split(' ')[0].toLowerCase() : '';
+  const ehGanhadora = nomeCliente === GANHADORA.nome.toLowerCase();
 
-  // Verifica quantos cupons o cliente já ganhou no total
-  try {
-    const cupSnap = await db.collection('cupons').where('clienteId','==',currentUser.id).get();
-    const cuponsGanhos = cupSnap.size;
-
-    let statusHtml;
-    if(cuponsGanhos > 0){
-      statusHtml = `<div class="sorteio-cupons" style="margin-top:12px;">
-        <div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.6);">SEUS CUPONS</div>
-          <div class="sorteio-cupom-badge">🎟 ${cuponsGanhos} cupom${cuponsGanhos!==1?'s':''}</div>
+  if(ehGanhadora){
+    el.innerHTML = `<div class="sorteio-banner" style="background:linear-gradient(135deg,#7B3F00,#D4AF37);animation:pulso-ouro 1.5s ease-in-out infinite alternate;">
+      <div style="text-align:center;padding:8px 0;">
+        <div style="font-size:36px;margin-bottom:6px;">🏆🎉🏆</div>
+        <div style="font-size:18px;font-weight:900;color:#fff;letter-spacing:1px;">PARABÉNS, ${GANHADORA.nome.toUpperCase()}!!!</div>
+        <div style="font-size:14px;color:#FFD700;font-weight:700;margin-top:6px;">VOCÊ É A GANHADORA DO SORTEIO!</div>
+        <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:10px 14px;margin:10px 0;font-size:13px;color:#fff;line-height:1.6;">
+          🎁 Prêmio: <strong style="color:#FFD700;">${GANHADORA.premio}</strong><br>
+          📅 Sorteio realizado em: <strong>${GANHADORA.dataSorteio}</strong>
         </div>
-        <div style="flex:1;">
-          <div class="sorteio-falta">Continue comprando: a cada R$ 500 você ganha mais 1 cupom! 🎉</div>
-        </div>
-      </div>`;
-    } else {
-      statusHtml = `<div class="sorteio-falta" style="margin-top:10px;">A cada <strong>R$ 500 em um pedido</strong> você ganha 1 cupom para o sorteio!</div>`;
-    }
-
-    el.innerHTML = `<div class="sorteio-banner">
-      <div class="sorteio-titulo">🏆 PROMOÇÃO DISTRIBUIDORA LEÃO — COPA</div>
-      <div style="font-size:13px;color:#FFD700;font-weight:700;margin-top:4px;">🎁 PRÊMIO: Camisa Oficial da Seleção Brasileira!</div>
-      <div class="sorteio-sub" style="margin-top:6px;">
-        <strong style="color:#FFD700;">REGULAMENTO:</strong><br>
-        ✅ A cada R$ 500,00 em um pedido, você ganha 1 cupom (some quantos pedidos quiser)<br>
-        📅 Período: 16/06/2026 a 16/07/2026<br>
-        🎲 Sorteio: 18/07/2026<br>
-        🏆 O cupom sorteado garante a camisa oficial do Brasil original!<br>
-        ⚠️ Participam do sorteio apenas cupons vinculados a pedidos quitados até a data do sorteio. 🎟️
+        <div style="font-size:12px;color:rgba(255,255,255,0.8);">Entre em contato conosco para retirar seu prêmio! 😊</div>
+        <button onclick="gerarCertificadoGanhador()" style="margin-top:12px;background:#FFD700;color:#2D1A00;border:none;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;">
+          🏅 Ver meu Certificado
+        </button>
       </div>
-      ${statusHtml}
     </div>`;
-  } catch(e){ el.innerHTML=''; }
+  } else {
+    el.innerHTML = `<div class="sorteio-banner" style="background:linear-gradient(135deg,#0a2a0a,#1a5c1a);border:2px solid #FFD700;">
+      <div style="text-align:center;">
+        <div style="font-size:28px;margin-bottom:4px;">🏆</div>
+        <div style="font-size:15px;font-weight:800;color:#FFD700;letter-spacing:1px;">SORTEIO ENCERRADO!</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.9);margin-top:6px;">Promoção Copa — Distribuidora Leão</div>
+        <div style="background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.4);border-radius:14px;padding:12px;margin:10px 0;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:700;letter-spacing:1px;margin-bottom:4px;">🎉 GANHADORA DO SORTEIO</div>
+          <div style="font-size:22px;font-weight:900;color:#FFD700;">${GANHADORA.nome}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px;">🎁 ${GANHADORA.premio}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;">📅 Sorteio realizado em ${GANHADORA.dataSorteio}</div>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);">Obrigado a todos que participaram! 💚</div>
+      </div>
+    </div>`;
+  }
+}
+
+// Gera certificado da ganhadora em nova janela
+function gerarCertificadoGanhador(){
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificado — Ganhadora do Sorteio</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;600;800&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:#0D0D0D;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;font-family:'Inter',sans-serif;}
+    .cert{background:linear-gradient(145deg,#1a0f00,#2D1A00);border:3px solid #D4AF37;border-radius:24px;max-width:520px;width:100%;padding:2.5rem 2rem;text-align:center;position:relative;overflow:hidden;box-shadow:0 0 60px rgba(212,175,55,0.3);}
+    .cert::before{content:'';position:absolute;inset:8px;border:1px solid rgba(212,175,55,0.3);border-radius:18px;pointer-events:none;}
+    .cert::after{content:'🦁';position:absolute;right:-20px;bottom:-20px;font-size:140px;opacity:0.06;}
+    .stars{font-size:20px;letter-spacing:6px;margin-bottom:16px;color:#D4AF37;}
+    .titulo{font-family:'Cinzel',serif;font-size:11px;letter-spacing:4px;color:#D4AF37;text-transform:uppercase;margin-bottom:6px;}
+    .empresa{font-family:'Cinzel',serif;font-size:22px;color:#fff;font-weight:900;margin-bottom:20px;}
+    .certifica{font-size:12px;color:rgba(255,255,255,0.6);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+    .ganhadora{font-family:'Cinzel',serif;font-size:34px;color:#FFD700;font-weight:900;margin:8px 0;text-shadow:0 0 30px rgba(255,215,0,0.5);}
+    .subtexto{font-size:13px;color:rgba(255,255,255,0.7);line-height:1.7;margin:16px 0;}
+    .premio-box{background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.4);border-radius:14px;padding:14px;margin:18px 0;}
+    .premio-label{font-size:10px;color:#D4AF37;letter-spacing:2px;font-weight:700;text-transform:uppercase;margin-bottom:6px;}
+    .premio{font-size:16px;color:#fff;font-weight:700;}
+    .data-box{display:flex;justify-content:center;gap:30px;margin:20px 0;}
+    .data-item{text-align:center;}
+    .data-label{font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
+    .data-val{font-size:13px;color:#D4AF37;font-weight:700;}
+    .assinatura{margin-top:24px;padding-top:16px;border-top:1px solid rgba(212,175,55,0.2);}
+    .assina-linha{width:160px;border-bottom:1px solid rgba(212,175,55,0.5);margin:0 auto 6px;}
+    .assina-nome{font-size:12px;color:#D4AF37;font-weight:700;}
+    .assina-cargo{font-size:10px;color:rgba(255,255,255,0.4);}
+    .trofeu{font-size:50px;margin:12px 0;}
+    .print-btn{display:block;margin:24px auto 0;background:linear-gradient(135deg,#D4AF37,#B8860B);color:#2D1A00;border:none;padding:12px 28px;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .2s;}
+    .print-btn:hover{opacity:0.85;}
+    @media print{body{background:#fff;}.print-btn{display:none!important;}.cert{border-color:#B8860B;box-shadow:none;background:#fff;}.ganhadora{color:#7B3F00;}.empresa{color:#2D1A00;}.titulo,.certifica,.data-label{color:#555;}.data-val,.assina-nome,.premio-label,.stars{color:#B8860B;}.subtexto,.assina-cargo{color:#555;}.premio{color:#2D1A00;}.cert::before{border-color:#B8860B;}}
+  </style>
+</head>
+<body>
+  <div>
+    <div class="cert">
+      <div class="stars">★ ★ ★ ★ ★</div>
+      <div class="titulo">Distribuidora</div>
+      <div class="empresa">LEÃO</div>
+      <div class="trofeu">🏆</div>
+      <div class="certifica">CERTIFICA QUE</div>
+      <div class="ganhadora">Vilma</div>
+      <div class="subtexto">
+        é a <strong style="color:#FFD700;">grande ganhadora</strong> do Sorteio Distribuidora Leão —
+        Promoção Copa, realizado com todos os clientes participantes.
+      </div>
+      <div class="premio-box">
+        <div class="premio-label">🎁 Prêmio</div>
+        <div class="premio">Camisa Oficial da Seleção Brasileira 🇧🇷</div>
+      </div>
+      <div class="data-box">
+        <div class="data-item">
+          <div class="data-label">Data do Sorteio</div>
+          <div class="data-val">18/07/2026</div>
+        </div>
+        <div class="data-item">
+          <div class="data-label">Período da Promoção</div>
+          <div class="data-val">16/06 a 16/07/2026</div>
+        </div>
+      </div>
+      <div class="assinatura">
+        <div class="assina-linha"></div>
+        <div class="assina-nome">Distribuidora Leão</div>
+        <div class="assina-cargo">Qualidade que move o seu negócio</div>
+      </div>
+    </div>
+    <button class="print-btn" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+  </div>
+</body>
+</html>`;
+  const w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
 }
 
 // Gera 1 cupom para cada R$500 (ou fração configurada) do valor TOTAL do pedido,
