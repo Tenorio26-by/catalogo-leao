@@ -830,7 +830,6 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
       <button class="admin-tab" onclick="setAdminTab('roteiro')"><span class="adm-tab-icon">🚚</span> Roteiro</button>
       <button class="admin-tab" onclick="setAdminTab('descontos')"><span class="adm-tab-icon">🎫</span> Descontos</button>
       <button class="admin-tab" onclick="setAdminTab('pendentes')"><span class="adm-tab-icon">⏳</span> Pendentes<span id="pendentes-badge" class="cat-icon-badge" style="display:none;position:absolute;top:6px;right:10px;">0</span></button>
-      <button class="admin-tab" onclick="setAdminTab('sorteio')"><span class="adm-tab-icon">🏆</span> Sorteio</button>
     </div>
   </div>
 
@@ -952,7 +951,7 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
 </div>
 
 <!-- ===== MEUS CUPONS (CLIENTE) ===== -->
-<div id="cupons-screen" class="screen">
+<div id="cupons-screen" class="screen" style="display:none!important;">
   <div class="hist-header">
     <button class="hist-back" onclick="showScreen('catalog-screen')">←</button>
     <div class="hist-title">🎟 Meus Cupons</div>
@@ -1029,9 +1028,6 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
         </button>
         <button class="pr-icon-circle" onclick="abrirMeuFinanceiro()" title="Financeiro">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5a2.5 2.5 0 012.5-1.5h.5a2 2 0 110 4h-1a2 2 0 100 4h.5a2.5 2.5 0 002.5-1.5"/></svg>
-        </button>
-        <button class="pr-icon-circle" onclick="abrirMeusCupons()" title="Cupons" id="icon-cupons" style="display:none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9a2 2 0 012-2h14a2 2 0 012 2v1.5a1.5 1.5 0 000 3V15a2 2 0 01-2 2H5a2 2 0 01-2-2v-1.5a1.5 1.5 0 000-3V9z"/><path d="M12 7v10" stroke-dasharray="2 2"/></svg>
         </button>
         <button class="pr-icon-circle" onclick="logout()" title="Sair">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
@@ -1114,7 +1110,6 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
       <div class="bottom-total" id="bot-total"></div>
     </div>
     <button class="hist-nav-btn" onclick="abrirHistorico()">📋<span>Pedidos</span></button>
-    <button class="hist-nav-btn" onclick="abrirMeusCupons()" id="btn-meus-cupons" style="display:none;">🎟<span>Cupons</span></button>
     <button class="wbtn" id="wbtn" disabled onclick="abrirPedidoSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
       Ver pedido
@@ -4156,14 +4151,8 @@ async function exportarCupons(){
   URL.revokeObjectURL(url);
 }
 
-// ===== MEUS CUPONS (CLIENTE) =====
-function mostrarBotaoCupons(){
-  const agora = new Date();
-  const fimPromo = new Date('2026-07-18'); // mostra até o dia do sorteio
-  const inicioPromo = new Date('2026-06-16');
-  const btn = document.getElementById('btn-meus-cupons');
-  if(btn && agora >= inicioPromo && agora <= fimPromo) btn.style.display='flex';
-}
+// ===== MEUS CUPONS (CLIENTE) — desativado, sorteio encerrado =====
+function mostrarBotaoCupons(){ /* sorteio encerrado, botão removido */ }
 
 async function abrirMeusCupons(){
   showScreen('cupons-screen');
