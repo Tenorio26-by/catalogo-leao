@@ -296,19 +296,7 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 .pestoque-zero{color:#999;}
 
 
-/* ===== FASE 2: PRODUTOS RELACIONADOS ===== */
-#relacionados-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:550;display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .25s ease;}
-#relacionados-overlay.visible{opacity:1;}
-.rel-sheet{background:#fff;width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:1.25rem 1rem 1.5rem;transform:translateY(100%);transition:transform .3s cubic-bezier(0.34,1.2,0.64,1);max-height:70vh;overflow-y:auto;}
-#relacionados-overlay.visible .rel-sheet{transform:translateY(0);}
-.rel-titulo{font-size:15px;font-weight:700;color:#412402;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
-.rel-close{background:#F5F0EA;border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;color:#888;}
-.rel-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F5F0EA;}
-.rel-item-img{width:48px;height:48px;border-radius:10px;object-fit:contain;background:#F5F0EA;padding:4px;flex-shrink:0;}
-.rel-item-info{flex:1;min-width:0;}
-.rel-item-nome{font-size:13px;font-weight:600;color:#2D1A00;}
-.rel-item-preco{font-size:12px;color:#7A3F08;font-weight:700;margin-top:2px;}
-.rel-item-add{background:#412402;color:#FAC775;border:none;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;flex-shrink:0;}
+
 
 
 /* ===== FASE 3: CONTADOR REGRESSIVO PROMOÇÃO ===== */
@@ -871,18 +859,20 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
   </div>
 
   <!-- ABA TABELA DE PREÇOS -->
-  <div id="tab-precos" class="admin-body" style="max-width:640px;display:none;">
+  <div id="tab-precos" class="admin-body" style="max-width:820px;display:none;">
     <div class="section-header">
       <div class="section-title">💲 Tabela de Preços</div>
     </div>
-    <div class="precos-hint">💡 Selecione um cliente para ver e editar os preços exclusivos dele. Campos vazios usam o preço padrão do produto.</div>
-    <div class="form-group">
-      <label>Cliente</label>
-      <select class="select-tag" id="precos-cliente-select" onchange="carregarTabelaPrecos()">
-        <option value="">Selecione um cliente...</option>
-      </select>
+    <div class="precos-hint">💡 Defina o preço de cada produto para cada tipo de cliente. No cadastro do cliente (aba Clientes → campo "Tipo de preço"), escolha Varejo, Atacado ou VIP para decidir qual lista ele vai ver. Campo vazio = usa o preço padrão do produto (mostrado como dica).</div>
+    <div class="prod-cat-filters" id="precos-tier-tabs">
+      <button class="prod-cat-chip active" data-tier="Varejo" onclick="mudarTierPrecos('Varejo')">🛒 Varejo</button>
+      <button class="prod-cat-chip" data-tier="Atacado" onclick="mudarTierPrecos('Atacado')">📦 Atacado</button>
+      <button class="prod-cat-chip" data-tier="VIP" onclick="mudarTierPrecos('VIP')">⭐ VIP</button>
     </div>
-    <div id="precos-tabela-wrap"><div class="empty-state">Selecione um cliente para ver/editar a tabela de preços.</div></div>
+    <div class="prod-toolbar">
+      <input type="text" id="precos-search" placeholder="🔎 Buscar produto..." oninput="renderTabelaPrecosTier()">
+    </div>
+    <div id="precos-tabela-wrap"><div class="loading">Carregando...</div></div>
   </div>
 
   <!-- ABA PEDIDOS -->
@@ -1057,7 +1047,6 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
     </div>
     <div class="cat-tabs" id="cat-tabs"></div>
     <div id="promo-sorteio-banner"></div>
-    <div id="sugestao-banner"></div>
     <div id="entrega-banner"></div>
     <div id="lista-btn-wrap" style="display:none;margin-bottom:12px;">
       <button onclick="gerarListaCliente()" style="width:100%;padding:13px;background:var(--pr-gold);color:#1A1604;border:none;border-radius:16px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;">
@@ -1076,16 +1065,6 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
   <div class="notif-badge" id="notif-badge">🛒 Novo pedido recebido!</div>
 
   <!-- TELA DE CONFIRMAÇÃO DO PEDIDO -->
-  <!-- FASE 2: PRODUTOS RELACIONADOS -->
-  <div id="relacionados-overlay" style="display:none;" onclick="if(event.target===this)fecharRelacionados()">
-    <div class="rel-sheet">
-      <div class="rel-titulo">
-        <span id="rel-titulo-texto">Quem compra isso também compra:</span>
-        <button class="rel-close" onclick="fecharRelacionados()">✕</button>
-      </div>
-      <div id="rel-itens-lista"></div>
-    </div>
-  </div>
 
   <div id="pedido-overlay" style="display:none;" onclick="if(event.target===this)fecharPedidoSheet()">
     <div class="pedido-sheet">
@@ -1521,7 +1500,7 @@ async function tentarLoginPorQrCode(){
     carregarCarrinhoAuto();
     await loadProdutosFirebase();
     renderCatalog();
-    setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();mostrarBotaoCupons();renderDashboardCliente();atualizarHeaderMeta();iniciarListenerPedidosCliente();atualizarBadgeNotificacoes();aplicarTema();mostrarBoasVindasSeNovo();},300);
+    setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadPromoSorteio();mostrarBotaoCupons();renderDashboardCliente();atualizarHeaderMeta();iniciarListenerPedidosCliente();atualizarBadgeNotificacoes();aplicarTema();mostrarBoasVindasSeNovo();},300);
 
     return true;
   } catch(e){ return false; }
@@ -1554,7 +1533,7 @@ window.addEventListener('load', async ()=>{
       carregarCarrinhoAuto();
       await loadProdutosFirebase();
       renderCatalog();
-      setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();mostrarBotaoCupons();renderDashboardCliente();atualizarHeaderMeta();iniciarListenerPedidosCliente();atualizarBadgeNotificacoes();aplicarTema();},300);
+      setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadPromoSorteio();mostrarBotaoCupons();renderDashboardCliente();atualizarHeaderMeta();iniciarListenerPedidosCliente();atualizarBadgeNotificacoes();aplicarTema();},300);
     }
   } catch(e){ localStorage.removeItem('leao_session'); }
 });
@@ -1708,7 +1687,7 @@ function doLogin(){
         showScreen('catalog-screen');
         loadProdutosFirebase().then(()=>{
           renderCatalog();
-          setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadSugestaoReposicao();loadPromoSorteio();mostrarBotaoCupons();renderDashboardCliente();atualizarHeaderMeta();iniciarListenerPedidosCliente();atualizarBadgeNotificacoes();aplicarTema();mostrarBoasVindasSeNovo();},300);
+          setTimeout(()=>{carregarUltimoPedido();loadPromo();loadPedidoMinimo();loadDiaEntrega();loadPromoSorteio();mostrarBotaoCupons();renderDashboardCliente();atualizarHeaderMeta();iniciarListenerPedidosCliente();atualizarBadgeNotificacoes();aplicarTema();mostrarBoasVindasSeNovo();},300);
         });
       });
     } else {errEl.style.display='block';}
@@ -1930,69 +1909,85 @@ async function savePrices(){
   alert('Preços salvos!');
 }
 
-// ===== ABA TABELA DE PREÇOS (dedicada) =====
+// ===== ABA TABELA DE PREÇOS (por tipo: Varejo / Atacado / VIP) =====
+let _tierPrecoAtiva = 'Varejo';
+const TIER_CAMPO = {Varejo:'precoVarejo', Atacado:'precoAtacado', VIP:'precoVip'};
+
 async function loadPrecosTab(){
-  const sel = document.getElementById('precos-cliente-select');
-  if(!sel) return;
-  const valorAtual = sel.value;
-  try{
-    const snap = await db.collection('clientes').get();
-    const clientes = [];
-    snap.forEach(d=>clientes.push({id:d.id,...d.data()}));
-    clientes.sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
-    let opts = '<option value="">Selecione um cliente...</option>';
-    clientes.forEach(c=>{ opts += `<option value="${c.id}">${c.nome}</option>`; });
-    sel.innerHTML = opts;
-    if(valorAtual){ sel.value = valorAtual; }
-  } catch(e){
-    sel.innerHTML = '<option value="">Erro ao carregar clientes</option>';
-  }
-  if(!sel.value){
-    document.getElementById('precos-tabela-wrap').innerHTML = '<div class="empty-state">Selecione um cliente para ver/editar a tabela de preços.</div>';
-  } else {
-    carregarTabelaPrecos();
-  }
+  await mudarTierPrecos(_tierPrecoAtiva);
 }
 
-async function carregarTabelaPrecos(){
-  const sel = document.getElementById('precos-cliente-select');
-  const clienteId = sel ? sel.value : '';
+async function mudarTierPrecos(tier){
+  _tierPrecoAtiva = tier;
+  document.querySelectorAll('#precos-tier-tabs .prod-cat-chip').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tier===tier);
+  });
   const wrap = document.getElementById('precos-tabela-wrap');
-  if(!clienteId){
-    wrap.innerHTML = '<div class="empty-state">Selecione um cliente para ver/editar a tabela de preços.</div>';
-    return;
-  }
   wrap.innerHTML = '<div class="loading">Carregando...</div>';
-  try{
-    const pricesDoc = await db.doc('precos/'+clienteId).get();
-    const saved = pricesDoc.exists ? pricesDoc.data() : {};
-    const produtosAtivos = getProdutos().filter(p=>p.ativo!==false);
-
-    let html = `<div id="precos-tabela-list">`;
-    produtosAtivos.forEach(p=>{
-      const val = saved[p.id]||'';
-      html += `<div class="price-row">
-        <div class="price-name">${p.nome}<br><span class="price-def">Padrão: R$ ${p.preco.toFixed(2).replace('.',',')}</span></div>
-        <input class="price-input" type="number" step="0.01" min="0" data-id="${p.id}" value="${val}" placeholder="${p.preco.toFixed(2)}">
-      </div>`;
-    });
-    html += `</div><button class="btn-save" style="margin-top:16px;" onclick="salvarTabelaPrecosTab('${clienteId}')">💾 Salvar tabela de preços</button>`;
-    wrap.innerHTML = html;
-  } catch(e){
-    wrap.innerHTML = '<div class="empty-state">Erro ao carregar: '+e.message+'</div>';
+  if(!_produtosCacheAdmin || !_produtosCacheAdmin.length){
+    await loadProdutos();
   }
+  renderTabelaPrecosTier();
 }
 
-async function salvarTabelaPrecosTab(clienteId){
+function renderTabelaPrecosTier(){
+  const wrap = document.getElementById('precos-tabela-wrap');
+  if(!wrap) return;
+  const termo = (document.getElementById('precos-search')?.value||'').toLowerCase().trim();
+  const campo = TIER_CAMPO[_tierPrecoAtiva];
+  const produtos = (_produtosCacheAdmin||[]).filter(p=>p.ativo!==false && (!termo || p.nome.toLowerCase().includes(termo)));
+
+  if(!produtos.length){ wrap.innerHTML = '<div class="empty-state">Nenhum produto encontrado.</div>'; return; }
+
+  let html = `<div id="precos-tabela-list">`;
+  produtos.forEach(p=>{
+    const val = (p[campo]!==undefined && p[campo]!==null) ? p[campo] : '';
+    html += `<div class="price-row">
+      <div class="price-name">${p.nome}<br><span class="price-def">Padrão: R$ ${p.preco.toFixed(2).replace('.',',')}</span></div>
+      <input class="price-input" type="number" step="0.01" min="0" data-id="${p.id}" data-origem="${p.origem}" value="${val}" placeholder="${p.preco.toFixed(2)}">
+    </div>`;
+  });
+  html += `</div><button class="btn-save" style="margin-top:16px;" onclick="salvarTabelaPrecosTier()">💾 Salvar tabela ${_tierPrecoAtiva}</button>`;
+  wrap.innerHTML = html;
+}
+
+async function salvarTabelaPrecosTier(){
+  const campo = TIER_CAMPO[_tierPrecoAtiva];
   const inputs = document.querySelectorAll('#precos-tabela-list .price-input');
-  const prices = {};
-  inputs.forEach(inp=>{ if(inp.value) prices[inp.dataset.id]=parseFloat(inp.value); });
+  const btn = document.querySelector('#precos-tabela-wrap .btn-save');
+  if(btn){ btn.disabled = true; btn.textContent = 'Salvando...'; }
   try{
-    await db.doc('precos/'+clienteId).set(prices);
-    alert('✅ Tabela de preços salva para este cliente!');
+    const batch = db.batch();
+    let writes = 0;
+    inputs.forEach(inp=>{
+      const id = inp.dataset.id;
+      const origem = inp.dataset.origem;
+      const prod = (_produtosCacheAdmin||[]).find(x=>x.id===id);
+      const valorAtual = prod ? prod[campo] : undefined;
+      const novoValor = inp.value===''? null : parseFloat(inp.value);
+      const jaTinhaValor = valorAtual!==undefined && valorAtual!==null;
+      if(novoValor===null && !jaTinhaValor) return; // nada a fazer
+      if(novoValor!==null && valorAtual===novoValor) return; // sem mudança
+      const docId = origem==='base' ? ('override_'+id) : id;
+      const ref = db.collection('produtos').doc(docId);
+      const payload = origem==='base' ? {baseId:id} : {};
+      payload[campo] = novoValor===null ? firebase.firestore.FieldValue.delete() : novoValor;
+      batch.set(ref, payload, {merge:true});
+      writes++;
+    });
+    if(writes===0){
+      alert('Nenhuma alteração para salvar.');
+    } else {
+      await batch.commit();
+      await loadProdutos();
+      renderTabelaPrecosTier();
+      alert('✅ Tabela de preços ('+_tierPrecoAtiva+') salva!');
+      return;
+    }
   } catch(e){
     alert('Erro ao salvar: '+e.message);
   }
+  if(btn){ btn.disabled=false; btn.textContent='💾 Salvar tabela '+_tierPrecoAtiva; }
 }
 
 function closeModal(id){document.getElementById(id).classList.add('hidden');}
@@ -2100,11 +2095,11 @@ async function saveProduto(){
     const estoque = (estoqueEl && estoqueEl.value !== '') ? parseInt(estoqueEl.value) : null;
     const data = {nome,cat,un,preco,foto:fotoBase64,badge,estoque,ativo:true};
     if(editingProdutoId && editingProdutoId.startsWith('base_')){
-      // Save override for base product
+      // Save override for base product (merge preserva precoVarejo/Atacado/Vip já definidos)
       const baseId = editingProdutoId.replace('base_','');
-      await db.collection('produtos').doc('override_'+baseId).set({...data, baseId});
+      await db.collection('produtos').doc('override_'+baseId).set({...data, baseId}, {merge:true});
     } else if(editingProdutoId){
-      await db.collection('produtos').doc(editingProdutoId).set(data);
+      await db.collection('produtos').doc(editingProdutoId).set(data, {merge:true});
     } else {
       await db.collection('produtos').add(data);
     }
@@ -2139,7 +2134,7 @@ async function loadProdutos(){
     const baseComOverride = produtosBase
       .map(p=>{
         const ov = overridesAdmin[p.id];
-        if(ov) return {...p, nome:ov.nome||p.nome, preco:ov.preco||p.preco, foto:ov.foto||p.foto, un:ov.un||p.un, cat:ov.cat||p.cat, badge:ov.badge||p.badge, estoque:(ov.estoque!==undefined?ov.estoque:p.estoque), ativo:ov.ativo, deletado:ov.deletado||false, origem:'base'};
+        if(ov) return {...p, nome:ov.nome||p.nome, preco:ov.preco||p.preco, foto:ov.foto||p.foto, un:ov.un||p.un, cat:ov.cat||p.cat, badge:ov.badge||p.badge, estoque:(ov.estoque!==undefined?ov.estoque:p.estoque), ativo:ov.ativo, deletado:ov.deletado||false, origem:'base', precoVarejo:ov.precoVarejo, precoAtacado:ov.precoAtacado, precoVip:ov.precoVip};
         return {...p, origem:'base'};
       })
       .filter(p=>!p.deletado); // produtos deletados permanentemente NUNCA aparecem, nem no admin
@@ -2404,16 +2399,23 @@ function getProdutos(){
   // Apply overrides to base products
   const base = produtosBase.map(p=>{
     const ov = overrides[p.id];
-    if(ov) return {...p, nome:ov.nome||p.nome, preco:ov.preco||p.preco, foto:ov.foto||'', un:ov.un||p.un, cat:ov.cat||p.cat, badge:ov.badge||p.badge||'', estoque:(ov.estoque!==undefined?ov.estoque:p.estoque), ativo:ov.ativo};
+    if(ov) return {...p, nome:ov.nome||p.nome, preco:ov.preco||p.preco, foto:ov.foto||'', un:ov.un||p.un, cat:ov.cat||p.cat, badge:ov.badge||p.badge||'', estoque:(ov.estoque!==undefined?ov.estoque:p.estoque), ativo:ov.ativo, precoVarejo:ov.precoVarejo, precoAtacado:ov.precoAtacado, precoVip:ov.precoVip};
     return p;
   }).filter(p=>p.ativo!==false);
   // Add new Firebase products (not overrides)
   const novos = produtosFirebase.filter(p=>!p.baseId && !produtosBase.find(b=>b.id===p.id));
   const todos = [...base, ...novos];
-  return todos.map(p=>({...p,
-    precoFinal:clientPrices[p.id]||p.preco,
-    precoOriginal:null
-  }));
+  const tag = (typeof currentClientData!=='undefined' && currentClientData && currentClientData.tag) || null;
+  return todos.map(p=>{
+    let precoTier = p.preco;
+    if(tag==='Atacado' && p.precoAtacado!=null) precoTier = p.precoAtacado;
+    else if(tag==='VIP' && p.precoVip!=null) precoTier = p.precoVip;
+    else if(tag==='Varejo' && p.precoVarejo!=null) precoTier = p.precoVarejo;
+    return {...p,
+      precoFinal: (clientPrices[p.id]!=null) ? clientPrices[p.id] : precoTier,
+      precoOriginal:null
+    };
+  });
 }
 
 function fmt(v){return'R$ '+v.toFixed(2).replace('.',',');}
@@ -2527,14 +2529,9 @@ function renderCatalog(){
 }
 
 function alter(id,d){
-  const eraZero = !qtds[id] || qtds[id]===0;
   qtds[id]=Math.max(0,(qtds[id]||0)+d);
   renderCatalog();
   salvarCarrinhoAuto();
-  // Mostra relacionados só quando adiciona o 1º item desse produto (não no F5 de quantidade)
-  if(eraZero && d>0 && qtds[id]>0){
-    mostrarRelacionados(id);
-  }
 }
 
 // ===== SALVAR CARRINHO AUTOMATICAMENTE (persiste ao minimizar/fechar) =====
@@ -4825,68 +4822,11 @@ function renderFavoritosScreen(){
 }
 
 // ===== FASE 2: PRODUTOS RELACIONADOS =====
-let _relUltimoMostrado = null;
-function mostrarRelacionados(produtoId){
-  // Evita mostrar repetido pro mesmo produto em sequência rápida
-  if(_relUltimoMostrado === produtoId) return;
-
-  const produtos = getProdutos();
-  const prod = produtos.find(p=>p.id===produtoId);
-  if(!prod) return;
-
-  // Pega outros produtos da mesma categoria, que não estão no carrinho ainda
-  const relacionados = produtos.filter(p=>
-    p.cat === prod.cat && p.id !== produtoId && (!qtds[p.id] || qtds[p.id]===0)
-  ).slice(0,4);
-
-  if(!relacionados.length) return; // nada pra sugerir
-
-  _relUltimoMostrado = produtoId;
-  const _ocPreco = (currentClientData && currentClientData.ocultarPreco) || (currentClientData && currentClientData.tag==='SemPreco');
-
-  document.getElementById('rel-titulo-texto').textContent = 'Quem compra ' + prod.nome.split(' ').slice(0,2).join(' ') + ' também compra:';
-
-  let html = '';
-  relacionados.forEach(p=>{
-    const imgSrc = p.foto||(p.img&&IMGS[p.img])||'';
-    const cat = cats.find(c=>c.nome===p.cat);
-    const imgHtml = imgSrc ? `<img class="rel-item-img" src="${imgSrc}" alt="${p.nome}" loading="lazy">` : `<div class="rel-item-img" style="display:flex;align-items:center;justify-content:center;font-size:20px;">${cat?cat.icon:'📦'}</div>`;
-    html += `<div class="rel-item">
-      ${imgHtml}
-      <div class="rel-item-info">
-        <div class="rel-item-nome">${p.nome}</div>
-        ${_ocPreco?'':'<div class="rel-item-preco">'+fmt(p.precoFinal)+'</div>'}
-      </div>
-      <button class="rel-item-add" onclick="alterSemRelacionado('${p.id}',1);atualizarItemRelacionado('${p.id}')">+</button>
-    </div>`;
-  });
-  document.getElementById('rel-itens-lista').innerHTML = html;
-
-  const overlay = document.getElementById('relacionados-overlay');
-  overlay.style.display = 'flex';
-  setTimeout(()=>overlay.classList.add('visible'), 10);
-
-  // Auto-fecha depois de um tempo se o cliente não interagir
-  clearTimeout(window._relAutoClose);
-  window._relAutoClose = setTimeout(fecharRelacionados, 8000);
-}
-
-// Adiciona item sem reabrir o ciclo de relacionados (evita loop infinito de sheets)
+// Adiciona item ao carrinho (usado na tela de Novidades)
 function alterSemRelacionado(id, d){
   qtds[id] = Math.max(0,(qtds[id]||0)+d);
   renderCatalog();
   salvarCarrinhoAuto();
-}
-
-function atualizarItemRelacionado(id){
-  showNotif('✅ Adicionado ao carrinho!');
-}
-
-function fecharRelacionados(){
-  const overlay = document.getElementById('relacionados-overlay');
-  overlay.classList.remove('visible');
-  clearTimeout(window._relAutoClose);
-  setTimeout(()=>{ overlay.style.display='none'; }, 250);
 }
 
 // ===== FASE 3: NOVIDADES (produtos marcados como "novo") =====
