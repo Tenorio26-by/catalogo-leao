@@ -227,9 +227,25 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 .min-order-fill{height:100%;background:#F59E0B;border-radius:3px;transition:width .3s;}
 
 /* FOTO TELA CHEIA */
-.foto-modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:500;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.foto-modal{position:fixed;inset:0;background:#050505;z-index:9000;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .28s ease;overflow-y:auto;}
+.foto-modal.visible{opacity:1;pointer-events:all;}
 .foto-modal.hidden{display:none;}
-.foto-modal img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:16px;}
+.foto-modal-close{position:fixed;top:14px;right:14px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:9010;transition:background .2s;}
+.foto-modal-close:active{background:rgba(255,255,255,0.25);}
+.prod-detail{max-width:580px;margin:0 auto;padding:68px 20px 50px;}
+.prod-detail-img{width:100%;max-height:300px;object-fit:contain;border-radius:18px;background:rgba(255,255,255,0.05);padding:16px;display:block;margin:0 auto 22px;}
+.prod-detail-ph{width:100%;height:200px;border-radius:18px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:80px;margin-bottom:22px;}
+.prod-detail-nome{font-size:22px;font-weight:800;color:#fff;line-height:1.3;margin-bottom:5px;}
+.prod-detail-un{font-size:13px;color:#888;margin-bottom:12px;}
+.prod-detail-preco{font-size:30px;font-weight:800;color:#FAC775;margin-bottom:18px;}
+.prod-detail-desc-box{font-size:14px;color:#bbb;line-height:1.7;margin-bottom:26px;padding:14px 16px;background:rgba(255,255,255,0.04);border-radius:14px;border:1px solid rgba(255,255,255,0.07);}
+.prod-detail-desc-box h4{color:#FAC775;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:700;}
+.prod-detail-qty{display:flex;align-items:center;gap:18px;margin-bottom:16px;}
+.prod-detail-qty .qty-btn-d{width:44px;height:44px;font-size:24px;border:2px solid rgba(212,163,55,.5);background:transparent;color:#FAC775;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.prod-detail-qty .qty-btn-d:active{background:rgba(212,163,55,.15);}
+.prod-detail-qty .qty-num-d{font-size:24px;font-weight:800;color:#fff;min-width:32px;text-align:center;}
+.prod-detail-add-btn{width:100%;padding:16px;background:linear-gradient(135deg,#FAC775,#D4A24C);color:#0a0a0a;border:none;border-radius:16px;font-size:16px;font-weight:800;cursor:pointer;transition:transform .15s;}
+.prod-detail-add-btn:active{transform:scale(0.97);}
 
 /* STATUS PEDIDO */
 .status-bar{display:flex;justify-content:space-between;align-items:center;padding:8px 0;margin-top:4px;}
@@ -938,8 +954,12 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
     <div id="catalog"></div>
   </div>
   <!-- FOTO TELA CHEIA -->
-  <div class="foto-modal hidden" id="foto-modal" onclick="closeFotoModal()">
-    <img id="foto-modal-img" src="" alt="Produto">
+  <!-- TELA DE DETALHE DO PRODUTO -->
+  <div class="foto-modal hidden" id="foto-modal">
+    <button class="foto-modal-close" onclick="closeFotoModal()" aria-label="Fechar">✕</button>
+    <div class="prod-detail" id="prod-detail-body">
+      <!-- Preenchido por openFotoModal() -->
+    </div>
   </div>
   <!-- NOTIFICAÇÃO -->
   <div class="notif-badge" id="notif-badge">🛒 Novo pedido recebido!</div>
@@ -1960,7 +1980,7 @@ async function loadProdutos(){
     const baseComOverride = produtosBase
       .map(p=>{
         const ov = overridesAdmin[p.id];
-        if(ov) return {...p, nome:ov.nome||p.nome, preco:ov.preco||p.preco, foto:ov.foto||p.foto, un:ov.un||p.un, cat:ov.cat||p.cat, badge:ov.badge||p.badge, estoque:(ov.estoque!==undefined?ov.estoque:p.estoque), ativo:ov.ativo, deletado:ov.deletado||false, origem:'base'};
+        if(ov) return {...p, nome:ov.nome||p.nome, preco:ov.preco||p.preco, foto:ov.foto||p.foto, un:ov.un||p.un, cat:ov.cat||p.cat, badge:ov.badge||p.badge, estoque:(ov.estoque!==undefined?ov.estoque:p.estoque), descricao:ov.descricao||p.descricao||'', ativo:ov.ativo, deletado:ov.deletado||false, origem:'base'};
         return {...p, origem:'base'};
       })
       .filter(p=>!p.deletado); // produtos deletados permanentemente NUNCA aparecem, nem no admin
@@ -2025,6 +2045,8 @@ async function editProdutoBase(id, origem){
     if(badgeElB) badgeElB.value = p.badge || '';
     const estoqueElB = document.getElementById('mp-estoque');
     if(estoqueElB) estoqueElB.value = (p.estoque!==undefined && p.estoque!==null) ? p.estoque : '';
+    const descricaoElB = document.getElementById('mp-descricao');
+    if(descricaoElB) descricaoElB.value = p.descricao || '';
     const imgSrc = p.img && IMGS[p.img] ? IMGS[p.img] : '';
     document.getElementById('mp-preview').innerHTML = imgSrc ? 
       `<img src="${imgSrc}" style="width:80px;height:80px;object-fit:contain;border-radius:10px;background:#F5F0EA;padding:4px;">` : '';
@@ -2256,7 +2278,7 @@ function renderCatalog(){
       if(q>0){total+=q*p.precoFinal;count+=q;}
       const imgSrc=p.foto||(p.img&&IMGS[p.img])||'';
       const imgHtml=imgSrc
-        ?`<img class="pimg" src="${imgSrc}" alt="${p.nome}" loading="lazy" onclick="openFotoModal('${imgSrc}','${p.nome.replace(/'/g,"\\'")}',${'`'}${fmt(p.precoFinal)}${'`'})" style="cursor:zoom-in;">`
+        ?`<img class="pimg" src="${imgSrc}" alt="${p.nome}" loading="lazy" onclick="openFotoModal('${imgSrc}','${p.nome.replace(/'/g,"\\'")}',${'`'}${fmt(p.precoFinal)}${'`'},'${p.id}')" style="cursor:zoom-in;">`
         :`<div class="pimg-ph">${cat.icon}</div>`;
 
       // Badge (Novidade/Destaque/Mais vendido)
@@ -2582,12 +2604,78 @@ function fecharSucesso(){
 }
 
 // ===== FOTO TELA CHEIA =====
-function openFotoModal(src){
-  document.getElementById('foto-modal-img').src=src;
-  document.getElementById('foto-modal').classList.remove('hidden');
+function openFotoModal(src, nome, preco, prodId){
+  // Busca o produto no catálogo para pegar descrição e mais infos
+  const allProds = getProdutos();
+  const p = prodId ? allProds.find(x=>x.id===prodId) : null;
+  const _ocPreco = (currentClientData && currentClientData.ocultarPreco) || (currentClientData && currentClientData.tag==='SemPreco');
+  const cat = p ? cats.find(c=>c.nome===p.cat) : null;
+
+  const imgHtml = src
+    ? `<img class="prod-detail-img" src="${src}" alt="${nome||''}">`
+    : `<div class="prod-detail-ph">${cat?cat.icon:'📦'}</div>`;
+
+  const descHtml = (p && p.descricao)
+    ? `<div class="prod-detail-desc-box"><h4>📝 Descrição</h4>${p.descricao}</div>` : '';
+
+  const precoMostrar = _ocPreco ? '' : `<div class="prod-detail-preco">${preco||''}</div>`;
+
+  const qtd = p ? (qtds[p.id]||0) : 0;
+  const controleHtml = p ? `
+    <div class="prod-detail-qty">
+      <button class="qty-btn-d" onclick="alterDetalhe('${p.id}',-1)">−</button>
+      <span class="qty-num-d" id="det-qty-${p.id}">${qtd}</span>
+      <button class="qty-btn-d" onclick="alterDetalhe('${p.id}',1)">+</button>
+    </div>
+    <button class="prod-detail-add-btn" onclick="alterDetalhe('${p.id}',1)">
+      🛒 Adicionar ao pedido
+    </button>` : '';
+
+  document.getElementById('prod-detail-body').innerHTML = `
+    ${imgHtml}
+    <div class="prod-detail-nome">${nome||''}</div>
+    <div class="prod-detail-un">${p?p.un:''}</div>
+    ${precoMostrar}
+    ${descHtml}
+    ${controleHtml}
+  `;
+
+  const modal = document.getElementById('foto-modal');
+  modal.classList.remove('hidden');
+  document.body.style.overflow='hidden';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>modal.classList.add('visible')));
+  document._fotoEscFn = (e)=>{ if(e.key==='Escape') closeFotoModal(); };
+  document.addEventListener('keydown', document._fotoEscFn);
 }
+
+function alterDetalhe(id, d){
+  qtds[id] = Math.max(0,(qtds[id]||0)+d);
+  // Atualiza número na tela de detalhe
+  const el = document.getElementById('det-qty-'+id);
+  if(el) el.textContent = qtds[id]||0;
+  // Atualiza número no grid
+  const numEl = document.querySelector(`.qty-num[data-id="${id}"]`);
+  if(numEl){ numEl.textContent=qtds[id]||0; numEl.classList.toggle('active',(qtds[id]||0)>0); }
+  // Atualiza barra inferior
+  let total=0,count=0;
+  Object.keys(qtds).forEach(k=>{
+    if((qtds[k]||0)>0){const p=getProdutos().find(x=>x.id===k);if(p){total+=(qtds[k]||0)*p.precoFinal;count+=qtds[k]||0;}}
+  });
+  const botInfo=document.getElementById('bot-info');
+  const botTotal=document.getElementById('bot-total');
+  const wbtn=document.getElementById('wbtn');
+  if(botInfo) botInfo.textContent=count?`🛒 ${count} item${count>1?'s':''}`:'Nenhum item selecionado';
+  if(botTotal) botTotal.textContent=count?fmt(total):'';
+  if(wbtn) wbtn.disabled=!count;
+  salvarCarrinhoAuto();
+}
+
 function closeFotoModal(){
-  document.getElementById('foto-modal').classList.add('hidden');
+  const modal = document.getElementById('foto-modal');
+  modal.classList.remove('visible');
+  document.body.style.overflow='';
+  setTimeout(()=>modal.classList.add('hidden'),280);
+  if(document._fotoEscFn){document.removeEventListener('keydown',document._fotoEscFn);document._fotoEscFn=null;}
 }
 
 // ===== PROMOÇÃO DO DIA =====
