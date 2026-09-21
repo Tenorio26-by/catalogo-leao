@@ -149,28 +149,34 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 .cat-slogan{font-size:12px;color:rgba(250,199,117,0.8);margin-top:3px;letter-spacing:0.3px;font-style:italic;font-family:'Playfair Display',Georgia,serif;}
 .cat-user{font-size:12px;color:#EF9F27;margin-top:6px;background:rgba(255,255,255,0.08);display:inline-block;padding:3px 14px;border-radius:20px;}
 
-.cat-body{max-width:640px;margin:0 auto;padding:1rem;}
+.cat-body{max-width:100%;padding:0.75rem 1rem;}
 .search-wrap{margin-bottom:0.85rem;}
 .search-input{width:100%;padding:13px 16px;border-radius:14px;border:2px solid #D4B896;background:#fff;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border .2s,box-shadow .2s;}
 .search-input:focus{border-color:#7A3F08;box-shadow:0 0 0 4px rgba(122,63,8,0.08);}
 .cat-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;}
 .cat-tab{font-size:12px;padding:8px 16px;border-radius:20px;border:2px solid #D4B896;background:#fff;color:#666;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;transition:all .2s;}
 .cat-tab.active{background:#412402;color:#FAC775;border-color:#412402;box-shadow:0 2px 8px rgba(65,36,2,0.2);}
-.section-label{font-size:11px;font-weight:700;color:#633806;background:#FAEEDA;border:2px solid #EF9F27;border-radius:20px;padding:5px 16px;display:inline-flex;align-items:center;gap:6px;margin:1rem 0 0.7rem;text-transform:uppercase;letter-spacing:0.5px;}
+.section-label{font-size:13px;font-weight:800;color:#FAC775;background:#0d0d0b;border:1px solid rgba(212,163,55,.35);border-radius:14px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0 0;text-transform:uppercase;letter-spacing:1px;cursor:pointer;user-select:none;transition:border-color .2s;}
+.section-label:hover{border-color:rgba(212,163,55,.65);}
+.section-label .sec-chevron{transition:transform .3s ease;color:#888;font-size:16px;}
+.section-label.open .sec-chevron{transform:rotate(180deg);color:#FAC775;}
+.section-body{display:none;padding:12px 0;}
+.section-body.open{display:block;}
 
 /* ===== CARD PRODUTO MAIOR E MAIS BONITO ===== */
-.pcard{background:#fff;border:2px solid #EEE5D8;border-radius:18px;padding:1rem;display:flex;align-items:center;margin-bottom:12px;gap:14px;box-shadow:0 2px 10px rgba(0,0,0,0.05);transition:all .2s;cursor:default;}
-.pcard:hover{box-shadow:0 6px 20px rgba(65,36,2,0.12);border-color:#D4B896;transform:translateY(-1px);}
-.pcard.selected{border-color:#27500A;box-shadow:0 4px 16px rgba(39,80,10,0.15);}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;}
+.pcard{background:#0d0d0b;border:1px solid rgba(212,163,55,.22);border-radius:16px;padding:14px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:0;gap:0;box-shadow:0 3px 14px rgba(0,0,0,.4);transition:all .2s;cursor:default;position:relative;}
+.pcard:hover{border-color:rgba(212,163,55,.6);transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,.55);}
+.pcard.selected{border-color:#27ae60;}
 
 /* FOTO GRANDE */
-.pimg{width:90px;height:90px;object-fit:contain;border-radius:14px;flex-shrink:0;background:#F5F0EA;padding:6px;}
-.pimg-ph{width:90px;height:90px;border-radius:14px;flex-shrink:0;background:#F5F0EA;display:flex;align-items:center;justify-content:center;font-size:36px;}
+.pimg{width:100%;max-width:130px;height:120px;object-fit:contain;border-radius:12px;background:rgba(255,255,255,0.06);padding:8px;margin-bottom:10px;}
+.pimg-ph{width:100%;max-width:130px;height:120px;border-radius:12px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:42px;margin-bottom:10px;}
 
 .pinfo{flex:1;min-width:0;}
-.pname{font-size:15px;font-weight:600;color:#2D1A00;line-height:1.3;}
+.pname{font-size:13px;font-weight:700;color:#fff;line-height:1.35;min-height:34px;}
 .pdesc{font-size:12px;color:#999;margin-top:3px;}
-.pprice{font-size:17px;font-weight:700;color:#7A3F08;margin-top:6px;}
+.pprice{font-size:16px;font-weight:800;color:#FAC775;margin-top:6px;}
 .pprice-orig{font-size:12px;color:#bbb;text-decoration:line-through;margin-left:6px;font-weight:400;}
 
 /* SELECIONADOR MELHORADO */
@@ -221,17 +227,9 @@ body{font-family:'Inter',sans-serif;background:#F5F0EA;min-height:100vh;}
 .min-order-fill{height:100%;background:#F59E0B;border-radius:3px;transition:width .3s;}
 
 /* FOTO TELA CHEIA */
-.foto-modal{position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s ease;overflow:hidden;}
-.foto-modal.visible{opacity:1;pointer-events:all;}
+.foto-modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:500;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .foto-modal.hidden{display:none;}
-.foto-modal-close{position:fixed;top:14px;right:14px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:9010;transition:background .2s;flex-shrink:0;}
-.foto-modal-close:active{background:rgba(255,255,255,0.3);}
-.foto-modal-img-wrap{display:flex;align-items:center;justify-content:center;width:100%;flex:1;padding:56px 16px 8px;}
-.foto-modal img{width:auto;height:auto;max-width:94vw;max-height:72vh;object-fit:contain;border-radius:12px;transition:transform .3s ease;box-shadow:0 4px 32px rgba(0,0,0,0.5);display:block;}
-.foto-modal-info{width:100%;padding:10px 20px 28px;text-align:center;flex-shrink:0;}
-.foto-modal-nome{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;}
-.foto-modal-preco{font-size:24px;font-weight:800;color:#FAC775;}
-.foto-modal-hint{font-size:11px;color:rgba(255,255,255,0.3);margin-top:8px;}
+.foto-modal img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:16px;}
 
 /* STATUS PEDIDO */
 .status-bar{display:flex;justify-content:space-between;align-items:center;padding:8px 0;margin-top:4px;}
@@ -940,16 +938,8 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
     <div id="catalog"></div>
   </div>
   <!-- FOTO TELA CHEIA -->
-  <div class="foto-modal hidden" id="foto-modal">
-    <button class="foto-modal-close" onclick="closeFotoModal()" aria-label="Fechar">✕</button>
-    <div class="foto-modal-img-wrap" onclick="closeFotoModal()">
-      <img id="foto-modal-img" src="" alt="Produto" onclick="event.stopPropagation()">
-    </div>
-    <div class="foto-modal-info">
-      <div class="foto-modal-nome" id="foto-modal-nome"></div>
-      <div class="foto-modal-preco" id="foto-modal-preco"></div>
-      <div class="foto-modal-hint">Toque fora da imagem para fechar</div>
-    </div>
+  <div class="foto-modal hidden" id="foto-modal" onclick="closeFotoModal()">
+    <img id="foto-modal-img" src="" alt="Produto">
   </div>
   <!-- NOTIFICAÇÃO -->
   <div class="notif-badge" id="notif-badge">🛒 Novo pedido recebido!</div>
@@ -2234,7 +2224,12 @@ function renderTabs(){
   ).join('');
 }
 
-function setcat(c){catAtiva=c;renderCatalog();}
+function setcat(c){catAtiva=c;window._secAberta={};renderCatalog();}
+function toggleSecao(nome){
+  if(!window._secAberta) window._secAberta={};
+  window._secAberta[nome] = !window._secAberta[nome];
+  renderCatalog();
+}
 
 function renderCatalog(){
   renderTabs();
@@ -2250,48 +2245,50 @@ function renderCatalog(){
     const cat=cats.find(c=>c.nome===catNome);
     const itens=produtos.filter(p=>p.cat===catNome&&(!search||p.nome.toLowerCase().includes(search)));
     if(!itens.length)return;
-    html+=`<div class="section-label">${cat.icon} ${catNome}</div>`;
+    // Accordion: mantem estado de abertura por categoria
+    if(!window._secAberta) window._secAberta={};
+    if(window._secAberta[catNome]===undefined) window._secAberta[catNome]=true;
+    const aberta = window._secAberta[catNome];
+    html+=`<div class="section-label${aberta?' open':''}" onclick="toggleSecao('${catNome}')"><span>${cat.icon} ${catNome} <span style='color:#888;font-size:11px;font-weight:400;margin-left:6px;'>${itens.length} itens</span></span><span class='sec-chevron'>▾</span></div>`;
+    html+=`<div class="section-body${aberta?' open':''}" id="secbody-${catNome.replace(/\s/g,'_')}"><div class="pgrid">`;
     itens.forEach(p=>{
       const q=qtds[p.id]||0;
       if(q>0){total+=q*p.precoFinal;count+=q;}
       const imgSrc=p.foto||(p.img&&IMGS[p.img])||'';
       const imgHtml=imgSrc
-        ?`<img class="pimg" src="${imgSrc}" alt="${p.nome}" loading="lazy" onclick="openFotoModal('${imgSrc}','${p.nome.replace(/'/g,\"\\'\")}',${'`'+fmt(p.precoFinal)+'`'})" style="cursor:zoom-in;">`
+        ?`<img class="pimg" src="${imgSrc}" alt="${p.nome}" loading="lazy" onclick="openFotoModal('${imgSrc}','${p.nome.replace(/'/g,"\\'")}',${'`'}${fmt(p.precoFinal)}${'`'})" style="cursor:zoom-in;">`
         :`<div class="pimg-ph">${cat.icon}</div>`;
-      const origHtml='';
 
       // Badge (Novidade/Destaque/Mais vendido)
       const badgeLabels={novo:'✨ Novidade',destaque:'⭐ Destaque',maisvendido:'🔥 Mais vendido'};
       const badgeHtml = p.badge && badgeLabels[p.badge]
         ? `<span class="prod-badge badge-${p.badge}">${badgeLabels[p.badge]}</span>` : '';
 
-      // Estoque (opcional - só mostra se admin definiu um valor)
+      // Estoque
       let estoqueHtml = '';
       if(p.estoque !== undefined && p.estoque !== null){
         if(p.estoque <= 0) estoqueHtml = `<div class="pestoque pestoque-zero">Esgotado</div>`;
-        else if(p.estoque <= 5) estoqueHtml = `<div class="pestoque pestoque-baixo">⚠️ Restam só ${p.estoque}</div>`;
-        else estoqueHtml = `<div class="pestoque pestoque-ok">✅ Disponível</div>`;
+        else if(p.estoque <= 5) estoqueHtml = `<div class="pestoque pestoque-baixo">⚠️ ${p.estoque} restam</div>`;
       }
 
-      // Favorito
       const isFav = _favoritos.includes(p.id);
 
       html+=`<div class="pcard">
+        <button class="pfav-btn${isFav?' active':''}" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.4);border:1px solid rgba(212,163,55,.3);border-radius:50%;width:28px;height:28px;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="toggleFavorito('${p.id}',event)">${isFav?'❤️':'🤍'}</button>
         ${imgHtml}
-        <div class="pinfo">
-          ${badgeHtml}
-          <div class="pname">${p.nome}<button class="pfav-btn${isFav?' active':''}" onclick="toggleFavorito('${p.id}',event)">${isFav?'❤️':'🤍'}</button></div>
-          <div class="pdesc">${p.un}</div>
-          <div class="pprice">${_ocPreco ? '' : fmt(p.precoFinal)+origHtml}</div>
-          ${estoqueHtml}
-        </div>
-        <div class="qty-ctrl">
+        ${badgeHtml}
+        <div class="pname">${p.nome}</div>
+        <div class="pdesc" style="font-size:11px;color:#888;margin:2px 0 6px;">${p.un}</div>
+        <div class="pprice">${_ocPreco ? '' : fmt(p.precoFinal)}</div>
+        ${estoqueHtml}
+        <div class="qty-ctrl" style="margin-top:8px;width:100%;">
           <button class="qty-btn" onclick="alter('${p.id}',1)">+</button>
           <span class="qty-num${q>0?' active':''}">${q}</span>
           <button class="qty-btn" onclick="alter('${p.id}',-1)">−</button>
         </div>
       </div>`;
     });
+    html+=`</div></div>`;
   });
   if(!html)html='<div class="no-results">Nenhum produto encontrado 🔍</div>';
   el.innerHTML=html;
@@ -2585,31 +2582,12 @@ function fecharSucesso(){
 }
 
 // ===== FOTO TELA CHEIA =====
-function openFotoModal(src, nome, preco){
-  const modal = document.getElementById('foto-modal');
-  const img = document.getElementById('foto-modal-img');
-  // Resetar antes de mostrar
-  img.style.transform = 'scale(1)';
-  img.src = '';
-  document.getElementById('foto-modal-nome').textContent = nome || '';
-  document.getElementById('foto-modal-preco').textContent = preco || '';
-  modal.classList.remove('hidden');
-  // Travar scroll da página por baixo
-  document.body.style.overflow = 'hidden';
-  // Carregar imagem e só então mostrar o modal
-  img.onload = () => requestAnimationFrame(()=> requestAnimationFrame(()=> modal.classList.add('visible')));
-  img.onerror = () => requestAnimationFrame(()=> requestAnimationFrame(()=> modal.classList.add('visible')));
-  img.src = src;
-  // Fechar com tecla ESC
-  document._fotoEscFn = (e)=>{ if(e.key==='Escape') closeFotoModal(); };
-  document.addEventListener('keydown', document._fotoEscFn);
+function openFotoModal(src){
+  document.getElementById('foto-modal-img').src=src;
+  document.getElementById('foto-modal').classList.remove('hidden');
 }
 function closeFotoModal(){
-  const modal = document.getElementById('foto-modal');
-  modal.classList.remove('visible');
-  document.body.style.overflow = '';
-  setTimeout(()=> modal.classList.add('hidden'), 250);
-  if(document._fotoEscFn){ document.removeEventListener('keydown', document._fotoEscFn); document._fotoEscFn=null; }
+  document.getElementById('foto-modal').classList.add('hidden');
 }
 
 // ===== PROMOÇÃO DO DIA =====
@@ -2914,27 +2892,20 @@ async function exportarPedidos(){
 }
 
 // ===== ZOOM NA FOTO (Feature 11) =====
-// Zoom por double-tap / double-click na foto do produto
+// Já existe foto-modal, vamos melhorar com zoom por pinch/double-tap
 (function(){
   let scale=1, lastTap=0;
   function setupZoom(){
     const img = document.getElementById('foto-modal-img');
     if(!img) return;
-    // Double-click no desktop
     img.addEventListener('dblclick',e=>{
       e.stopPropagation();
-      scale = scale>1?1:2.8;
+      scale = scale>1?1:2.5;
       img.style.transform=`scale(${scale})`;
-      img.style.cursor = scale>1?'zoom-out':'zoom-in';
     });
-    // Double-tap no celular
     img.addEventListener('touchend',e=>{
       const now=Date.now();
-      if(now-lastTap<300){
-        e.preventDefault();
-        scale = scale>1?1:2.8;
-        img.style.transform=`scale(${scale})`;
-      }
+      if(now-lastTap<300){ e.preventDefault(); scale=scale>1?1:2.5; img.style.transform=`scale(${scale})`; }
       lastTap=now;
     });
   }
@@ -4603,7 +4574,7 @@ function renderFavoritosScreen(){
     const imgSrc = p.foto||(p.img&&IMGS[p.img])||'';
     const cat = cats.find(c=>c.nome===p.cat);
     const imgHtml = imgSrc
-      ? `<img class="pimg" src="${imgSrc}" alt="${p.nome}" loading="lazy" onclick="openFotoModal('${imgSrc}','${p.nome.replace(/'/g,\"\\'\")}',${'`'+fmt(p.precoFinal||p.preco)+'`'})" style="cursor:zoom-in;">`
+      ? `<img class="pimg" src="${imgSrc}" alt="${p.nome}" loading="lazy" onclick="openFotoModal('${imgSrc}')" style="cursor:zoom-in;">`
       : `<div class="pimg-ph">${cat?cat.icon:'📦'}</div>`;
     html += `<div class="pcard">
       ${imgHtml}
