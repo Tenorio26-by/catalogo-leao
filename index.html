@@ -942,6 +942,9 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
             <circle cx="17.5" cy="6.5" r="1.2" fill="#FFC400"/>
           </svg>
         </a>
+        <a href="https://wa.me/5531996422924" target="_blank" class="cat-icon-btn" title="WhatsApp" style="text-decoration:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.558 4.117 1.533 5.845L.057 23.428a.5.5 0 00.515.572l5.762-1.511A11.943 11.943 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.897 0-3.67-.52-5.18-1.424l-.372-.22-3.863 1.013 1.033-3.77-.242-.389A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        </a>
       </div>
     </div>
     <div class="cat-user" id="cat-user-name"></div>
@@ -965,12 +968,6 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
     <div id="promo-sorteio-banner"></div>
     <div id="sugestao-banner"></div>
     <div id="entrega-banner"></div>
-    <div id="lista-btn-wrap" style="display:none;margin-bottom:12px;">
-      <button onclick="gerarListaCliente()" style="width:100%;padding:16px 20px;background:linear-gradient(90deg,#5C3200,#A86600,#5C3200);color:#FFC400;border:1px solid #B8860B;border-radius:18px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:space-between;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);height:56px;transition:all .25s;">
-        <span style="display:flex;align-items:center;gap:10px;">📋 Gerar lista de produtos para anotar</span>
-        <span style="font-size:18px;">›</span>
-      </button>
-    </div>
     <div id="vip-banner"></div>
 
     <div id="cat-voltar-btn" onclick="setcat('Todos')" style="display:none;align-items:center;gap:8px;padding:10px 14px;margin-bottom:8px;background:#111;border:1px solid #3D2B08;border-radius:12px;cursor:pointer;color:#FFC400;font-size:13px;font-weight:700;">
@@ -1448,8 +1445,6 @@ async function tentarLoginPorQrCode(){
 
     showScreen('catalog-screen');
     document.getElementById('cat-user-name').textContent = 'Olá, '+currentUser.nome+'! ✨';
-    const btnListaQr = document.getElementById('lista-btn-wrap');
-    if(btnListaQr) btnListaQr.style.display = 'block';
     if(currentUser.tag==='VIP') document.getElementById('vip-banner').innerHTML = '<div class="vip-banner">👑 Você tem preços VIP exclusivos! &nbsp;•&nbsp; Aproveite as melhores ofertas! &nbsp;›</div>';
     carregarCarrinhoAuto();
     await loadProdutosFirebase();
@@ -1480,8 +1475,6 @@ window.addEventListener('load', async ()=>{
       const pd = await db.doc('precos/'+session.id).get();
       clientPrices = pd.exists ? pd.data() : {};
       document.getElementById('cat-user-name').textContent='Olá, '+session.nome+'! ✨';
-      const btnListaSess = document.getElementById('lista-btn-wrap');
-      if(btnListaSess) btnListaSess.style.display='block';
       if(session.tag==='VIP') document.getElementById('vip-banner').innerHTML='<div class="vip-banner">⭐ Você tem preços VIP exclusivos!</div>';
       showScreen('catalog-screen');
       carregarCarrinhoAuto();
@@ -1635,8 +1628,6 @@ function doLogin(){
         clientPrices=pd.exists?pd.data():{};
         try{ localStorage.setItem('leao_session', JSON.stringify({role:'cliente', id:currentUser.id, ...currentClientData})); }catch(e){}
         document.getElementById('cat-user-name').textContent='Olá, '+currentUser.nome+'! ✨';
-      const btnLista = document.getElementById('lista-btn-wrap');
-      if(btnLista) btnLista.style.display='block';
         if(currentUser.tag==='VIP') document.getElementById('vip-banner').innerHTML='<div class="vip-banner">⭐ Você tem preços VIP exclusivos!</div>';
         showScreen('catalog-screen');
         loadProdutosFirebase().then(()=>{
@@ -1662,8 +1653,6 @@ function logout(){
   document.getElementById('login-pass').value='';
   document.getElementById('vip-banner').innerHTML='';
   document.getElementById('promo-banner-wrap').innerHTML='';
-  const btnListaLogout = document.getElementById('lista-btn-wrap');
-  if(btnListaLogout) btnListaLogout.style.display='none';
   showScreen('login-screen');
 }
 
@@ -2309,32 +2298,33 @@ function renderCatImgCards(){
   if(busca.trim()) { el.innerHTML=''; return; }
   if(!cats.length){ el.innerHTML=''; return; }
 
-  const CAT_EMOJI = {'Todos':'🏪','Carvão':'🔥','Chips & Gulão':'🍿','Linguiças':'🌭','Pães':'🍞','Cachaças':'🥃','Água':'💧','Doces':'🍬','Laticínios':'🥛'};
-  const CAT_BG   = {'Todos':'#241F17','Carvão':'#241B12','Chips & Gulão':'#3d1a00','Linguiças':'#3d0000','Pães':'#3d2e00','Cachaças':'#1a0e00','Água':'#001a2e','Doces':'#3d1500','Laticínios':'#002030'};
+  const CAT_EMOJI = {'Carvão':'🔥','Chips & Gulão':'🍿','Linguiças':'🌭','Pães':'🍞','Cachaças':'🥃','Água':'💧','Doces':'🍬','Laticínios':'🥛'};
+  const CAT_BG   = {'Carvão':'#1a1a1a','Chips & Gulão':'#3d1a00','Linguiças':'#3d0000','Pães':'#3d2e00','Cachaças':'#1a0e00','Água':'#001a2e','Doces':'#3d1500','Laticínios':'#002030'};
   // CAT_FOTOS vem do Firestore via cats[].foto (cadastrado pelo admin)
   // ou fallback para base64 embutido
   const CAT_FOTOS_B64 = window._CAT_FOTOS_B64 || {};
 
   const cards = cats.map(function(cat) {
     const icon = CAT_EMOJI[cat.nome] || cat.icon || '📦';
-    const bg   = CAT_BG[cat.nome] || '#1a1a1a';
+    const bg   = CAT_BG[cat.nome] || '#111';
     const nm   = cat.nome.replace(/'/g,'');
-    // Prioridade: foto cadastrada no admin > base64 embutido > ícone
+    // Prioridade: foto cadastrada no admin > base64 embutido > gradiente
     const foto = cat.foto || CAT_FOTOS_B64[cat.nome] || null;
-    const tileInner = foto
-      ? '<img src="'+foto+'" alt="'+cat.nome+'" style="width:100%;height:100%;object-fit:cover;border-radius:18px;">'
-      : '<div style="font-size:34px;line-height:1;">'+icon+'</div>';
-    return '<div data-cat="'+nm+'" onclick="setcatFromCard(this)" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;">' +
-      '<div style="width:100%;aspect-ratio:1;border-radius:18px;background:'+bg+';border:1px solid #3D2B08;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.4);transition:transform .2s;">' +
-        tileInner +
+    const imgHtml = foto
+      ? '<img src="'+foto+'" alt="'+cat.nome+'" style="width:100%;height:120px;object-fit:cover;display:block;">'
+      : '<div style="width:100%;height:120px;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:48px;opacity:0.8;">'+icon+'</div>';
+    return '<div data-cat="'+nm+'" onclick="setcatFromCard(this)" style="position:relative;border-radius:16px;overflow:hidden;cursor:pointer;border:1px solid #B8860B;box-shadow:0 4px 16px rgba(0,0,0,.5);transition:transform .2s;">' +
+      imgHtml +
+      '<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.1) 50%,transparent 100%);"></div>' +
+      '<div style="position:absolute;bottom:0;left:0;right:0;padding:8px 10px;display:flex;align-items:flex-end;justify-content:space-between;">' +
+        '<div><div style="font-size:20px;line-height:1;">'+icon+'</div>' +
+        '<div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">'+cat.nome+'</div></div>' +
+        '<div style="color:#FFC400;font-size:16px;font-weight:700;">›</div>' +
       '</div>' +
-      '<div style="font-size:12px;font-weight:700;color:#EDE0C8;text-align:center;line-height:1.3;">'+cat.nome+'</div>' +
     '</div>';
   }).join('');
 
-  el.innerHTML =
-    '<div style="font-size:13px;font-weight:800;color:#FFC400;text-transform:uppercase;letter-spacing:0.8px;margin:10px 0 12px;">Categorias de produtos</div>' +
-    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px 10px;margin:0 0 18px;">'+cards+'</div>';
+  el.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0;">'+cards+'</div>';
 }
 
 function renderCatalog(){
@@ -2357,21 +2347,6 @@ function renderCatalog(){
   const el=document.getElementById('catalog');
   const catsFiltradas=cats.filter(c=>c.nome!=="Todos").map(c=>c.nome);
   let html='';let total=0,count=0;
-  // Quando catAtiva='Todos' e sem busca → só mostrar cards de foto, não o accordion
-  const busca2=(document.getElementById('search')||{}).value||'';
-  if(catAtiva==='Todos' && !busca2.trim()){
-    document.getElementById('catalog').innerHTML='';
-    // Atualizar barra inferior
-    const botInfo=document.getElementById('bot-info');
-    const botTotal=document.getElementById('bot-total');
-    let total2=0,count2=0;
-    Object.keys(qtds).forEach(k=>{if((qtds[k]||0)>0){const p2=getProdutos().find(x=>x.id===k);if(p2){total2+=(qtds[k]||0)*p2.precoFinal;count2+=qtds[k]||0;}}});
-    if(botInfo) botInfo.textContent=count2?'🛒 '+count2+' item'+(count2>1?'s':''):'Nenhum item selecionado';
-    if(botTotal) botTotal.textContent=count2?fmt(total2):'';
-    const wbtn=document.getElementById('wbtn');
-    if(wbtn) wbtn.disabled=!count2;
-    return;
-  }
   const listar=catAtiva==="Todos"?catsFiltradas:[catAtiva];
   listar.forEach(catNome=>{
     const cat=cats.find(c=>c.nome===catNome);
@@ -3814,74 +3789,6 @@ async function gerarRotaExcel(){
   const a = document.createElement('a');
   a.href=url; a.download='rota_motorista.csv'; a.click();
   URL.revokeObjectURL(url);
-}
-
-// ===== LISTA DE PRODUTOS PARA O CLIENTE (sem preço) =====
-function gerarListaCliente(){
-  const prods = getProdutos().filter(p=>p.ativo!==false);
-  const cats_unicas = [...new Set(prods.map(p=>p.cat))].sort();
-
-  let linhas = '';
-  cats_unicas.forEach(cat=>{
-    const itens = prods.filter(p=>p.cat===cat);
-    if(!itens.length) return;
-    const catObj = cats.find(c=>c.nome===cat);
-    const icon = catObj?catObj.icon:'📦';
-    linhas += `<tr><td colspan="3" style="background:#3A1800;color:#FAC775;font-weight:700;padding:10px 14px;font-size:13px;letter-spacing:0.5px;">${icon} ${cat.toUpperCase()}</td></tr>`;
-    itens.forEach((p,i)=>{
-      const bg = i%2===0?'#fff':'#FBF8F4';
-      linhas += `<tr style="background:${bg};">
-        <td style="padding:10px 14px;font-size:13px;color:#2D1A00;font-weight:500;">${p.nome}</td>
-        <td style="padding:10px 14px;font-size:12px;color:#888;text-align:center;">${p.un}</td>
-        <td style="padding:10px 14px;width:100px;border-bottom:1px dotted #ccc;">&nbsp;</td>
-      </tr>`;
-    });
-  });
-
-  const nomeCliente = currentClientData ? currentClientData.nome : '';
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head>
-<meta charset="UTF-8">
-<title>Lista de Produtos — Distribuidora Leão</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Segoe UI',sans-serif;background:#fff;color:#222;}
-  .page{max-width:700px;margin:0 auto;padding:20px;}
-  .topo{background:linear-gradient(135deg,#2D1100,#7A3F08);padding:20px 24px;border-radius:12px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
-  .topo-titulo{font-size:22px;font-weight:800;color:#FAC775;}
-  .topo-sub{font-size:12px;color:rgba(250,199,117,0.6);margin-top:3px;}
-  .topo-data{font-size:12px;color:rgba(250,199,117,0.5);}
-  .cliente-info{background:#FEF9EC;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#412402;}
-  table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);}
-  .col-header{background:#f5f0ea;color:#633806;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:8px 14px;}
-  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.page{padding:10px;}.topo{border-radius:0;}}
-</style>
-</head><body>
-<div class="page">
-  <div class="topo">
-    <div>
-      <div class="topo-titulo">🦁 Distribuidora Leão</div>
-      <div class="topo-sub">Lista de Produtos</div>
-    </div>
-    <div class="topo-data">${new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})}</div>
-  </div>
-  ${nomeCliente ? `<div class="cliente-info">📋 Lista para: <strong>${nomeCliente}</strong></div>` : ''}
-  <table>
-    <thead><tr>
-      <th class="col-header">Produto</th>
-      <th class="col-header" style="text-align:center;width:80px;">Unidade</th>
-      <th class="col-header" style="text-align:center;width:100px;">Quantidade</th>
-    </tr></thead>
-    <tbody>${linhas}</tbody>
-  </table>
-  <div style="text-align:center;margin-top:16px;font-size:11px;color:#ccc;">Distribuidora Leão • WhatsApp: (31) 99642-2924</div>
-</div>
-<scr'+'ipt>window.onload=()=>window.print();</scr'+'ipt>
-</body></html>`;
-
-  const blob = new Blob([html],{type:'text/html;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  window.open(url,'_blank');
-  setTimeout(()=>URL.revokeObjectURL(url),5000);
 }
 
 // ===== SISTEMA DE SORTEIO COPA =====
