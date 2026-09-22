@@ -921,9 +921,14 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
   <div class="cat-header">
         <div class="cat-header-top">
       <div style="flex:1;text-align:left;">
-        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.55);letter-spacing:3px;text-transform:uppercase;line-height:1;">DISTRIBUIDORA</div>
-        <div style="font-size:26px;font-weight:900;color:#FFC400;font-family:'Playfair Display',Georgia,serif;letter-spacing:2px;line-height:1.1;text-shadow:0 0 20px rgba(255,196,0,0.25);">LEÃO</div>
-        <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;font-style:italic;">Qualidade e variedade para o seu negócio!</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:44px;height:44px;background:linear-gradient(135deg,#FFC400,#8A5700);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:0 2px 12px rgba(255,196,0,0.3);">🦁</div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);letter-spacing:3px;text-transform:uppercase;line-height:1;">DISTRIBUIDORA</div>
+            <div style="font-size:28px;font-weight:900;color:#FFC400;font-family:'Playfair Display',Georgia,serif;letter-spacing:3px;line-height:1;text-shadow:0 0 30px rgba(255,196,0,0.4);">LEÃO</div>
+            <div style="font-size:10px;color:rgba(255,196,0,0.6);margin-top:1px;font-style:italic;">Qualidade e variedade para o seu negócio!</div>
+          </div>
+        </div>
       </div>
       <div class="cat-header-icons">
         <button class="cat-icon-btn" onclick="abrirNotificacoes()" title="Notificações">
@@ -934,6 +939,14 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
       </div>
     </div>
     <div class="cat-user" id="cat-user-name"></div>
+  <!-- WhatsApp Tenório -->
+  <a href="https://wa.me/5531996422924" target="_blank" style="display:inline-flex;align-items:center;gap:10px;margin-top:8px;padding:8px 16px;background:rgba(0,0,0,0.5);border:1px solid #B8860B;border-radius:30px;text-decoration:none;max-width:220px;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.558 4.117 1.533 5.845L.057 23.428a.5.5 0 00.515.572l5.762-1.511A11.943 11.943 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.897 0-3.67-.52-5.18-1.424l-.372-.22-3.863 1.013 1.033-3.77-.242-.389A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:#fff;">Tenório • 31996422924</div>
+      <div style="font-size:10px;color:#25D366;font-weight:600;">● Online</div>
+    </div>
+  </a>
     <div class="cat-header-meta" id="cat-header-meta"></div>
   <!-- Barra Representante + Instagram -->
   <div id="rep-info-bar" style="display:none;margin-top:6px;">
@@ -964,6 +977,7 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
     </div>
     <div id="vip-banner"></div>
 
+    <div id="cat-img-section"></div>
     <div id="catalog"></div>
   </div>
   <!-- FOTO TELA CHEIA -->
@@ -2268,7 +2282,49 @@ function toggleSecao(nome){
   renderCatalog();
 }
 
+// Categorias com card de imagem de fundo
+const CAT_IMG_MAP = {
+  'Carvão':      {bg:'linear-gradient(145deg,#1a1a1a,#2d2d2d)',icon:'🔥',emoji:'⬛',desc:'Carvão vegetal'},
+  'Chips & Gulão':{bg:'linear-gradient(145deg,#3d1a00,#6b3000)',icon:'🍿',emoji:'🟠',desc:'Salgadinhos'},
+  'Doces':       {bg:'linear-gradient(145deg,#3d1f00,#6b3a00)',icon:'🍮',emoji:'🟡',desc:'Doces e balas'},
+  'Laticínios':  {bg:'linear-gradient(145deg,#1a1a2e,#16213e)',icon:'🥛',emoji:'⬜',desc:'Leite e queijos'},
+  'Linguiças':   {bg:'linear-gradient(145deg,#3d0000,#6b0000)',icon:'🌭',emoji:'🔴',desc:'Linguiças'},
+  'Pães':        {bg:'linear-gradient(145deg,#3d2e00,#6b5200)',icon:'🍞',emoji:'🟫',desc:'Padaria'},
+};
+
+function renderCatImgCards(){
+  const el = document.getElementById('cat-img-section');
+  if(!el) return;
+  // Só mostra se categoria for "Todos"
+  if(catAtiva && catAtiva !== 'todos') { el.innerHTML=''; return; }
+  // Busca texto de busca
+  const busca = (document.getElementById('search')||{}).value||'';
+  if(busca.trim()) { el.innerHTML=''; return; }
+
+  const catsComImg = Object.keys(CAT_IMG_MAP);
+  const catsExistentes = cats.filter(c => catsComImg.includes(c.nome));
+  if(!catsExistentes.length){ el.innerHTML=''; return; }
+
+  let cardsHtml = catsExistentes.map(cat => {
+    const cfg = CAT_IMG_MAP[cat.nome];
+    return `<div class="cat-img-card" onclick="setcat('${cat.nome.replace(/'/g,\"\\'\")}')">
+      <div class="cat-img-card-bg" style="background:${cfg.bg};display:flex;align-items:center;justify-content:center;font-size:56px;position:absolute;inset:0;">${cfg.emoji}</div>
+      <div class="cat-img-card-overlay"></div>
+      <div class="cat-img-card-info">
+        <div>
+          <div style="font-size:18px;line-height:1;">${cfg.icon}</div>
+          <div class="cat-img-card-nome">${cat.nome}</div>
+        </div>
+        <div class="cat-img-card-arrow">›</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="cat-img-grid">${cardsHtml}</div>`;
+}
+
 function renderCatalog(){
+  renderCatImgCards();
   renderTabs();
   const _ocPreco = (currentClientData && currentClientData.ocultarPreco) || (currentClientData && currentClientData.tag==='SemPreco');
   const _favoritos = getFavoritos();
@@ -4307,108 +4363,100 @@ async function renderDashboardCliente(){
   const el = document.getElementById('dashboard-cliente');
   if(!el || !currentUser || currentUser.role !== 'cliente') return;
 
-  if(_dashboardColapsado){
-    el.innerHTML = `<div class="dash-toggle"><button onclick="_dashboardColapsado=false;renderDashboardCliente();">▼ Mostrar resumo</button></div>`;
-    return;
-  }
-
   const nome = (currentClientData.nome||'').split(' ')[0];
-  const saudacao = saudacaoHora();
-
-  // Dia de entrega
   const diasNomes=['','Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
   const diaEntrega = currentClientData.diaEntrega ? diasNomes[currentClientData.diaEntrega] : '-';
 
-  // Último pedido salvo localmente
-  let ultimoPedidoHtml = '';
-  try {
-    const saved = localStorage.getItem('ultimo_pedido_'+currentUser.id);
-    if(saved){
-      const pedido = JSON.parse(saved);
-      ultimoPedidoHtml = `<div class="dash-ultimo-pedido">
-        <div class="dash-ultimo-pedido-row">
-          <div>
-            <div class="dash-ultimo-label">📦 Último pedido</div>
-            <div class="dash-ultimo-data">${pedido.data}</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="dash-ultimo-label">Valor</div>
-            <div class="dash-ultimo-valor">${pedido.total}</div>
-          </div>
-        </div>
-        <button class="dash-btn-repetir" onclick="repetirPedido()">🔄 Repetir último pedido</button>
-      </div>`;
-    }
-  } catch(e){}
-
-  // Cupons (se promoção ativa)
   let cuponsCount = 0;
   try {
     const agora = new Date();
-    const inicioPromo = new Date('2026-06-16');
-    const fimPromo = new Date('2026-07-18');
-    if(agora >= inicioPromo && agora <= fimPromo){
+    if(agora >= new Date('2026-06-16') && agora <= new Date('2026-07-18')){
       const snap = await db.collection('cupons').where('clienteId','==',currentUser.id).get();
       cuponsCount = snap.size;
     }
   } catch(e){}
 
-  const vipTag = currentClientData.tag==='VIP' ? `<div class="dash-vip-tag">⭐ Cliente VIP</div>` : '';
   const favoritosCount = getFavoritos().length;
-  const novidadesCount = getProdutos().filter(p=>p.badge==='novo').length;
 
-  // Cashback - busca saldo atualizado direto do Firestore (controlado pelo admin)
+  let ultimoPedidoHtml = '';
+  try {
+    const saved = localStorage.getItem('ultimo_pedido_'+currentUser.id);
+    if(saved){
+      const pedido = JSON.parse(saved);
+      ultimoPedidoHtml = `<div style="margin-top:10px;background:#111;border:1px solid #3D2B08;border-radius:14px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:10px;color:#888;font-weight:600;">📦 ÚLTIMO PEDIDO</div>
+          <div style="font-size:12px;color:#ccc;margin-top:2px;">${pedido.data}</div>
+          <div style="font-size:16px;font-weight:800;color:#FFC400;">${pedido.total}</div>
+        </div>
+        <button onclick="repetirPedido()" style="background:linear-gradient(135deg,#FFC400,#B8860B);color:#080808;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;">🔄 Repetir</button>
+      </div>`;
+    }
+  } catch(e){}
+
   let cashbackSaldo = 0;
   try {
     const cliDoc = await db.collection('clientes').doc(currentUser.id).get();
     if(cliDoc.exists) cashbackSaldo = cliDoc.data().cashback || 0;
   } catch(e){}
-  const cashbackHtml = cashbackSaldo > 0 ? `<div style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);border-radius:14px;padding:12px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
-    <div>
-      <div style="font-size:11px;color:#92400E;font-weight:600;">💵 Você possui</div>
-      <div style="font-size:20px;font-weight:800;color:#78350F;">${fmt(cashbackSaldo)}</div>
-      <div style="font-size:10px;color:#92400E;">de crédito disponível</div>
+
+  const cashbackHtml = cashbackSaldo > 0 ? `
+  <div style="background:linear-gradient(110deg,#5C3A00,#1a1000,#080808);border:1px solid #B8860B;border-radius:20px;padding:16px 18px;margin:10px 0;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(255,196,0,0.06),transparent 70%);pointer-events:none;"></div>
+    <div style="display:flex;align-items:center;gap:14px;z-index:1;">
+      <div style="font-size:36px;">💰</div>
+      <div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;">Você possui</div>
+        <div style="font-size:26px;font-weight:900;color:#FFC400;line-height:1;">${fmt(cashbackSaldo)}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);">de crédito disponível</div>
+      </div>
     </div>
-    <div style="font-size:32px;">💰</div>
+    <div style="text-align:right;z-index:1;">
+      <div style="font-size:12px;font-weight:800;color:#FFC400;font-style:italic;line-height:1.4;">Compre agora<br>e aumente<br>seu limite!</div>
+      <div style="width:34px;height:34px;border:2px solid #FFC400;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:6px 0 0 auto;color:#FFC400;font-size:18px;">›</div>
+    </div>
   </div>` : '';
 
   el.innerHTML = `
-    <div class="dash-wrap">
-      <div class="dash-toggle" style="display:flex;justify-content:space-between;">
-        <button onclick="toggleTema()">${getTemaPreferido()?'☀️ Modo claro':'🌙 Modo escuro'}</button>
-        <button onclick="_dashboardColapsado=true;renderDashboardCliente();">▲ Ocultar resumo</button>
+  <div style="padding:0 0 6px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+
+      <div style="background:linear-gradient(145deg,#171717,#090909);border:1px solid #B8860B;border-radius:20px;padding:14px 12px;position:relative;overflow:hidden;min-height:88px;">
+        <div style="position:absolute;right:-8px;bottom:-8px;font-size:50px;opacity:0.12;">🚚</div>
+        <div style="position:absolute;top:10px;right:10px;color:#FFC400;font-size:18px;font-weight:700;">›</div>
+        <div style="font-size:16px;">🚚</div>
+        <div style="font-size:9px;font-weight:800;color:#FFC400;text-transform:uppercase;letter-spacing:0.8px;margin-top:5px;">PRÓXIMA ENTREGA</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-top:5px;">${diaEntrega}</div>
       </div>
-      <div class="dash-saudacao">${saudacao}, ${nome}! ${vipTag}</div>
-      <div class="dash-grid">
-        <div class="dash-card">
-          <div class="dash-card-icon">🚚</div>
-          <div class="dash-card-label">Próxima entrega</div>
-          <div class="dash-card-value">${diaEntrega}</div>
-        </div>
-        <div class="dash-card">
-          <div class="dash-card-icon">🎟</div>
-          <div class="dash-card-label">Cupons sorteio</div>
-          <div class="dash-card-value">${cuponsCount}</div>
-        </div>
-        <div class="dash-card" onclick="abrirFavoritos()" style="cursor:pointer;">
-          <div class="dash-card-icon">❤️</div>
-          <div class="dash-card-label">Favoritos</div>
-          <div class="dash-card-value">${favoritosCount} item${favoritosCount!==1?'s':''}</div>
-        </div>
-        <div class="dash-card" onclick="abrirHistorico()" style="cursor:pointer;">
-          <div class="dash-card-icon">📋</div>
-          <div class="dash-card-label">Meus pedidos</div>
-          <div class="dash-card-value">Ver histórico</div>
-        </div>
-        ${novidadesCount>0?`<div class="dash-card" onclick="abrirNovidades()" style="cursor:pointer;grid-column:1/-1;background:linear-gradient(135deg,#DCFCE7,#F0FDF4);border-color:#86EFAC;">
-          <div class="dash-card-icon">✨</div>
-          <div class="dash-card-label">Novidades</div>
-          <div class="dash-card-value">${novidadesCount} produto${novidadesCount!==1?'s':''} novo${novidadesCount!==1?'s':''}!</div>
-        </div>`:''}
+
+      <div onclick="abrirMeusCupons()" style="background:linear-gradient(145deg,#171717,#090909);border:1px solid #B8860B;border-radius:20px;padding:14px 12px;position:relative;overflow:hidden;min-height:88px;cursor:pointer;">
+        <div style="position:absolute;right:-8px;bottom:-8px;font-size:50px;opacity:0.12;">🎁</div>
+        <div style="position:absolute;top:10px;right:10px;color:#FFC400;font-size:18px;font-weight:700;">›</div>
+        <div style="font-size:16px;">🎟️</div>
+        <div style="font-size:9px;font-weight:800;color:#FFC400;text-transform:uppercase;letter-spacing:0.8px;margin-top:5px;">CUPONS SORTEIO</div>
+        <div style="font-size:22px;font-weight:900;color:#fff;margin-top:3px;">${cuponsCount}</div>
       </div>
-      ${cashbackHtml}
-      ${ultimoPedidoHtml}
-    </div>`;
+
+      <div onclick="abrirFavoritos()" style="background:linear-gradient(145deg,#171717,#090909);border:1px solid #B8860B;border-radius:20px;padding:14px 12px;position:relative;overflow:hidden;min-height:88px;cursor:pointer;">
+        <div style="position:absolute;right:-8px;bottom:-8px;font-size:50px;opacity:0.12;">❤️</div>
+        <div style="position:absolute;top:10px;right:10px;color:#FFC400;font-size:18px;font-weight:700;">›</div>
+        <div style="font-size:16px;">❤️</div>
+        <div style="font-size:9px;font-weight:800;color:#FFC400;text-transform:uppercase;letter-spacing:0.8px;margin-top:5px;">FAVORITOS</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-top:5px;">${favoritosCount} item${favoritosCount!==1?'s':''}</div>
+      </div>
+
+      <div onclick="abrirHistorico()" style="background:linear-gradient(145deg,#171717,#090909);border:1px solid #B8860B;border-radius:20px;padding:14px 12px;position:relative;overflow:hidden;min-height:88px;cursor:pointer;">
+        <div style="position:absolute;right:-8px;bottom:-8px;font-size:50px;opacity:0.12;">📦</div>
+        <div style="position:absolute;top:10px;right:10px;color:#FFC400;font-size:18px;font-weight:700;">›</div>
+        <div style="font-size:16px;">📋</div>
+        <div style="font-size:9px;font-weight:800;color:#FFC400;text-transform:uppercase;letter-spacing:0.8px;margin-top:5px;">MEUS PEDIDOS</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-top:5px;">Ver histórico</div>
+      </div>
+
+    </div>
+    ${cashbackHtml}
+    ${ultimoPedidoHtml}
+  </div>`;
 }
 
 // ===== FASE 1: METADADOS DO CABEÇALHO =====
@@ -5526,6 +5574,18 @@ async function exportarRelatorioPDF(){
   h2{font-size:14px;color:#412402;margin-bottom:8px;}
   @media print{body{-webkit-print-color-adjust:exact;}}
 
+/* ===== CAT CARDS COM IMAGEM ===== */
+.cat-img-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0;}
+.cat-img-card{position:relative;border-radius:18px;overflow:hidden;aspect-ratio:1/0.9;cursor:pointer;border:1px solid #B8860B;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:transform .2s;}
+.cat-img-card:hover{transform:scale(1.03);}
+.cat-img-card:active{transform:scale(.97);}
+.cat-img-card-bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .3s;}
+.cat-img-card:hover .cat-img-card-bg{transform:scale(1.05);}
+.cat-img-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.3) 50%,transparent 100%);}
+.cat-img-card-info{position:absolute;bottom:0;left:0;right:0;padding:10px 10px 8px;display:flex;align-items:flex-end;justify-content:space-between;}
+.cat-img-card-nome{font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:0.3px;line-height:1.2;}
+.cat-img-card-icon{font-size:14px;}
+.cat-img-card-arrow{color:#FFC400;font-size:14px;font-weight:700;}
 /* ===== REDESIGN PREMIUM DISTRIBUIDORA LEÃO ===== */
 
 /* Scrollbar premium */
