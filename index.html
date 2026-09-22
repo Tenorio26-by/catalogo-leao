@@ -2276,6 +2276,10 @@ function renderTabs(){
 }
 
 function setcat(c){catAtiva=c;window._secAberta={};renderCatalog();}
+function setcatFromCard(el){
+  const nome = el.getAttribute('data-cat');
+  if(nome) setcat(nome);
+}
 function toggleSecao(nome){
   if(!window._secAberta) window._secAberta={};
   window._secAberta[nome] = !window._secAberta[nome];
@@ -2311,17 +2315,18 @@ function renderCatImgCards(){
   const cards = catsComFoto.map(cat => {
     const foto = CAT_FOTOS[cat.nome];
     const icon = CAT_ICONS[cat.nome] || cat.icon || '📦';
-    return `<div onclick="setcat('${cat.nome.replace(/'/g,\"\\'\")}')" style="position:relative;border-radius:18px;overflow:hidden;cursor:pointer;border:1px solid #B8860B;box-shadow:0 4px 20px rgba(0,0,0,.5);transition:transform .2s;-webkit-tap-highlight-color:transparent;" onmouseenter="this.style.transform='scale(1.02)'" onmouseleave="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
-      <img src="${foto}" alt="${cat.nome}" style="width:100%;height:130px;object-fit:cover;display:block;">
-      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.2) 55%,transparent 100%);"></div>
-      <div style="position:absolute;bottom:0;left:0;right:0;padding:10px 10px 9px;display:flex;align-items:flex-end;justify-content:space-between;">
-        <div>
-          <div style="font-size:16px;line-height:1;">${icon}</div>
-          <div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:0.5px;margin-top:3px;line-height:1.2;">${cat.nome}</div>
+    const catNomeEsc = cat.nome.replace(/'/g,'');
+    return '<div data-cat="'+catNomeEsc+'" onclick="setcatFromCard(this)" style="position:relative;border-radius:18px;overflow:hidden;cursor:pointer;border:1px solid #B8860B;box-shadow:0 4px 20px rgba(0,0,0,.5);transition:transform .2s;">'+
+      '<img src="'+foto+'" alt="'+cat.nome+'" style="width:100%;height:130px;object-fit:cover;display:block;">'+
+      '<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.2) 55%,transparent 100%);"></div>'+
+      '<div style="position:absolute;bottom:0;left:0;right:0;padding:10px 10px 9px;display:flex;align-items:flex-end;justify-content:space-between;">'+
+        '<div>'+
+          '<div style="font-size:16px;line-height:1;">'+icon+'</div>'+
+          '<div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:0.5px;margin-top:3px;line-height:1.2;">'+cat.nome+'</div>
         </div>
-        <div style="color:#FFC400;font-size:18px;font-weight:700;line-height:1;">›</div>
-      </div>
-    </div>`;
+        <div style="color:#FFC400;font-size:18px;font-weight:700;line-height:1;">›</div>'+
+      '</div>'+
+    '</div>';
   }).join('');
 
   el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0;">${cards}</div>`;
