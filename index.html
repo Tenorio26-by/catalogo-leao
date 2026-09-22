@@ -973,6 +973,10 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
     </div>
     <div id="vip-banner"></div>
 
+    <div id="cat-voltar-btn" onclick="setcat('Todos')" style="display:none;align-items:center;gap:8px;padding:10px 14px;margin-bottom:8px;background:#111;border:1px solid #3D2B08;border-radius:12px;cursor:pointer;color:#FFC400;font-size:13px;font-weight:700;">
+      ‹ <span></span>
+      <span style="color:#888;font-size:12px;font-weight:400;margin-left:4px;">— toque para ver todas</span>
+    </div>
     <div id="cat-img-section"></div>
     <div id="catalog"></div>
   </div>
@@ -2271,7 +2275,14 @@ function renderTabs(){
   ).join('');
 }
 
-function setcat(c){catAtiva=c;window._secAberta={};renderCatalog();}
+function setcat(c){
+  catAtiva=c;
+  window._secAberta={};
+  // Scroll para o topo do catálogo ao mudar categoria
+  const cb = document.getElementById('cat-body-wrap');
+  if(cb) cb.scrollTo({top:0,behavior:'smooth'});
+  renderCatalog();
+}
 function setcatFromCard(el){
   const nome = el.getAttribute('data-cat');
   if(nome) setcat(nome);
@@ -2329,6 +2340,16 @@ function renderCatImgCards(){
 
 function renderCatalog(){
   renderCatImgCards();
+  // Botão voltar para categorias
+  const voltarEl = document.getElementById('cat-voltar-btn');
+  if(voltarEl){
+    if(catAtiva && catAtiva !== 'Todos'){
+      voltarEl.style.display='flex';
+      voltarEl.querySelector('span').textContent = catAtiva;
+    } else {
+      voltarEl.style.display='none';
+    }
+  }
   renderTabs();
   const _ocPreco = (currentClientData && currentClientData.ocultarPreco) || (currentClientData && currentClientData.tag==='SemPreco');
   const _favoritos = getFavoritos();
@@ -2337,6 +2358,21 @@ function renderCatalog(){
   const el=document.getElementById('catalog');
   const catsFiltradas=cats.filter(c=>c.nome!=="Todos").map(c=>c.nome);
   let html='';let total=0,count=0;
+  // Quando catAtiva='Todos' e sem busca → só mostrar cards de foto, não o accordion
+  const busca2=(document.getElementById('search')||{}).value||'';
+  if(catAtiva==='Todos' && !busca2.trim()){
+    document.getElementById('catalog').innerHTML='';
+    // Atualizar barra inferior
+    const botInfo=document.getElementById('bot-info');
+    const botTotal=document.getElementById('bot-total');
+    let total2=0,count2=0;
+    Object.keys(qtds).forEach(k=>{if((qtds[k]||0)>0){const p2=getProdutos().find(x=>x.id===k);if(p2){total2+=(qtds[k]||0)*p2.precoFinal;count2+=qtds[k]||0;}}});
+    if(botInfo) botInfo.textContent=count2?'🛒 '+count2+' item'+(count2>1?'s':''):'Nenhum item selecionado';
+    if(botTotal) botTotal.textContent=count2?fmt(total2):'';
+    const wbtn=document.getElementById('wbtn');
+    if(wbtn) wbtn.disabled=!count2;
+    return;
+  }
   const listar=catAtiva==="Todos"?catsFiltradas:[catAtiva];
   listar.forEach(catNome=>{
     const cat=cats.find(c=>c.nome===catNome);
