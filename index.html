@@ -374,8 +374,8 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
 .lv-brand{display:flex;align-items:center;gap:14px;position:relative;z-index:2;}
 .lv-brand-icon-img{width:64px;height:auto;filter:drop-shadow(0 4px 14px rgba(250,199,117,0.4));flex-shrink:0;}
 .lv-brand-text{line-height:1;}
-.lv-brand-sub{font-size:13px;color:rgba(255,255,255,0.75);letter-spacing:3px;font-weight:600;}
-.lv-brand-name{font-size:42px;font-weight:900;color:#FAC775;font-family:'Playfair Display',Georgia,serif;letter-spacing:1px;text-shadow:0 4px 20px rgba(0,0,0,0.5);margin-top:2px;}
+.lv-brand-sub{font-size:13px;color:rgba(255,255,255,0.85);letter-spacing:5px;font-weight:700;text-transform:uppercase;}
+.lv-brand-name{font-size:52px;font-weight:900;color:#FAC775;font-family:'Playfair Display',Georgia,serif;letter-spacing:4px;text-shadow:0 4px 24px rgba(0,0,0,0.6),0 0 40px rgba(212,163,55,0.3);margin-top:2px;}
 .lv-brand-tag{font-size:13px;color:rgba(255,255,255,0.6);margin-top:6px;font-style:italic;font-family:'Playfair Display',Georgia,serif;}
 
 .lv-hero{margin-top:3rem;position:relative;z-index:2;}
@@ -423,7 +423,7 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
   .lv-hero{margin-top:1.5rem;}
   .lv-hero-title{font-size:22px;}
   .lv-features{margin-top:1.5rem;padding-top:0;grid-template-columns:1fr 1fr;}
-  .lv-brand-name{font-size:34px;}
+  .lv-brand-name{font-size:42px;letter-spacing:3px;}
   .login-card-wrap{flex:none;padding:2rem 1.25rem 3rem;}
 }
 
@@ -933,6 +933,10 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
     </div>
     <div class="cat-user" id="cat-user-name"></div>
     <div class="cat-header-meta" id="cat-header-meta"></div>
+  <div id="rep-info-bar" style="display:none;margin-top:8px;padding:7px 12px;background:rgba(212,163,55,0.1);border:1px solid rgba(212,163,55,0.2);border-radius:10px;font-size:12px;color:rgba(250,199,117,0.9);display:flex;align-items:center;gap:8px;">
+    <span>🤝</span>
+    <span id="rep-info-text"></span>
+  </div>
   </div>
   <div class="cat-body">
     <div id="dashboard-cliente"></div>
@@ -1286,6 +1290,11 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
         <label>💵 Saldo de cashback (R$)</label>
         <input type="number" id="m-cashback" step="0.01" min="0" placeholder="Ex: 52.00">
       </div>
+    </div>
+    <div class="form-group" style="grid-column:1/-1">
+      <label>🤝 Representante (nome e celular)</label>
+      <input type="text" id="m-vendedor-nome" placeholder="Ex: Carlos Oliveira" style="margin-bottom:6px;">
+      <input type="text" id="m-vendedor-cel" placeholder="Ex: 31 99999-9999">
     </div>
     <div class="form-group" style="grid-column:1/-1">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
@@ -1730,6 +1739,10 @@ async function editClient(id){
   setIfExists('m-cashback', c.cashback);
   const ocPrecoEl = document.getElementById('m-ocultar-preco');
   if(ocPrecoEl) ocPrecoEl.checked = !!c.ocultarPreco;
+  const vendNomeEl = document.getElementById('m-vendedor-nome');
+  const vendCelEl = document.getElementById('m-vendedor-cel');
+  if(vendNomeEl) vendNomeEl.value = c.vendedorNome||'';
+  if(vendCelEl) vendCelEl.value = c.vendedorCel||'';
   document.getElementById('modal-client').classList.remove('hidden');
 }
 
@@ -1751,7 +1764,9 @@ async function saveClient(){
   const ocultarPreco = document.getElementById('m-ocultar-preco').checked;
   const cashbackEl = document.getElementById('m-cashback');
   const cashback = cashbackEl && cashbackEl.value !== '' ? parseFloat(cashbackEl.value) : 0;
-  const data={nome,responsavel,cpfcnpj,tel,cep,end,bairro,cidade,usuario,senha,tag,prazo,diaEntrega,ocultarPreco,cashback,bloqueado:false};
+  const vendedorNome = (document.getElementById('m-vendedor-nome')||{}).value||'';
+  const vendedorCel = (document.getElementById('m-vendedor-cel')||{}).value||'';
+  const data={nome,responsavel,cpfcnpj,tel,cep,end,bairro,cidade,usuario,senha,tag,prazo,diaEntrega,ocultarPreco,cashback,vendedorNome,vendedorCel,bloqueado:false};
   try {
     if(editingClientId){
       const existing = await db.collection('clientes').doc(editingClientId).get();
@@ -4396,6 +4411,19 @@ async function renderDashboardCliente(){
 // ===== FASE 1: METADADOS DO CABEÇALHO =====
 function atualizarHeaderMeta(){
   const el = document.getElementById('cat-header-meta');
+  // Representante
+  const repBar = document.getElementById('rep-info-bar');
+  const repText = document.getElementById('rep-info-text');
+  if(repBar && repText && currentClientData){
+    const vn = currentClientData.vendedorNome||'';
+    const vc = currentClientData.vendedorCel||'';
+    if(vn||vc){
+      repText.textContent = `Seu representante: ${vn}${vn&&vc?' – ':''}${vc?'📱 '+vc:''}`;
+      repBar.style.display='flex';
+    } else {
+      repBar.style.display='none';
+    }
+  }
   if(!el || !currentClientData) return;
   const diasNomes=['','Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
   const partes = [];
