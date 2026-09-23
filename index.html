@@ -1947,13 +1947,17 @@ async function uploadFotoCat(catNome, inputEl){
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX = 800;
+          // Qualidade máxima — só reduz se for muito grande
           let w = img.width, h = img.height;
+          const MAX = 1200;
           if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
           if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
           canvas.width=w; canvas.height=h;
-          canvas.getContext('2d').drawImage(img,0,0,w,h);
-          res(canvas.toDataURL('image/jpeg',0.92));
+          const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled=true;
+          ctx.imageSmoothingQuality='high';
+          ctx.drawImage(img,0,0,w,h);
+          res(canvas.toDataURL('image/jpeg',0.97));
         };
         img.onerror = rej;
         img.src = e.target.result;
@@ -1965,15 +1969,19 @@ async function uploadFotoCat(catNome, inputEl){
     // Salvar no Firestore (config/cat_fotos)
     await db.collection('config').doc('cat_fotos').set({[catNome]:b64},{merge:true});
 
-    // Atualizar no window para efeito imediato
+    // Atualizar no window imediatamente (sem esperar Firebase)
     if(!window._CAT_FOTOS_B64) window._CAT_FOTOS_B64={};
     window._CAT_FOTOS_B64[catNome] = b64;
 
     showNotif('✅ Foto da categoria '+catNome+' salva!');
     loadCatFotos();
 
-    // Recarregar catálogo se estiver visível
-    if(typeof renderCatImgCards==='function') renderCatImgCards();
+    // Forçar re-render do catálogo em vários momentos
+    if(typeof renderCatImgCards==='function'){
+      renderCatImgCards();
+      setTimeout(renderCatImgCards, 300);
+      setTimeout(renderCatImgCards, 800);
+    }
 
   } catch(e){
     console.error(e);
@@ -4522,16 +4530,15 @@ async function carregarFotosCategorias(){
     // Listener em tempo real — atualiza os cards sempre que admin salvar nova foto
     if(window._unsubCatFotos) window._unsubCatFotos();
     window._unsubCatFotos = db.collection('config').doc('cat_fotos').onSnapshot(snap=>{
-      if(snap.exists){
-        const data = snap.data()||{};
-        // Sobrescrever completamente (não só merge) para remover fotos deletadas
-        window._CAT_FOTOS_B64 = Object.assign(window._CAT_FOTOS_B64||{}, data);
-        // Atualizar cards agora e depois de um delay (garante que a tela já carregou)
-        if(typeof renderCatImgCards==='function'){
-          renderCatImgCards();
-          setTimeout(renderCatImgCards, 500);
-          setTimeout(renderCatImgCards, 1500);
-        }
+      // Sempre atualiza, mesmo se o doc não existir (pode ter sido apagado)
+      const data = snap.exists ? (snap.data()||{}) : {};
+      // Substituir completamente para refletir remoções
+      window._CAT_FOTOS_B64 = data;
+      // Re-render imediato e com delay para garantir que a tela esteja visível
+      if(typeof renderCatImgCards==='function'){
+        renderCatImgCards();
+        setTimeout(renderCatImgCards, 300);
+        setTimeout(renderCatImgCards, 1000);
       }
     }, e=>console.log('Erro listener cat_fotos',e));
   } catch(e){}
