@@ -2417,7 +2417,7 @@ const CAT_ICONS = {
 function renderCatImgCards(){
   const el = document.getElementById('cat-img-section');
   if(!el) return;
-  if(catAtiva && catAtiva !== 'todos') { el.innerHTML=''; return; }
+  if(catAtiva && catAtiva !== 'Todos') { el.innerHTML=''; return; }
   const busca = (document.getElementById('search')||{}).value||'';
   if(busca.trim()) { el.innerHTML=''; return; }
   if(!cats.length){ el.innerHTML=''; return; }
