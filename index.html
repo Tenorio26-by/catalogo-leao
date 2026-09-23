@@ -2452,7 +2452,12 @@ function renderCatImgCards(){
 }
 
 function renderCatalog(){
-  renderCatImgCards();
+  // Sempre recarregar fotos atuais do Firebase antes de renderizar
+  if(window._CAT_FOTOS_B64 && Object.keys(window._CAT_FOTOS_B64).length > 0){
+    renderCatImgCards();
+  } else {
+    renderCatImgCards(); // Mostra com gradiente enquanto carrega
+  }
   // Botão voltar para categorias
   const voltarEl = document.getElementById('cat-voltar-btn');
   if(voltarEl){
@@ -4519,10 +4524,14 @@ async function carregarFotosCategorias(){
     window._unsubCatFotos = db.collection('config').doc('cat_fotos').onSnapshot(snap=>{
       if(snap.exists){
         const data = snap.data()||{};
-        if(!window._CAT_FOTOS_B64) window._CAT_FOTOS_B64={};
-        Object.assign(window._CAT_FOTOS_B64, data);
-        // Atualizar cards imediatamente
-        if(typeof renderCatImgCards==='function') renderCatImgCards();
+        // Sobrescrever completamente (não só merge) para remover fotos deletadas
+        window._CAT_FOTOS_B64 = Object.assign(window._CAT_FOTOS_B64||{}, data);
+        // Atualizar cards agora e depois de um delay (garante que a tela já carregou)
+        if(typeof renderCatImgCards==='function'){
+          renderCatImgCards();
+          setTimeout(renderCatImgCards, 500);
+          setTimeout(renderCatImgCards, 1500);
+        }
       }
     }, e=>console.log('Erro listener cat_fotos',e));
   } catch(e){}
