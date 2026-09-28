@@ -2266,41 +2266,7 @@ async function deletePedido(id){
   loadPedidos();
 }
 
-async function loadPedidos(){
-  const oSnap = await db.collection('pedidos').orderBy('timestamp','desc').limit(20).get().catch(()=>({empty:true,forEach:()=>{}}));
-  const ordersList = document.getElementById('orders-list');
-  if(oSnap.empty){
-    ordersList.innerHTML='<div class="empty-state">Nenhum pedido ainda.</div>';
-  } else {
-    let html='';
-    oSnap.forEach(d=>{
-      const o=d.data();
-      const dt=o.timestamp?new Date(o.timestamp.seconds*1000).toLocaleString('pt-BR'):'agora';
-      const statusLabels=['Recebido','Separando','Saiu','Entregue'];
-      const statusIcons=['📥','📦','🚚','✅'];
-      const currentStatus = o.status||0;
-      const statusHtml = statusLabels.map((s,i)=>`
-        <div class="status-step" onclick="updateStatusPedido('${d.id}',${i})" style="cursor:pointer;">
-          <div class="status-dot ${i<currentStatus?'done':i===currentStatus?'active':''}"></div>
-          <div class="status-label ${i<currentStatus?'done':i===currentStatus?'active':''}">${statusIcons[i]} ${s}</div>
-        </div>
-        ${i<3?`<div class="status-line ${i<currentStatus?'done':''}"></div>`:''}
-      `).join('');
-      html+=`<div class="order-card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div>
-            <div class="order-client">${o.clienteNome}</div>
-            <div class="order-meta">${o.itens} itens • ${dt}</div>
-            <div class="order-total">${o.total}</div>
-          </div>
-          <button class="btn-del" onclick="deletePedido('${d.id}')" style="flex-shrink:0;">🗑</button>
-        </div>
-        <div class="status-bar">${statusHtml}</div>
-      </div>`;
-    });
-    ordersList.innerHTML=html;
-  }
-}
+// loadPedidos definida abaixo (função única com filtros)
 
 // ===== CATÁLOGO =====
 let produtosFirebase = []; // Products loaded from Firebase
@@ -3200,9 +3166,17 @@ async function loadPedidos(){
   const oSnap = await db.collection('pedidos').orderBy('timestamp','desc').limit(100).get().catch(()=>({empty:true,forEach:()=>{}}));
   const ordersList = document.getElementById('orders-list');
   const resumoEl = document.getElementById('pedidos-resumo');
+
+  // Calcula meia-noite de hoje no fuso de Brasília (UTC-3)
   const agora = new Date();
-  const hoje = new Date(agora.getFullYear(),agora.getMonth(),agora.getDate());
-  const semana = new Date(hoje); semana.setDate(semana.getDate()-7);
+  const offsetBrasilia = -3 * 60; // minutos
+  const localOffset = agora.getTimezoneOffset(); // minutos (positivo = atrás de UTC)
+  const diffMin = localOffset + Math.abs(offsetBrasilia); // ajuste para UTC-3
+  const agoraBrasilia = new Date(agora.getTime() - diffMin * 60000);
+  const hojeStr = agoraBrasilia.toISOString().slice(0,10); // "YYYY-MM-DD"
+  // meia-noite de hoje em UTC equivalente a 00:00 Brasília = 03:00 UTC
+  const hojeMeianoite = new Date(hojeStr + 'T03:00:00.000Z');
+  const semanaAtras = new Date(hojeMeianoite.getTime() - 7*24*60*60*1000);
 
   if(oSnap.empty){ ordersList.innerHTML='<div class="empty-state">Nenhum pedido ainda.</div>'; return; }
 
@@ -3211,10 +3185,10 @@ async function loadPedidos(){
 
   // Filtro
   pedidos = pedidos.filter(o=>{
-    if(!o.timestamp) return true;
+    if(!o.timestamp) return true; // sem timestamp aparece sempre
     const dt = new Date(o.timestamp.seconds*1000);
-    if(_filtroPedidos==='hoje') return dt >= hoje;
-    if(_filtroPedidos==='semana') return dt >= semana;
+    if(_filtroPedidos==='hoje') return dt >= hojeMeianoite;
+    if(_filtroPedidos==='semana') return dt >= semanaAtras;
     return true;
   });
 
