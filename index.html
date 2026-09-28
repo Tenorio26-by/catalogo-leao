@@ -1508,7 +1508,6 @@ const PEDIDOOK_TOKEN_PARCEIRO = '38458d92-ffee-4d1e-80c4-1758ede9789b';
 const PEDIDOOK_TOKEN_PEDIDOOK = '666b999d-457a-4b6a-9989-4da6d234eee6';
 
 async function enviarPedidoOk(clienteData, itensList, total){
-  if(!PEDIDOOK_TOKEN_PEDIDOOK){ return; }
   try {
     const idParceiro = 'leao-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
     const itensFormatados = itensList.map(item => ({
@@ -1529,7 +1528,12 @@ async function enviarPedidoOk(clienteData, itensList, total){
       valor_total: Number(total),
       observacao: 'Pedido via catálogo digital - Distribuidora Leão'
     };
-    const resp = await fetch('https://api.pedidook.com.br/v1/pedidos', {
+
+    // Chama API PedidoOk via proxy CORS
+    const apiUrl = 'https://api.pedidook.com.br/v1/pedidos';
+    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(apiUrl);
+
+    const resp = await fetch(proxyUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1538,14 +1542,19 @@ async function enviarPedidoOk(clienteData, itensList, total){
       },
       body: JSON.stringify(payload)
     });
-    const resultado = await resp.json().catch(()=>({}));
-    if(!resp.ok){
-      console.warn('[PedidoOk] Erro ao enviar pedido:', resp.status, resultado);
+
+    const texto = await resp.text();
+    let resultado = {};
+    try { resultado = JSON.parse(texto); } catch(e2) { resultado = { raw: texto }; }
+
+    if(resp.ok){
+      console.log('[PedidoOk] ✅ Pedido enviado! Status:', resp.status, 'Resposta:', JSON.stringify(resultado));
     } else {
-      console.log('[PedidoOk] ✅ Pedido enviado com sucesso:', resultado);
+      console.warn('[PedidoOk] Erro ' + resp.status + ':', JSON.stringify(resultado));
+      showNotif('⚠️ PedidoOk erro ' + resp.status + ': ' + JSON.stringify(resultado).slice(0,120));
     }
   } catch(e){
-    console.warn('[PedidoOk] Falha na integração:', e.message);
+    console.warn('[PedidoOk] Falha:', e.message);
   }
 }
 let currentUser = null;
