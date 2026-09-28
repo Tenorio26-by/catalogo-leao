@@ -1797,7 +1797,7 @@ function renderClientesLista(lista){
     html+=`<div class="client-card">
       <div style="flex:1;min-width:0;">
         <div class="client-name">${c.nome}</div>
-        <div class="client-meta">@${c.usuario} • Senha: ${c.senha}</div>
+        <div class="client-meta">@${c.usuario} • Senha: ${c.senha}${c.pedidookCodigo?` • PedidoOk: <strong>${c.pedidookCodigo}</strong>`:' • <span style="color:#f59e0b;">⚠️ Sem código PedidoOk</span>'}</div>
       </div>
       <div class="card-actions">
         <span class="tag ${tagClass}">${c.tag}</span>
