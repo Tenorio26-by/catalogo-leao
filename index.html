@@ -1556,11 +1556,31 @@ async function enviarPedidoOk(clienteData, itensList, total){
       return;
     }
 
-    // 2. Cria o pedido
+    // 2. Busca o primeiro vendedor disponível para usar no pedido
+    let idVendedor = null;
+    try {
+      const buscaVendedor = await pedidoOkRequest('/vendedores', 'GET', null);
+      const listaVendedores = buscaVendedor.data.vendedores || buscaVendedor.data.registros || [];
+      if(listaVendedores.length > 0) idVendedor = listaVendedores[0].id;
+      console.log('[PedidoOk] Vendedor id:', idVendedor);
+    } catch(e){ console.warn('[PedidoOk] Erro ao buscar vendedor:', e.message); }
+
+    if(!idVendedor){
+      showNotif('⚠️ PedidoOk: nenhum vendedor cadastrado no app');
+      return;
+    }
+
+    // 3. Cria o pedido com os campos obrigatórios
     const idParceiro = 'leao-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
+    const hoje = new Date();
+    const emissao = hoje.getFullYear() + '-'
+      + String(hoje.getMonth()+1).padStart(2,'0') + '-'
+      + String(hoje.getDate()).padStart(2,'0');
     const payloadPedido = {
       id_parceiro: idParceiro,
       id_cliente: idCliente,
+      id_vendedor: idVendedor,
+      emissao: emissao,
       observacao: 'Pedido via catálogo digital - Distribuidora Leão'
     };
     const criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadPedido);
