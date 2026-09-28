@@ -1529,9 +1529,8 @@ async function enviarPedidoOk(clienteData, itensList, total){
       observacao: 'Pedido via catálogo digital - Distribuidora Leão'
     };
 
-    // Chama API PedidoOk via proxy CORS
-    const apiUrl = 'https://api.pedidook.com.br/v1/pedidos';
-    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(apiUrl);
+    // Chama API PedidoOk via Cloudflare Worker proxy
+    const proxyUrl = 'https://pedidook-proxy.leaodistribuidora43.workers.dev';
 
     const resp = await fetch(proxyUrl, {
       method: 'POST',
