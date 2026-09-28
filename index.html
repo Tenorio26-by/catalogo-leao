@@ -1259,6 +1259,10 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
         <input type="text" id="m-cpfcnpj" placeholder="Ex: 00.000.000/0001-00">
       </div>
       <div class="form-group">
+        <label>Código PedidoOk <span style="font-size:11px;color:#888;font-weight:400;">(ex: ft31j30c2)</span></label>
+        <input type="text" id="m-pedidook-codigo" placeholder="Código do cliente no PedidoOk">
+      </div>
+      <div class="form-group">
         <label>Telefone / WhatsApp</label>
         <input type="text" id="m-tel" placeholder="Ex: 31 99999-9999">
       </div>
@@ -1526,22 +1530,25 @@ async function pedidoOkRequest(path, method, body){
 async function enviarPedidoOk(clienteData, itensList, total){
   try {
     const nomeCliente = (clienteData.nome || '').trim();
-    const codigoPedidoOk = (clienteData.cpfcnpj || '').trim();
-    console.log('[PedidoOk] Buscando cliente:', nomeCliente, '| Código:', codigoPedidoOk);
+    // Usa campo dedicado pedidookCodigo; se vazio, ignora silenciosamente
+    const codigoPedidoOk = (clienteData.pedidookCodigo || '').trim();
+    console.log('[PedidoOk] Buscando cliente:', nomeCliente, '| Código PedidoOk:', codigoPedidoOk);
 
     if(!codigoPedidoOk){
-      console.warn('[PedidoOk] Cliente sem código PedidoOk no campo CPF/CNPJ:', nomeCliente);
-      showNotif('⚠️ PedidoOk: cadastre o código do cliente no campo CPF/CNPJ');
+      console.warn('[PedidoOk] Cliente sem código PedidoOk cadastrado:', nomeCliente);
+      // Não exibe notificação de erro — cliente simplesmente não usa PedidoOk
       return;
     }
 
-    // Busca cliente pelo id_parceiro (código do PedidoOk salvo no campo CPF do catálogo)
-    const buscaCliente = await pedidoOkRequest('/clientes?id_parceiro=' + encodeURIComponent(codigoPedidoOk), 'GET', null);
+    // Busca cliente pelo código (campo "codigo" no PedidoOk)
+    const buscaCliente = await pedidoOkRequest('/clientes?codigo=' + encodeURIComponent(codigoPedidoOk), 'GET', null);
     console.log('[PedidoOk] Busca cliente:', JSON.stringify(buscaCliente.data).slice(0,300));
 
     let idCliente = null;
-    if(buscaCliente.ok && buscaCliente.data.registros && buscaCliente.data.registros.length > 0){
-      idCliente = buscaCliente.data.registros[0].id;
+    // API retorna campo "clientes" ou "registros" dependendo da versão
+    const listaClientes = buscaCliente.data.clientes || buscaCliente.data.registros || [];
+    if(buscaCliente.ok && listaClientes.length > 0){
+      idCliente = listaClientes[0].id;
       console.log('[PedidoOk] Cliente encontrado, id:', idCliente);
     } else {
       console.warn('[PedidoOk] Cliente não encontrado. Código:', codigoPedidoOk, '| Resposta:', JSON.stringify(buscaCliente.data).slice(0,200));
@@ -1836,7 +1843,7 @@ async function loadAdminData(){
 function openAddClient(){
   editingClientId=null;
   document.getElementById('modal-title').textContent='Novo Cliente';
-  ['m-name','m-user','m-pass','m-responsavel','m-cpfcnpj','m-tel','m-cep','m-end','m-bairro','m-cidade','m-prazo','m-cashback'].forEach(id=>{
+  ['m-name','m-user','m-pass','m-responsavel','m-cpfcnpj','m-pedidook-codigo','m-tel','m-cep','m-end','m-bairro','m-cidade','m-prazo','m-cashback'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.value='';
   });
@@ -1861,6 +1868,7 @@ async function editClient(id){
   const setIfExists = (id,val)=>{ const el=document.getElementById(id); if(el) el.value = val!==undefined&&val!==null?val:''; };
   setIfExists('m-responsavel', c.responsavel);
   setIfExists('m-cpfcnpj', c.cpfcnpj);
+  setIfExists('m-pedidook-codigo', c.pedidookCodigo);
   setIfExists('m-tel', c.tel);
   setIfExists('m-cep', c.cep);
   setIfExists('m-end', c.end);
@@ -1898,7 +1906,9 @@ async function saveClient(){
   const cashback = cashbackEl && cashbackEl.value !== '' ? parseFloat(cashbackEl.value) : 0;
   const vendedorNome = (document.getElementById('m-vendedor-nome')||{}).value||'';
   const vendedorCel = (document.getElementById('m-vendedor-cel')||{}).value||'';
-  const data={nome,responsavel,cpfcnpj,tel,cep,end,bairro,cidade,usuario,senha,tag,prazo,diaEntrega,ocultarPreco,cashback,vendedorNome,vendedorCel,bloqueado:false};
+  const pedidookCodigoEl = document.getElementById('m-pedidook-codigo');
+  const pedidookCodigo = pedidookCodigoEl ? pedidookCodigoEl.value.trim() : '';
+  const data={nome,responsavel,cpfcnpj,pedidookCodigo,tel,cep,end,bairro,cidade,usuario,senha,tag,prazo,diaEntrega,ocultarPreco,cashback,vendedorNome,vendedorCel,bloqueado:false};
   try {
     if(editingClientId){
       const existing = await db.collection('clientes').doc(editingClientId).get();
