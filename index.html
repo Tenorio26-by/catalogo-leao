@@ -1506,52 +1506,72 @@ const WHATS = '5531996422924';
 // ===== INTEGRAÇÃO PEDIDOOK =====
 const PEDIDOOK_TOKEN_PARCEIRO = '38458d92-ffee-4d1e-80c4-1758ede9789b';
 const PEDIDOOK_TOKEN_PEDIDOOK = '666b999d-457a-4b6a-9989-4da6d234eee6';
+const PEDIDOOK_PROXY = 'https://pedidook-proxy.leaodistribuidora43.workers.dev';
+
+async function pedidoOkRequest(path, method, body){
+  const resp = await fetch(PEDIDOOK_PROXY, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path, method, body })
+  });
+  const texto = await resp.text();
+  let json = {};
+  try { json = JSON.parse(texto); } catch(e){ json = { raw: texto }; }
+  return { ok: resp.ok, status: resp.status, data: json };
+}
 
 async function enviarPedidoOk(clienteData, itensList, total){
   try {
+    const nomeCliente = (clienteData.nome || '').trim();
+    console.log('[PedidoOk] Buscando cliente:', nomeCliente);
+
+    // 1. Busca o cliente no PedidoOk pelo nome
+    const buscaCliente = await pedidoOkRequest('/clientes?razao_social=' + encodeURIComponent(nomeCliente), 'GET', null);
+    console.log('[PedidoOk] Busca cliente:', JSON.stringify(buscaCliente.data));
+
+    let idCliente = null;
+    if(buscaCliente.ok && buscaCliente.data.registros && buscaCliente.data.registros.length > 0){
+      idCliente = buscaCliente.data.registros[0].id;
+      console.log('[PedidoOk] Cliente encontrado, id:', idCliente);
+    } else {
+      console.warn('[PedidoOk] Cliente não encontrado no PedidoOk:', nomeCliente);
+      showNotif('⚠️ PedidoOk: cliente "' + nomeCliente + '" não encontrado no app');
+      return;
+    }
+
+    // 2. Cria o pedido
     const idParceiro = 'leao-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
-    const itensFormatados = itensList.map(item => ({
-      codigo_produto: String(item.id),
-      descricao: item.nome,
-      unidade: item.un || 'UN',
-      quantidade: Number(item.qty),
-      preco_unitario: Number(item.unit),
-      preco_total: Number(item.qty) * Number(item.unit)
-    }));
-    const payload = {
+    const payloadPedido = {
       id_parceiro: idParceiro,
-      codigo_cliente: String(clienteData.id || clienteData.usuario || ''),
-      nome_cliente: clienteData.nome || '',
-      telefone_cliente: clienteData.telefone || '',
-      email_cliente: clienteData.email || '',
-      itens: itensFormatados,
-      valor_total: Number(total),
+      id_cliente: idCliente,
       observacao: 'Pedido via catálogo digital - Distribuidora Leão'
     };
+    const criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadPedido);
+    console.log('[PedidoOk] Criar pedido:', JSON.stringify(criaPedido.data));
 
-    // Chama API PedidoOk via Cloudflare Worker proxy
-    const proxyUrl = 'https://pedidook-proxy.leaodistribuidora43.workers.dev';
-
-    const resp = await fetch(proxyUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'token_parceiro': PEDIDOOK_TOKEN_PARCEIRO,
-        'token_pedidook': PEDIDOOK_TOKEN_PEDIDOOK
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const texto = await resp.text();
-    let resultado = {};
-    try { resultado = JSON.parse(texto); } catch(e2) { resultado = { raw: texto }; }
-
-    if(resp.ok){
-      console.log('[PedidoOk] ✅ Pedido enviado! Status:', resp.status, 'Resposta:', JSON.stringify(resultado));
-    } else {
-      console.warn('[PedidoOk] Erro ' + resp.status + ':', JSON.stringify(resultado));
-      showNotif('⚠️ PedidoOk erro ' + resp.status + ': ' + JSON.stringify(resultado).slice(0,120));
+    if(!criaPedido.ok){
+      console.warn('[PedidoOk] Erro ao criar pedido:', JSON.stringify(criaPedido.data));
+      showNotif('⚠️ PedidoOk erro ao criar pedido: ' + JSON.stringify(criaPedido.data).slice(0,100));
+      return;
     }
+
+    const idPedido = criaPedido.data.id;
+    console.log('[PedidoOk] Pedido criado, id:', idPedido);
+
+    // 3. Adiciona os itens
+    for(const item of itensList){
+      const payloadItem = {
+        id_produto: String(item.id),
+        quantidade: Number(item.qty),
+        preco_unitario: Number(item.unit)
+      };
+      const addItem = await pedidoOkRequest('/pedidos/' + idPedido + '/itens', 'POST', payloadItem);
+      console.log('[PedidoOk] Item adicionado (' + item.nome + '):', JSON.stringify(addItem.data));
+    }
+
+    console.log('[PedidoOk] ✅ Pedido completo enviado! id:', idPedido);
+    showNotif('✅ Pedido enviado ao PedidoOk!');
+
   } catch(e){
     console.warn('[PedidoOk] Falha:', e.message);
   }
