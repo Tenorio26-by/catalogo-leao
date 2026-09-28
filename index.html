@@ -763,6 +763,9 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
       <div class="section-title">👥 Clientes</div>
       <button class="btn-add" onclick="openAddClient()">+ Adicionar</button>
     </div>
+    <div style="margin-bottom:12px;">
+      <input type="text" id="busca-cliente" placeholder="🔍 Buscar cliente por nome..." oninput="filtrarClientes()" style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:15px;outline:none;box-sizing:border-box;">
+    </div>
     <div id="clients-list"><div class="loading">Carregando...</div></div>
 
   </div>
@@ -1523,19 +1526,26 @@ async function pedidoOkRequest(path, method, body){
 async function enviarPedidoOk(clienteData, itensList, total){
   try {
     const nomeCliente = (clienteData.nome || '').trim();
-    console.log('[PedidoOk] Buscando cliente:', nomeCliente);
+    const codigoPedidoOk = (clienteData.cpfcnpj || '').trim();
+    console.log('[PedidoOk] Buscando cliente:', nomeCliente, '| Código:', codigoPedidoOk);
 
-    // 1. Busca o cliente no PedidoOk pelo nome
-    const buscaCliente = await pedidoOkRequest('/clientes?razao_social=' + encodeURIComponent(nomeCliente), 'GET', null);
-    console.log('[PedidoOk] Busca cliente:', JSON.stringify(buscaCliente.data));
+    if(!codigoPedidoOk){
+      console.warn('[PedidoOk] Cliente sem código PedidoOk no campo CPF/CNPJ:', nomeCliente);
+      showNotif('⚠️ PedidoOk: cadastre o código do cliente no campo CPF/CNPJ');
+      return;
+    }
+
+    // Busca cliente pelo id_parceiro (código do PedidoOk salvo no campo CPF do catálogo)
+    const buscaCliente = await pedidoOkRequest('/clientes?id_parceiro=' + encodeURIComponent(codigoPedidoOk), 'GET', null);
+    console.log('[PedidoOk] Busca cliente:', JSON.stringify(buscaCliente.data).slice(0,300));
 
     let idCliente = null;
     if(buscaCliente.ok && buscaCliente.data.registros && buscaCliente.data.registros.length > 0){
       idCliente = buscaCliente.data.registros[0].id;
       console.log('[PedidoOk] Cliente encontrado, id:', idCliente);
     } else {
-      console.warn('[PedidoOk] Cliente não encontrado no PedidoOk:', nomeCliente);
-      showNotif('⚠️ PedidoOk: cliente "' + nomeCliente + '" não encontrado no app');
+      console.warn('[PedidoOk] Cliente não encontrado. Código:', codigoPedidoOk, '| Resposta:', JSON.stringify(buscaCliente.data).slice(0,200));
+      showNotif('⚠️ PedidoOk: cliente "' + nomeCliente + '" não encontrado (código: ' + codigoPedidoOk + ')');
       return;
     }
 
@@ -1766,34 +1776,59 @@ function showScreen(id){
 }
 
 // ===== ADMIN =====
+let _todosClientes = []; // cache para busca por nome
+
+function renderClientesLista(lista){
+  const clientsList = document.getElementById('clients-list');
+  if(!lista || lista.length===0){
+    clientsList.innerHTML='<div class="empty-state">Nenhum cliente encontrado.</div>';
+    return;
+  }
+  let html='';
+  lista.forEach(({id, c})=>{
+    const tagClass=c.tag==='VIP'?'tag-vip':c.tag==='Atacado'?'tag-at':c.tag==='SemPreco'?'tag-var':'tag-var';
+    html+=`<div class="client-card">
+      <div style="flex:1;min-width:0;">
+        <div class="client-name">${c.nome}</div>
+        <div class="client-meta">@${c.usuario} • Senha: ${c.senha}</div>
+      </div>
+      <div class="card-actions">
+        <span class="tag ${tagClass}">${c.tag}</span>
+        <button class="btn-edit" onclick="editClient('${id}')">✏️ Editar</button>
+        <button class="btn-edit" onclick="openEditPrices('${id}','${c.nome}')">💰 Preços</button>
+        <button class="btn-edit" onclick="abrirHistoricoCompletoCliente('${id}','${(c.nome||'').replace(/'/g,"\'")}')" style="background:var(--adm-text);color:#fff;">📜 Histórico</button>
+        <button class="btn-copy" onclick="copyLink('${c.usuario}','${c.senha}')">🔗</button>
+        <button class="btn-copy" onclick="gerarQrCode('${c.usuario}','${c.senha}','${(c.nome||'').replace(/'/g,"\'")}')">📱</button>
+        <button class="btn-del" onclick="deleteClient('${id}')">🗑</button>
+      </div>
+    </div>`;
+  });
+  clientsList.innerHTML=html;
+}
+
+function filtrarClientes(){
+  const termo = (document.getElementById('busca-cliente').value||'').toLowerCase().trim();
+  if(!termo){ renderClientesLista(_todosClientes); return; }
+  const filtrados = _todosClientes.filter(({c})=>(c.nome||'').toLowerCase().includes(termo));
+  renderClientesLista(filtrados);
+}
+
 async function loadAdminData(){
   setAdminTab('dashboard');
   const cSnap = await db.collection('clientes').get();
   const clientsList = document.getElementById('clients-list');
+  // limpar busca ao recarregar
+  const buscaEl = document.getElementById('busca-cliente');
+  if(buscaEl) buscaEl.value='';
   if(cSnap.empty){
+    _todosClientes=[];
     clientsList.innerHTML='<div class="empty-state">Nenhum cliente ainda.<br>Clique em "+ Adicionar"!</div>';
   } else {
-    let html='';
-    cSnap.forEach(d=>{
-      const c=d.data();
-      const tagClass=c.tag==='VIP'?'tag-vip':c.tag==='Atacado'?'tag-at':c.tag==='SemPreco'?'tag-var':'tag-var';
-      html+=`<div class="client-card">
-        <div style="flex:1;min-width:0;">
-          <div class="client-name">${c.nome}</div>
-          <div class="client-meta">@${c.usuario} • Senha: ${c.senha}</div>
-        </div>
-        <div class="card-actions">
-          <span class="tag ${tagClass}">${c.tag}</span>
-          <button class="btn-edit" onclick="editClient('${d.id}')">✏️ Editar</button>
-          <button class="btn-edit" onclick="openEditPrices('${d.id}','${c.nome}')">💰 Preços</button>
-          <button class="btn-edit" onclick="abrirHistoricoCompletoCliente('${d.id}','${(c.nome||'').replace(/'/g,"\'")}')" style="background:var(--adm-text);color:#fff;">📜 Histórico</button>
-          <button class="btn-copy" onclick="copyLink('${c.usuario}','${c.senha}')">🔗</button>
-          <button class="btn-copy" onclick="gerarQrCode('${c.usuario}','${c.senha}','${(c.nome||'').replace(/'/g,"\'")}')">📱</button>
-          <button class="btn-del" onclick="deleteClient('${d.id}')">🗑</button>
-        </div>
-      </div>`;
-    });
-    clientsList.innerHTML=html;
+    _todosClientes=[];
+    cSnap.forEach(d=>{ _todosClientes.push({id:d.id, c:d.data()}); });
+    // ordena por nome
+    _todosClientes.sort((a,b)=>(a.c.nome||'').localeCompare(b.c.nome||''));
+    renderClientesLista(_todosClientes);
   }
 
 }
