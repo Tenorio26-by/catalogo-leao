@@ -1649,52 +1649,45 @@ async function enviarPedidoOk(clienteData, itensList, total){
     const idPedido = pedidoObj.id;
     console.log('[PedidoOk] Pedido criado, id:', idPedido);
 
-    // 6. Adiciona os itens — busca cada produto no PedidoOk pelo nome
-    // Carrega TODAS as páginas de produtos
-    let produtosPedidoOk = [];
-    try {
-      let url = '/produtos?pagina=1';
-      while(url){
-        const buscaProd = await pedidoOkRequest(url, 'GET', null);
-        const lista = buscaProd.data.produtos || buscaProd.data.registros || buscaProd.data.data || [];
-        produtosPedidoOk = produtosPedidoOk.concat(lista);
-        // Pega próxima página se existir
-        const proxUrl = buscaProd.data.href_proxima_pagina || null;
-        if(proxUrl && lista.length > 0){
-          // Extrai só o path+query da URL completa
-          url = proxUrl.replace('https://api.pedidook.com.br/v1','');
-        } else { url = null; }
-      }
-      console.log('[PedidoOk] Total produtos carregados:', produtosPedidoOk.length);
-      console.log('[PedidoOk] Primeiros 5 nomes:', produtosPedidoOk.slice(0,5).map(p=>p.nome||p.descricao));
-    } catch(e){ console.warn('[PedidoOk] Erro ao buscar produtos:', e.message); }
+    // 6. Adiciona os itens — busca cada produto no PedidoOk pelo código (campo pok)
+    // Coleta todos os códigos pok únicos dos itens do pedido
+    const codigosPok = [...new Set(itensList.map(i => i.pok).filter(Boolean))];
+    console.log('[PedidoOk] Códigos pok a buscar:', codigosPok);
 
-    // Normaliza: remove acentos, minúscula, remove prefixo tipo "A7-" ou "B3-"
-    const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
-      .replace(/^[a-z0-9]{1,4}-/,'')  // remove prefixo tipo "A7-", "B12-"
-      .replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+    // Mapeia codigo → id do produto no PedidoOk
+    const mapaIdProduto = {};
+    for(const cod of codigosPok){
+      try {
+        const resp = await pedidoOkRequest('/produtos?codigo=' + encodeURIComponent(cod), 'GET', null);
+        const lista = resp.data.produtos || resp.data.registros || resp.data.data || [];
+        // Procura produto cujo campo codigo bate exatamente
+        const encontrado = lista.find(p => String(p.codigo) === String(cod));
+        if(encontrado){
+          mapaIdProduto[cod] = encontrado.id || encontrado.id_produto;
+          console.log('[PedidoOk] Produto encontrado: código', cod, '→ id', mapaIdProduto[cod], '|', encontrado.nome||encontrado.descricao);
+        } else {
+          // Fallback: usa o primeiro da lista se só um resultado
+          if(lista.length === 1){
+            mapaIdProduto[cod] = lista[0].id || lista[0].id_produto;
+            console.log('[PedidoOk] Produto (fallback 1º):', cod, '→ id', mapaIdProduto[cod]);
+          } else {
+            console.warn('[PedidoOk] Produto código', cod, 'não encontrado. Lista:', lista.map(p=>p.codigo+'='+p.nome));
+          }
+        }
+      } catch(e){ console.warn('[PedidoOk] Erro ao buscar produto código', cod, ':', e.message); }
+    }
 
     for(const item of itensList){
-      const nomeItem = norm(item.nome);
-      // Palavras relevantes (mais de 2 letras)
-      const palavras = nomeItem.split(' ').filter(w => w.length > 2);
-
-      // Acha produto com mais palavras em comum
-      let melhor = null, melhorPts = 0;
-      for(const p of produtosPedidoOk){
-        const nomeProd = norm(p.nome || p.descricao || '');
-        let pts = 0;
-        for(const w of palavras){ if(nomeProd.includes(w)) pts++; }
-        if(pts > melhorPts){ melhorPts = pts; melhor = p; }
-      }
-
-      if(!melhor || melhorPts === 0){
-        console.warn('[PedidoOk] Produto não encontrado:', item.nome, '→ normalizado:', nomeItem, '| palavras:', palavras);
+      if(!item.pok){
+        console.warn('[PedidoOk] Item sem código pok, ignorando:', item.nome);
         continue;
       }
-
-      const idProduto = melhor.id || melhor.id_produto;
-      console.log('[PedidoOk] Match:', item.nome, '→', melhor.nome||melhor.descricao, '(id:', idProduto, ', pts:', melhorPts, ')');
+      const idProduto = mapaIdProduto[item.pok];
+      if(!idProduto){
+        console.warn('[PedidoOk] Produto não mapeado, ignorando:', item.nome, '(pok:', item.pok, ')');
+        continue;
+      }
+      console.log('[PedidoOk] Enviando item:', item.nome, '| pok:', item.pok, '| id_produto:', idProduto, '| qty:', item.qty, '| preco:', item.unit);
       const payloadItem = {
         id_produto: idProduto,
         quantidade: Number(item.qty),
@@ -1734,67 +1727,68 @@ const cats=[
 ];
 
 const produtosBase=[
-  {id:'A1c',cat:"Água",nome:"Água c/ Gás 1,5L",un:"FD/6",preco:17.42,img:'A1'},
-  {id:'A2c',cat:"Água",nome:"Água 1,5L",un:"FD/6",preco:14.04,img:'A2'},
-  {id:'A3c',cat:"Água",nome:"Água Mineral 500ml",un:"FD/12",preco:11.40,img:'A3'},
-  {id:'A4c',cat:"Água",nome:"Água Mineral c/ Gás 500ml",un:"FD/12",preco:17.00,img:'A4'},
-  {id:'f291',cat:"Água",nome:"Água 5 Litros",un:"EM/1",preco:8.45,img:'fit291'},
-  {id:'p3',cat:"Cachaças",nome:"Cachaça Agranel Branca 22L",un:"GL/22",preco:112.00,img:'21'},
-  {id:'p4',cat:"Cachaças",nome:"Cachaça Agranel Ouro 22L",un:"GL/22",preco:112.00,img:'22'},
-  {id:'p5',cat:"Cachaças",nome:"Cachaça Premium Branca",un:"GF/1",preco:10.80},
-  {id:'p6',cat:"Cachaças",nome:"Cachaça Premium Ouro",un:"GF/1",preco:10.80},
-  {id:'p7',cat:"Cachaças",nome:"Bebida de Sabor",un:"EM/1",preco:13.00},
-  {id:'p10',cat:"Carvão",nome:"Carvão EMB/5",un:"EMB/5",preco:57.38,img:'43'},
-  {id:'p11',cat:"Carvão",nome:"Carvão 10 kg",un:"EM/1",preco:40.50},
-  {id:'p20',cat:"Chips & Gulão",nome:"Amendoim 50g",un:"CART/15",preco:24.00},
-  {id:'p21',cat:"Chips & Gulão",nome:"Batata Chips 40g",un:"CART/15",preco:34.65},
-  {id:'p24',cat:"Chips & Gulão",nome:"Gulão Cebola 120g",un:"EM/1",preco:39.00},
-  {id:'p25',cat:"Chips & Gulão",nome:"Gulão Cheddar Bacon 120g",un:"EM/10",preco:39.00},
-  {id:'p26',cat:"Chips & Gulão",nome:"Gulão Churrasco 120g",un:"EM/10",preco:39.00},
-  {id:'p27',cat:"Chips & Gulão",nome:"Gulão Presunto 120g",un:"EM/10",preco:39.00},
-  {id:'p28',cat:"Chips & Gulão",nome:"Gulão Pururuca",un:"FD/10",preco:39.00,img:'124455'},
-  {id:'p29',cat:"Chips & Gulão",nome:"Gulão Requeijão 120g",un:"EM/10",preco:40.50,img:'181'},
-  {id:'p30',cat:"Chips & Gulão",nome:"Bananinha 90g",un:"EM/1",preco:3.38,img:'12787'},
-  {id:'p31',cat:"Chips & Gulão",nome:"Bananinha Frita 50g",un:"PC/10",preco:27.00,img:'27'},
-  {id:'p40',cat:"Doces",nome:"Doce Beijinho c/ Goiaba Peq.",un:"PT/1",preco:35.10,img:'212'},
-  {id:'p41',cat:"Doces",nome:"Doce Beijinho Grande",un:"PT/1",preco:35.10,img:'15589'},
-  {id:'p43',cat:"Doces",nome:"Doce Brigadeiro Famoso",un:"PT/1",preco:32.40},
-  {id:'p45',cat:"Doces",nome:"Doce Cajuzinho Recheado",un:"PT/1",preco:20.74,img:'40'},
-  {id:'p46',cat:"Doces",nome:"Doce de Leite c/ Chocolate",un:"PT/1",preco:32.40,img:'188'},
-  {id:'p48',cat:"Doces",nome:"Doce Palha Italiana",un:"PT/1",preco:33.80,img:'191'},
-  {id:'p49',cat:"Doces",nome:"Doce Pé de Moça",un:"PT/1",preco:21.43,img:'80'},
-  {id:'p50',cat:"Doces",nome:"Pingo de Leite Famoso",un:"PT/1",preco:33.75},
-  {id:'p51',cat:"Doces",nome:"Doce Belinho",un:"EM/1",preco:12.87,img:'214'},
-  {id:'p60',cat:"Laticínios",nome:"Iogurte 180g Morango",un:"UN/1",preco:1.57,img:'68'},
-  {id:'p61',cat:"Laticínios",nome:"Iogurte 180g Coco",un:"UN/1",preco:1.57,img:'1123'},
-  {id:'p62',cat:"Laticínios",nome:"Iogurte 180g Pêssego",un:"UN/1",preco:1.57,img:'1121'},
-  {id:'p63',cat:"Laticínios",nome:"Iogurte 450g Morango",un:"UN/1",preco:3.00,img:'1241'},
-  {id:'p64',cat:"Laticínios",nome:"Iogurte 450g Coco",un:"UN/1",preco:3.00,img:'1242'},
-  {id:'p65',cat:"Laticínios",nome:"Iogurte 800g Morango",un:"UN/1",preco:4.69,img:'136'},
-  {id:'p67',cat:"Laticínios",nome:"Iogurte 1L Morango",un:"UN/1",preco:3.50,img:'147'},
-  {id:'p68',cat:"Laticínios",nome:"Iogurte 1L Pêssego",un:"UN/1",preco:3.50,img:'148'},
-  {id:'p69',cat:"Laticínios",nome:"Iogurte 1L Coco",un:"UN/1",preco:3.50,img:'149'},
-  {id:'p72',cat:"Laticínios",nome:"Leite Fermentado 140g",un:"FD/12",preco:19.73,img:'190'},
-  {id:'p73',cat:"Laticínios",nome:"Iogurte Bandeja",un:"BD/1",preco:3.21,img:'70'},
-  {id:'p74',cat:"Laticínios",nome:"Manteiga 200g",un:"emb/1",preco:9.45},
-  {id:'p75',cat:"Laticínios",nome:"Mussarela",un:"KG/1",preco:46.80},
-  {id:'p76',cat:"Laticínios",nome:"Presunto",un:"KL/1",preco:22.28},
-  {id:'p77',cat:"Laticínios",nome:"Requeijão 400g",un:"EM/1",preco:11.88},
-  {id:'p80',cat:"Linguiças",nome:"Bacon em Cubo",un:"PC/1",preco:32.27},
-  {id:'p81',cat:"Linguiças",nome:"Bacon Medalhão",un:"PC/1",preco:33.75},
-  {id:'p82',cat:"Linguiças",nome:"Defumada 500g",un:"EM/1",preco:12.60,img:'211'},
+  // pok = código do produto no PedidoOk
+  {id:'A1c',cat:"Água",nome:"Água c/ Gás 1,5L",un:"FD/6",preco:17.42,img:'A1',pok:'A1'},
+  {id:'A2c',cat:"Água",nome:"Água 1,5L",un:"FD/6",preco:14.04,img:'A2',pok:'A2'},
+  {id:'A3c',cat:"Água",nome:"Água Mineral 500ml",un:"FD/12",preco:11.40,img:'A3',pok:'A3'},
+  {id:'A4c',cat:"Água",nome:"Água Mineral c/ Gás 500ml",un:"FD/12",preco:17.00,img:'A4',pok:'A4'},
+  {id:'f291',cat:"Água",nome:"Água 5 Litros",un:"EM/1",preco:8.45,img:'fit291',pok:'A7'},
+  {id:'p3',cat:"Cachaças",nome:"Cachaça Agranel Branca 22L",un:"GL/22",preco:112.00,img:'21',pok:'A21'},
+  {id:'p4',cat:"Cachaças",nome:"Cachaça Agranel Ouro 22L",un:"GL/22",preco:112.00,img:'22',pok:'A22'},
+  {id:'p5',cat:"Cachaças",nome:"Cachaça Premium Branca",un:"GF/1",preco:10.80,pok:'A24'},
+  {id:'p6',cat:"Cachaças",nome:"Cachaça Premium Ouro",un:"GF/1",preco:10.80,pok:'A25'},
+  {id:'p7',cat:"Cachaças",nome:"Bebida de Sabor",un:"EM/1",preco:13.00,pok:'A19'},
+  {id:'p10',cat:"Carvão",nome:"Carvão EMB/5",un:"EMB/5",preco:57.38,img:'43',pok:'A43'},
+  {id:'p11',cat:"Carvão",nome:"Carvão 10 kg",un:"EM/1",preco:40.50,pok:'A162'},
+  {id:'p20',cat:"Chips & Gulão",nome:"Amendoim 50g",un:"CART/15",preco:24.00,pok:'A8'},
+  {id:'p21',cat:"Chips & Gulão",nome:"Batata Chips 40g",un:"CART/15",preco:34.65,pok:'A12'},
+  {id:'p24',cat:"Chips & Gulão",nome:"Gulão Cebola 120g",un:"EM/1",preco:39.00,pok:'A298'},
+  {id:'p25',cat:"Chips & Gulão",nome:"Gulão Cheddar Bacon 120g",un:"EM/10",preco:39.00,pok:'A300'},
+  {id:'p26',cat:"Chips & Gulão",nome:"Gulão Churrasco 120g",un:"EM/10",preco:39.00,pok:'A299'},
+  {id:'p27',cat:"Chips & Gulão",nome:"Gulão Presunto 120g",un:"EM/10",preco:39.00,pok:'A301'},
+  {id:'p28',cat:"Chips & Gulão",nome:"Gulão Pururuca",un:"FD/10",preco:39.00,img:'124455',pok:'A455'},
+  {id:'p29',cat:"Chips & Gulão",nome:"Gulão Requeijão 120g",un:"EM/10",preco:40.50,img:'181',pok:'A181'},
+  {id:'p30',cat:"Chips & Gulão",nome:"Bananinha 90g",un:"EM/1",preco:3.38,img:'12787',pok:'A11'},
+  {id:'p31',cat:"Chips & Gulão",nome:"Bananinha Frita 50g",un:"PC/10",preco:27.00,img:'27',pok:'A27'},
+  {id:'p40',cat:"Doces",nome:"Doce Beijinho c/ Goiaba Peq.",un:"PT/1",preco:35.10,img:'212',pok:'A212'},
+  {id:'p41',cat:"Doces",nome:"Doce Beijinho Grande",un:"PT/1",preco:35.10,img:'15589',pok:'A23'},
+  {id:'p43',cat:"Doces",nome:"Doce Brigadeiro Famoso",un:"PT/1",preco:32.40,pok:'A170'},
+  {id:'p45',cat:"Doces",nome:"Doce Cajuzinho Recheado",un:"PT/1",preco:20.74,img:'40',pok:'40'},
+  {id:'p46',cat:"Doces",nome:"Doce de Leite c/ Chocolate",un:"PT/1",preco:32.40,img:'188',pok:'188'},
+  {id:'p48',cat:"Doces",nome:"Doce Palha Italiana",un:"PT/1",preco:33.80,img:'191',pok:'191'},
+  {id:'p49',cat:"Doces",nome:"Doce Pé de Moça",un:"PT/1",preco:21.43,img:'80',pok:'80'},
+  {id:'p50',cat:"Doces",nome:"Pingo de Leite Famoso",un:"PT/1",preco:33.75,pok:'A61'},
+  {id:'p51',cat:"Doces",nome:"Doce Belinho",un:"EM/1",preco:12.87,img:'214',pok:'A214'},
+  {id:'p60',cat:"Laticínios",nome:"Iogurte 180g Morango",un:"UN/1",preco:1.57,img:'68',pok:'A68'},
+  {id:'p61',cat:"Laticínios",nome:"Iogurte 180g Coco",un:"UN/1",preco:1.57,img:'1123',pok:'A123'},
+  {id:'p62',cat:"Laticínios",nome:"Iogurte 180g Pêssego",un:"UN/1",preco:1.57,img:'1121',pok:'A121'},
+  {id:'p63',cat:"Laticínios",nome:"Iogurte 450g Morango",un:"UN/1",preco:3.00,img:'1241',pok:'A241'},
+  {id:'p64',cat:"Laticínios",nome:"Iogurte 450g Coco",un:"UN/1",preco:3.00,img:'1242',pok:'A242'},
+  {id:'p65',cat:"Laticínios",nome:"Iogurte 800g Morango",un:"UN/1",preco:4.69,img:'136',pok:'A136'},
+  {id:'p67',cat:"Laticínios",nome:"Iogurte 1L Morango",un:"UN/1",preco:3.50,img:'147',pok:'A147'},
+  {id:'p68',cat:"Laticínios",nome:"Iogurte 1L Pêssego",un:"UN/1",preco:3.50,img:'148',pok:'A148'},
+  {id:'p69',cat:"Laticínios",nome:"Iogurte 1L Coco",un:"UN/1",preco:3.50,img:'149',pok:'A149'},
+  {id:'p72',cat:"Laticínios",nome:"Leite Fermentado 140g",un:"FD/12",preco:19.73,img:'190',pok:'A190'},
+  {id:'p73',cat:"Laticínios",nome:"Iogurte Bandeja",un:"BD/1",preco:3.21,img:'70',pok:'A70'},
+  {id:'p74',cat:"Laticínios",nome:"Manteiga 200g",un:"emb/1",preco:9.45,pok:'A94'},
+  {id:'p75',cat:"Laticínios",nome:"Mussarela",un:"KG/1",preco:46.80,pok:'A743'},
+  {id:'p76',cat:"Laticínios",nome:"Presunto",un:"KL/1",preco:22.28,pok:'A198'},
+  {id:'p77',cat:"Laticínios",nome:"Requeijão 400g",un:"EM/1",preco:11.88,pok:'A1276'},
+  {id:'p80',cat:"Linguiças",nome:"Bacon em Cubo",un:"PC/1",preco:32.27,pok:'A10'},
+  {id:'p81',cat:"Linguiças",nome:"Bacon Medalhão",un:"PC/1",preco:33.75,pok:'A15'},
+  {id:'p82',cat:"Linguiças",nome:"Defumada 500g",un:"EM/1",preco:12.60,img:'211',pok:'A211'},
   {id:'p83',cat:"Linguiças",nome:"Costelinha Completa",un:"EM/1",preco:15.12},
-  {id:'p87',cat:"Linguiças",nome:"Linguiça de Frango 500g",un:"1/5",preco:56.88},
-  {id:'p89',cat:"Linguiças",nome:"Linguiça Porco 500g",un:"1/5",preco:48.75},
-  {id:'p90',cat:"Linguiças",nome:"Linguiça Toscana Mista",un:"KL/1",preco:16.80},
-  {id:'p91',cat:"Linguiças",nome:"Linguiça Toscana Churrasco",un:"1/1",preco:81.00},
-  {id:'p92',cat:"Linguiças",nome:"Defumada Porco Maia Agranel",un:"PC/1",preco:115.00,img:'6'},
-  {id:'p100',cat:"Pães",nome:"Bolo",un:"UN/1",preco:8.45,img:'17'},
-  {id:'p101',cat:"Pães",nome:"Pão de Batata",un:"EM/1",preco:6.30},
-  {id:'p102',cat:"Pães",nome:"Pão de Forma",un:"EM/1",preco:5.46},
-  {id:'p103',cat:"Pães",nome:"Pão de Hambúrguer",un:"EM/1",preco:8.50},
-  {id:'p104',cat:"Pães",nome:"Pão de Hot Dog",un:"EM/1",preco:8.50},
-  {id:'p105',cat:"Pães",nome:"Pão Sovado",un:"EM/1",preco:8.50},
+  {id:'p87',cat:"Linguiças",nome:"Linguiça de Frango 500g",un:"1/5",preco:56.88,pok:'A295'},
+  {id:'p89',cat:"Linguiças",nome:"Linguiça Porco 500g",un:"1/5",preco:48.75,pok:'A294'},
+  {id:'p90',cat:"Linguiças",nome:"Linguiça Toscana Mista",un:"KL/1",preco:16.80,pok:'A260'},
+  {id:'p91',cat:"Linguiças",nome:"Linguiça Toscana Churrasco",un:"1/1",preco:81.00,pok:'A157'},
+  {id:'p92',cat:"Linguiças",nome:"Defumada Porco Maia Agranel",un:"PC/1",preco:115.00,img:'6',pok:'A26'},
+  {id:'p100',cat:"Pães",nome:"Bolo",un:"UN/1",preco:8.45,img:'17',pok:'A17'},
+  {id:'p101',cat:"Pães",nome:"Pão de Batata",un:"EM/1",preco:6.30,pok:'A223'},
+  {id:'p102',cat:"Pães",nome:"Pão de Forma",un:"EM/1",preco:5.46,pok:'A185'},
+  {id:'p103',cat:"Pães",nome:"Pão de Hambúrguer",un:"EM/1",preco:8.50,pok:'A186'},
+  {id:'p104',cat:"Pães",nome:"Pão de Hot Dog",un:"EM/1",preco:8.50,pok:'A184'},
+  {id:'p105',cat:"Pães",nome:"Pão Sovado",un:"EM/1",preco:8.50,pok:'A182'},
 ];
 
 // ===== LOGIN =====
@@ -2804,7 +2798,7 @@ function abrirPedidoSheet(){
       const q=qtds[p.id]; const sub=q*p.precoFinal; total+=sub; totalItens+=q;
       linhas.push('• '+p.nome+' ('+p.un+') x'+q+' = '+fmt(sub));
       itensSalvar.push({id:p.id,q});
-      itensList.push({id:p.id, nome:p.nome, un:p.un, qty:q, unit:p.precoFinal});
+      itensList.push({id:p.id, nome:p.nome, un:p.un, qty:q, unit:p.precoFinal, pok:p.pok});
       itensHtml+=`<div class="pedido-item-row">
         <span class="pedido-item-nome">${p.nome}</span>
         <span class="pedido-item-qty">x${q}</span>
