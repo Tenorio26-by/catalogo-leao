@@ -1647,15 +1647,38 @@ async function enviarPedidoOk(clienteData, itensList, total){
     const idPedido = criaPedido.data.id;
     console.log('[PedidoOk] Pedido criado, id:', idPedido);
 
-    // 6. Adiciona os itens
+    // 6. Adiciona os itens — busca cada produto no PedidoOk pelo nome
+    // Primeiro carrega lista de produtos do PedidoOk uma vez
+    let produtosPedidoOk = [];
+    try {
+      const buscaProd = await pedidoOkRequest('/produtos', 'GET', null);
+      console.log('[PedidoOk] Produtos raw:', JSON.stringify(buscaProd.data).slice(0,400));
+      produtosPedidoOk = buscaProd.data.produtos || buscaProd.data.registros || buscaProd.data.data || [];
+      console.log('[PedidoOk] Total produtos encontrados:', produtosPedidoOk.length);
+    } catch(e){ console.warn('[PedidoOk] Erro ao buscar produtos:', e.message); }
+
     for(const item of itensList){
+      // Tenta achar o produto no PedidoOk pelo nome (busca parcial, sem acento)
+      const nomeNorm = (item.nome||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+      const prodMatch = produtosPedidoOk.find(p => {
+        const pNome = (p.nome||p.descricao||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+        return pNome.includes(nomeNorm.slice(0,10)) || nomeNorm.includes((pNome||'').slice(0,10));
+      });
+
+      if(!prodMatch){
+        console.warn('[PedidoOk] Produto não encontrado no PedidoOk:', item.nome, '| Pulando item.');
+        continue;
+      }
+
+      const idProduto = prodMatch.id || prodMatch.id_produto;
       const payloadItem = {
-        id_produto: String(item.id),
+        id_produto: idProduto,
         quantidade: Number(item.qty),
         preco_unitario: Number(item.unit)
       };
+      console.log('[PedidoOk] Adicionando item:', item.nome, '→ PedidoOk id:', idProduto, '| Payload:', JSON.stringify(payloadItem));
       const addItem = await pedidoOkRequest('/pedidos/' + idPedido + '/itens', 'POST', payloadItem);
-      console.log('[PedidoOk] Item adicionado (' + item.nome + '):', JSON.stringify(addItem.data));
+      console.log('[PedidoOk] Item (' + item.nome + '):', JSON.stringify(addItem.data).slice(0,200));
     }
 
     console.log('[PedidoOk] ✅ Pedido completo enviado! id:', idPedido);
