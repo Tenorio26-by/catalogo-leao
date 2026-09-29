@@ -1644,39 +1644,62 @@ async function enviarPedidoOk(clienteData, itensList, total){
       return;
     }
 
-    const idPedido = criaPedido.data.id;
+    // ID pode estar em data.id ou data.pedido.id
+    const pedidoObj = criaPedido.data.pedido || criaPedido.data;
+    const idPedido = pedidoObj.id;
     console.log('[PedidoOk] Pedido criado, id:', idPedido);
 
     // 6. Adiciona os itens — busca cada produto no PedidoOk pelo nome
-    // Primeiro carrega lista de produtos do PedidoOk uma vez
+    // Carrega TODAS as páginas de produtos
     let produtosPedidoOk = [];
     try {
-      const buscaProd = await pedidoOkRequest('/produtos', 'GET', null);
-      console.log('[PedidoOk] Produtos raw:', JSON.stringify(buscaProd.data).slice(0,400));
-      produtosPedidoOk = buscaProd.data.produtos || buscaProd.data.registros || buscaProd.data.data || [];
-      console.log('[PedidoOk] Total produtos encontrados:', produtosPedidoOk.length);
+      let url = '/produtos?pagina=1';
+      while(url){
+        const buscaProd = await pedidoOkRequest(url, 'GET', null);
+        const lista = buscaProd.data.produtos || buscaProd.data.registros || buscaProd.data.data || [];
+        produtosPedidoOk = produtosPedidoOk.concat(lista);
+        // Pega próxima página se existir
+        const proxUrl = buscaProd.data.href_proxima_pagina || null;
+        if(proxUrl && lista.length > 0){
+          // Extrai só o path+query da URL completa
+          url = proxUrl.replace('https://api.pedidook.com.br/v1','');
+        } else { url = null; }
+      }
+      console.log('[PedidoOk] Total produtos carregados:', produtosPedidoOk.length);
+      console.log('[PedidoOk] Primeiros 5 nomes:', produtosPedidoOk.slice(0,5).map(p=>p.nome||p.descricao));
     } catch(e){ console.warn('[PedidoOk] Erro ao buscar produtos:', e.message); }
 
-    for(const item of itensList){
-      // Tenta achar o produto no PedidoOk pelo nome (busca parcial, sem acento)
-      const nomeNorm = (item.nome||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-      const prodMatch = produtosPedidoOk.find(p => {
-        const pNome = (p.nome||p.descricao||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-        return pNome.includes(nomeNorm.slice(0,10)) || nomeNorm.includes((pNome||'').slice(0,10));
-      });
+    // Normaliza: remove acentos, minúscula, remove prefixo tipo "A7-" ou "B3-"
+    const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+      .replace(/^[a-z0-9]{1,4}-/,'')  // remove prefixo tipo "A7-", "B12-"
+      .replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
 
-      if(!prodMatch){
-        console.warn('[PedidoOk] Produto não encontrado no PedidoOk:', item.nome, '| Pulando item.');
+    for(const item of itensList){
+      const nomeItem = norm(item.nome);
+      // Palavras relevantes (mais de 2 letras)
+      const palavras = nomeItem.split(' ').filter(w => w.length > 2);
+
+      // Acha produto com mais palavras em comum
+      let melhor = null, melhorPts = 0;
+      for(const p of produtosPedidoOk){
+        const nomeProd = norm(p.nome || p.descricao || '');
+        let pts = 0;
+        for(const w of palavras){ if(nomeProd.includes(w)) pts++; }
+        if(pts > melhorPts){ melhorPts = pts; melhor = p; }
+      }
+
+      if(!melhor || melhorPts === 0){
+        console.warn('[PedidoOk] Produto não encontrado:', item.nome, '→ normalizado:', nomeItem, '| palavras:', palavras);
         continue;
       }
 
-      const idProduto = prodMatch.id || prodMatch.id_produto;
+      const idProduto = melhor.id || melhor.id_produto;
+      console.log('[PedidoOk] Match:', item.nome, '→', melhor.nome||melhor.descricao, '(id:', idProduto, ', pts:', melhorPts, ')');
       const payloadItem = {
         id_produto: idProduto,
         quantidade: Number(item.qty),
         preco_unitario: Number(item.unit)
       };
-      console.log('[PedidoOk] Adicionando item:', item.nome, '→ PedidoOk id:', idProduto, '| Payload:', JSON.stringify(payloadItem));
       const addItem = await pedidoOkRequest('/pedidos/' + idPedido + '/itens', 'POST', payloadItem);
       console.log('[PedidoOk] Item (' + item.nome + '):', JSON.stringify(addItem.data).slice(0,200));
     }
