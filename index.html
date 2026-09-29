@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-09-29-1920 -->
+<!-- v2026-09-29-1933 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1634,7 +1634,7 @@ async function enviarPedidoOk(clienteData, itensList, total){
     };
     // id_vendedor obrigatório; status deve ser "Orcamento" na criação
     if(idVendedor) payloadPedido.id_vendedor = idVendedor;
-    payloadPedido.status = 'Orcamento';
+    payloadPedido.status = 'Pedido';
     // if(idCondicaoPagamento) payloadPedido.id_condicao_pagamento = idCondicaoPagamento;
     console.log('[PedidoOk] Payload pedido:', JSON.stringify(payloadPedido));
     const criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadPedido);
@@ -1718,7 +1718,10 @@ async function enviarPedidoOk(clienteData, itensList, total){
         addItem = await pedidoOkRequest('/pedidos/' + idPedido + '/itens', 'POST', payload4);
       }
       if(!addItem.ok){
-        console.error('[PedidoOk] ERRO item (' + item.nome + ') HTTP ' + addItem.status + ':', JSON.stringify(addItem.data));
+        // busca erro detalhado direto no proxy para debug
+        const errDetalhe = await fetch(PEDIDOOK_PROXY, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:'/pedidos/'+idPedido+'/itens',method:'POST',body:{id_produto:idProduto,quantidade:Number(item.qty),preco:parseFloat(Number(item.unit).toFixed(2))}})});
+        const errTxt = await errDetalhe.text();
+        console.error('[PedidoOk] ERRO item (' + item.nome + ') HTTP ' + addItem.status + ' | detalhe:', errTxt.slice(0,500));
       } else {
         console.log('[PedidoOk] Item (' + item.nome + ') OK:', JSON.stringify(addItem.data).slice(0,300));
       }
