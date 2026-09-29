@@ -1593,7 +1593,8 @@ async function enviarPedidoOk(clienteData, itensList, total){
     let idCondicaoPagamento = null;
     try {
       const buscaCond = await pedidoOkRequest('/condicoes_pagamento', 'GET', null);
-      const listaCond = buscaCond.data.condicoes_pagamento || buscaCond.data.registros || [];
+      console.log('[PedidoOk] Condições raw:', JSON.stringify(buscaCond.data).slice(0,400));
+      const listaCond = buscaCond.data.condicoes_pagamento || buscaCond.data.condicoes || buscaCond.data.registros || buscaCond.data.data || [];
       console.log('[PedidoOk] Condições de pagamento:', JSON.stringify(listaCond.map(c=>({id:c.id,nome:c.nome,prazo:c.prazo}))));
       // Tenta achar condição com prazo igual ao do cliente
       let cond = listaCond.find(c => parseInt(c.prazo) === prazoCliente);
@@ -1625,32 +1626,17 @@ async function enviarPedidoOk(clienteData, itensList, total){
     const payloadPedido = {
       id_parceiro: idParceiro,
       id_cliente: idCliente,
-      status: 'aberto',
+      status: 'Pedido',
       emissao: emissao,
       faturamento: faturamento,
       entrega: faturamento,
       observacao: 'Pedido via catálogo digital - Distribuidora Leão'
     };
-    // Só inclui vendedor se achou um ID válido
     if(idVendedor) payloadPedido.id_vendedor = idVendedor;
     if(idCondicaoPagamento) payloadPedido.id_condicao_pagamento = idCondicaoPagamento;
     console.log('[PedidoOk] Payload pedido:', JSON.stringify(payloadPedido));
-    let criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadPedido);
-    console.log('[PedidoOk] Criar pedido (tentativa 1):', JSON.stringify(criaPedido.data));
-
-    // Se falhou por causa do vendedor, tenta sem vendedor
-    if(!criaPedido.ok && idVendedor){
-      const erros = criaPedido.data.erros || [];
-      const erroVendedor = erros.some(e => e.codigo === 25 || (e.mensagem||'').toLowerCase().includes('vendedor'));
-      if(erroVendedor){
-        console.warn('[PedidoOk] Erro de vendedor, tentando sem id_vendedor...');
-        const payloadSemVendedor = {...payloadPedido};
-        delete payloadSemVendedor.id_vendedor;
-        console.log('[PedidoOk] Payload sem vendedor:', JSON.stringify(payloadSemVendedor));
-        criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadSemVendedor);
-        console.log('[PedidoOk] Criar pedido (sem vendedor):', JSON.stringify(criaPedido.data));
-      }
-    }
+    const criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadPedido);
+    console.log('[PedidoOk] Resposta criar pedido:', JSON.stringify(criaPedido.data).slice(0,300));
 
     if(!criaPedido.ok){
       console.warn('[PedidoOk] Erro ao criar pedido:', JSON.stringify(criaPedido.data));
