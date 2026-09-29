@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- v2026-09-29-1632 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1627,7 +1628,6 @@ async function enviarPedidoOk(clienteData, itensList, total){
     const payloadPedido = {
       id_parceiro: idParceiro,
       id_cliente: idCliente,
-      status: 'Pedido',
       emissao: emissao,
       faturamento: faturamento,
       entrega: faturamento,
@@ -1690,32 +1690,42 @@ async function enviarPedidoOk(clienteData, itensList, total){
       }
       console.log('[PedidoOk] Enviando item:', item.nome, '| pok:', item.pok, '| id_produto:', idProduto, '| qty:', item.qty, '| preco:', item.unit);
       const precoFmt = parseFloat(Number(item.unit).toFixed(2));
+      // Campo correto conforme doc PedidoOk: "preco" (não preco_unitario)
       const payloadItem = {
         id_produto: idProduto,
         quantidade: Number(item.qty),
-        preco_unitario: precoFmt
+        preco: precoFmt
       };
-      // Tenta primeiro com id_produto, se falhar tenta com id_produto_parceiro
       console.log('[PedidoOk] Payload item:', JSON.stringify(payloadItem));
       let addItem = await pedidoOkRequest('/pedidos/' + idPedido + '/itens', 'POST', payloadItem);
       if(!addItem.ok){
-        console.warn('[PedidoOk] id_produto falhou ('+addItem.status+'), tentando id_produto_parceiro...');
-        const payloadAlt = {
-          id_produto_parceiro: item.pok,
-          quantidade: Number(item.qty),
-          preco_unitario: precoFmt
-        };
-        console.log('[PedidoOk] Payload alternativo:', JSON.stringify(payloadAlt));
-        addItem = await pedidoOkRequest('/pedidos/' + idPedido + '/itens', 'POST', payloadAlt);
-        if(!addItem.ok){
-          console.error('[PedidoOk] ERRO item (' + item.nome + ') HTTP ' + addItem.status + ':', JSON.stringify(addItem.data));
-        } else {
-          console.log('[PedidoOk] Item (' + item.nome + ') OK (alternativo):', JSON.stringify(addItem.data).slice(0,300));
-        }
+        // tentativa 2: sem preco
+        const payload2 = { id_produto: idProduto, quantidade: Number(item.qty) };
+        console.warn('[PedidoOk] tent2 sem preco:', JSON.stringify(payload2));
+        addItem = await pedidoOkRequest('/pedidos/' + idPedido + '/itens', 'POST', payload2);
+      }
+      if(!addItem.ok){
+        // tentativa 3: preco_unitario (nome alternativo)
+        const payload3 = { id_produto: idProduto, quantidade: Number(item.qty), preco_unitario: precoFmt };
+        console.warn('[PedidoOk] tent3 preco_unitario:', JSON.stringify(payload3));
+        addItem = await pedidoOkRequest('/pedidos/' + idPedido + '/itens', 'POST', payload3);
+      }
+      if(!addItem.ok){
+        // tentativa 4: id_produto_parceiro com preco
+        const payload4 = { id_produto_parceiro: item.pok, quantidade: Number(item.qty), preco: precoFmt };
+        console.warn('[PedidoOk] tent4 parceiro+preco:', JSON.stringify(payload4));
+        addItem = await pedidoOkRequest('/pedidos/' + idPedido + '/itens', 'POST', payload4);
+      }
+      if(!addItem.ok){
+        console.error('[PedidoOk] ERRO item (' + item.nome + ') HTTP ' + addItem.status + ':', JSON.stringify(addItem.data));
       } else {
         console.log('[PedidoOk] Item (' + item.nome + ') OK:', JSON.stringify(addItem.data).slice(0,300));
       }
     }
+
+    // Atualiza status para Pedido após adicionar itens
+    const atualizaPedido = await pedidoOkRequest('/pedidos/' + idPedido, 'PUT', { status: 'Pedido' });
+    console.log('[PedidoOk] Atualiza status:', JSON.stringify(atualizaPedido.data).slice(0,200));
 
     console.log('[PedidoOk] ✅ Pedido completo enviado! id:', idPedido);
     showNotif('✅ Pedido enviado ao PedidoOk!');
@@ -2593,6 +2603,9 @@ function getProdutos(){
     if(porNome) return {...p, pok: porNome.pok};
     // pok = id do produto se o id parecer um código pok (ex: 'A6', 'A185', 'DF3')
     if(p.id && /^[A-Za-z]{0,3}\d+$/.test(p.id)) return {...p, pok: p.id};
+    // extrai código do nome se o nome começa com padrão tipo "A185-PAO DE FORMA", "A212- DOCE", "C5-CACHAÇA"
+    const mNome = (p.nome||'').match(/^([A-Za-z]{0,3}\d+)\s*[-\s]/);
+    if(mNome) return {...p, pok: mNome[1].trim()};
     console.warn('[PedidoOk] Produto Firebase sem pok:', p.id, p.nome);
     return p;
   });
