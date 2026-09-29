@@ -1625,6 +1625,7 @@ async function enviarPedidoOk(clienteData, itensList, total){
     const payloadPedido = {
       id_parceiro: idParceiro,
       id_cliente: idCliente,
+      status: 'aberto',
       emissao: emissao,
       faturamento: faturamento,
       entrega: faturamento,
@@ -6320,4 +6321,3 @@ window._CAT_FOTOS_B64={
 </script>
 </body>
 </html>
-
