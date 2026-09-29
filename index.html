@@ -1570,20 +1570,23 @@ async function enviarPedidoOk(clienteData, itensList, total){
     const idCliente = listaClientes[0].id;
     console.log('[PedidoOk] Cliente encontrado, id:', idCliente);
 
-    // 2. Busca primeiro vendedor disponível
+    // 2. Busca vendedor ativo (não excluído)
     let idVendedor = null;
-    const buscaVendedor = await pedidoOkRequest('/vendedores', 'GET', null);
-    console.log('[PedidoOk] Resposta vendedores raw:', JSON.stringify(buscaVendedor.data).slice(0,400));
+    // Tenta primeiro buscar só os ativos
+    const buscaVendedor = await pedidoOkRequest('/vendedores?excluido=false', 'GET', null);
     const listaVendedores = buscaVendedor.data.vendedores || buscaVendedor.data.registros || [];
-    if(listaVendedores.length > 0){
-      const v = listaVendedores[0];
-      console.log('[PedidoOk] Primeiro vendedor campos:', JSON.stringify(v));
-      // Tenta diferentes nomes de campo para o id do vendedor
-      idVendedor = v.id_vendedor || v.id || v.codigo || null;
+    // Filtra garantindo que não estão excluídos
+    const vendedoresAtivos = listaVendedores.filter(v => v.excluido !== true && v.excluido !== 1);
+    if(vendedoresAtivos.length > 0){
+      idVendedor = vendedoresAtivos[0].id || vendedoresAtivos[0].id_vendedor || vendedoresAtivos[0].codigo || null;
+      console.log('[PedidoOk] Vendedor ativo:', vendedoresAtivos[0].nome, '| id:', idVendedor);
+    } else if(listaVendedores.length > 0){
+      // Fallback: usa o primeiro mesmo que marcado como excluído (pode ser único disponível)
+      idVendedor = listaVendedores[0].id || listaVendedores[0].id_vendedor || null;
+      console.warn('[PedidoOk] Todos vendedores excluídos, usando primeiro mesmo assim:', idVendedor);
+    } else {
+      console.warn('[PedidoOk] Nenhum vendedor encontrado. Enviando sem vendedor...');
     }
-    console.log('[PedidoOk] Vendedor id escolhido:', idVendedor);
-    // Se não achou vendedor, continua sem ele (alguns apps PedidoOk não exigem)
-    if(!idVendedor) console.warn('[PedidoOk] Nenhum vendedor encontrado, tentando sem vendedor...');
 
     // 3. Busca condição de pagamento pelo prazo do cliente
     const prazoCliente = parseInt(clienteData.prazo) || 0;
@@ -1631,8 +1634,22 @@ async function enviarPedidoOk(clienteData, itensList, total){
     if(idVendedor) payloadPedido.id_vendedor = idVendedor;
     if(idCondicaoPagamento) payloadPedido.id_condicao_pagamento = idCondicaoPagamento;
     console.log('[PedidoOk] Payload pedido:', JSON.stringify(payloadPedido));
-    const criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadPedido);
-    console.log('[PedidoOk] Criar pedido:', JSON.stringify(criaPedido.data));
+    let criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadPedido);
+    console.log('[PedidoOk] Criar pedido (tentativa 1):', JSON.stringify(criaPedido.data));
+
+    // Se falhou por causa do vendedor, tenta sem vendedor
+    if(!criaPedido.ok && idVendedor){
+      const erros = criaPedido.data.erros || [];
+      const erroVendedor = erros.some(e => e.codigo === 25 || (e.mensagem||'').toLowerCase().includes('vendedor'));
+      if(erroVendedor){
+        console.warn('[PedidoOk] Erro de vendedor, tentando sem id_vendedor...');
+        const payloadSemVendedor = {...payloadPedido};
+        delete payloadSemVendedor.id_vendedor;
+        console.log('[PedidoOk] Payload sem vendedor:', JSON.stringify(payloadSemVendedor));
+        criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadSemVendedor);
+        console.log('[PedidoOk] Criar pedido (sem vendedor):', JSON.stringify(criaPedido.data));
+      }
+    }
 
     if(!criaPedido.ok){
       console.warn('[PedidoOk] Erro ao criar pedido:', JSON.stringify(criaPedido.data));
