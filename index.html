@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-09-29-1933 -->
+<!-- v2026-09-29-1943 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1634,7 +1634,7 @@ async function enviarPedidoOk(clienteData, itensList, total){
     };
     // id_vendedor obrigatório; status deve ser "Orcamento" na criação
     if(idVendedor) payloadPedido.id_vendedor = idVendedor;
-    payloadPedido.status = 'Pedido';
+    payloadPedido.status = 'Orcamento'; // Orçamento permite adicionar itens; muda para Pedido via PUT depois
     // if(idCondicaoPagamento) payloadPedido.id_condicao_pagamento = idCondicaoPagamento;
     console.log('[PedidoOk] Payload pedido:', JSON.stringify(payloadPedido));
     const criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadPedido);
