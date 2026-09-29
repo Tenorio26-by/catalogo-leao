@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-09-29-1643 -->
+<!-- v2026-09-29-1920 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1580,14 +1580,13 @@ async function enviarPedidoOk(clienteData, itensList, total){
     // Filtra garantindo que não estão excluídos
     const vendedoresAtivos = listaVendedores.filter(v => v.excluido !== true && v.excluido !== 1);
     if(vendedoresAtivos.length > 0){
-      idVendedor = vendedoresAtivos[0].id || vendedoresAtivos[0].id_vendedor || vendedoresAtivos[0].codigo || null;
-      console.log('[PedidoOk] Vendedor ativo:', vendedoresAtivos[0].nome, '| id:', idVendedor);
-    } else if(listaVendedores.length > 0){
-      // Fallback: usa o primeiro mesmo que marcado como excluído (pode ser único disponível)
-      idVendedor = listaVendedores[0].id || listaVendedores[0].id_vendedor || null;
-      console.warn('[PedidoOk] Todos vendedores excluídos, usando primeiro mesmo assim:', idVendedor);
+      // Prefere vendedor categoria "Aplicativo" (lucas) — não E-commerce (pago)
+      const vApp = vendedoresAtivos.find(v => (v.categoria||'').toLowerCase().includes('aplicativo') || (v.nome||'').toLowerCase() === 'lucas');
+      const vEscolhido = vApp || vendedoresAtivos.find(v => !(v.categoria||'').toLowerCase().includes('e-commerce')) || vendedoresAtivos[0];
+      idVendedor = vEscolhido.id || vEscolhido.id_vendedor || vEscolhido.codigo || null;
+      console.log('[PedidoOk] Vendedor escolhido:', vEscolhido.nome, '| categoria:', vEscolhido.categoria, '| id:', idVendedor);
     } else {
-      console.warn('[PedidoOk] Nenhum vendedor encontrado. Enviando sem vendedor...');
+      console.warn('[PedidoOk] Nenhum vendedor encontrado.');
     }
 
     // 3. Busca condição de pagamento pelo prazo do cliente
@@ -1633,8 +1632,9 @@ async function enviarPedidoOk(clienteData, itensList, total){
       entrega: faturamento,
       observacao: 'Pedido via catálogo digital - Distribuidora Leão'
     };
-    // id_vendedor e id_condicao_pagamento removidos — causavam "Valor do campo inválido [status]"
-    // if(idVendedor) payloadPedido.id_vendedor = idVendedor;
+    // id_vendedor obrigatório; status deve ser "Orcamento" na criação
+    if(idVendedor) payloadPedido.id_vendedor = idVendedor;
+    payloadPedido.status = 'Orcamento';
     // if(idCondicaoPagamento) payloadPedido.id_condicao_pagamento = idCondicaoPagamento;
     console.log('[PedidoOk] Payload pedido:', JSON.stringify(payloadPedido));
     const criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadPedido);
