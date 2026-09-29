@@ -1523,6 +1523,7 @@ async function pedidoOkRequest(path, method, body){
     body: JSON.stringify({ path, method, body })
   });
   const texto = await resp.text();
+  if(!resp.ok) console.error('[PedidoOk] HTTP', resp.status, 'path:', path, '| body enviado:', JSON.stringify(body), '| resposta bruta:', texto.slice(0,500));
   let json = {};
   try { json = JSON.parse(texto); } catch(e){ json = { raw: texto }; }
   return { ok: resp.ok, status: resp.status, data: json };
@@ -1688,13 +1689,19 @@ async function enviarPedidoOk(clienteData, itensList, total){
         continue;
       }
       console.log('[PedidoOk] Enviando item:', item.nome, '| pok:', item.pok, '| id_produto:', idProduto, '| qty:', item.qty, '| preco:', item.unit);
+      const precoFmt = parseFloat(Number(item.unit).toFixed(2));
       const payloadItem = {
         id_produto: idProduto,
         quantidade: Number(item.qty),
-        preco_unitario: Number(item.unit)
+        preco_unitario: precoFmt
       };
+      console.log('[PedidoOk] Payload item:', JSON.stringify(payloadItem));
       const addItem = await pedidoOkRequest('/pedidos/' + idPedido + '/itens', 'POST', payloadItem);
-      console.log('[PedidoOk] Item (' + item.nome + '):', JSON.stringify(addItem.data).slice(0,200));
+      if(!addItem.ok){
+        console.error('[PedidoOk] ERRO item (' + item.nome + ') HTTP ' + addItem.status + ':', JSON.stringify(addItem.data));
+      } else {
+        console.log('[PedidoOk] Item (' + item.nome + ') OK:', JSON.stringify(addItem.data).slice(0,300));
+      }
     }
 
     console.log('[PedidoOk] ✅ Pedido completo enviado! id:', idPedido);
@@ -1737,6 +1744,9 @@ const produtosBase=[
   {id:'p4',cat:"Cachaças",nome:"Cachaça Agranel Ouro 22L",un:"GL/22",preco:112.00,img:'22',pok:'A22'},
   {id:'p5',cat:"Cachaças",nome:"Cachaça Premium Branca",un:"GF/1",preco:10.80,pok:'A24'},
   {id:'p6',cat:"Cachaças",nome:"Cachaça Premium Ouro",un:"GF/1",preco:10.80,pok:'A25'},
+  {id:'A5',cat:"Cachaças",nome:"Cachaça 510ml Branca",un:"GF/1",preco:10.80,pok:'A5'},
+  {id:'A6',cat:"Cachaças",nome:"Cachaça Ouro 510ml",un:"GF/1",preco:10.80,pok:'A6'},
+  {id:'DF3',cat:"Cachaças",nome:"Cachaça Ouro Premium",un:"GF/1",preco:10.80,pok:'DF3'},
   {id:'p7',cat:"Cachaças",nome:"Bebida de Sabor",un:"EM/1",preco:13.00,pok:'A19'},
   {id:'p10',cat:"Carvão",nome:"Carvão EMB/5",un:"EMB/5",preco:57.38,img:'43',pok:'A43'},
   {id:'p11',cat:"Carvão",nome:"Carvão 10 kg",un:"EM/1",preco:40.50,pok:'A162'},
@@ -1750,9 +1760,16 @@ const produtosBase=[
   {id:'p29',cat:"Chips & Gulão",nome:"Gulão Requeijão 120g",un:"EM/10",preco:40.50,img:'181',pok:'A181'},
   {id:'p30',cat:"Chips & Gulão",nome:"Bananinha 90g",un:"EM/1",preco:3.38,img:'12787',pok:'A11'},
   {id:'p31',cat:"Chips & Gulão",nome:"Bananinha Frita 50g",un:"PC/10",preco:27.00,img:'27',pok:'A27'},
+  {id:'fit309',cat:"Chips & Gulão",nome:"Bolinha de Bacon 50g",un:"PC/1",preco:3.50,pok:'fit309'},
+  {id:'A310',cat:"Chips & Gulão",nome:"Pimentinha 50g",un:"PC/1",preco:3.50,pok:'A310'},
+  {id:'A329',cat:"Chips & Gulão",nome:"Gulão Queijo 120g",un:"EM/10",preco:39.00,pok:'A329'},
+  {id:'fit331',cat:"Chips & Gulão",nome:"Gulão Queijo Suíço 120g",un:"EM/10",preco:39.00,pok:'fit331'},
+  {id:'fit332',cat:"Chips & Gulão",nome:"Pipoca Gulão 100g",un:"PC/1",preco:5.00,pok:'fit332'},
   {id:'p40',cat:"Doces",nome:"Doce Beijinho c/ Goiaba Peq.",un:"PT/1",preco:35.10,img:'212',pok:'A212'},
   {id:'p41',cat:"Doces",nome:"Doce Beijinho Grande",un:"PT/1",preco:35.10,img:'15589',pok:'A23'},
   {id:'p43',cat:"Doces",nome:"Doce Brigadeiro Famoso",un:"PT/1",preco:32.40,pok:'A170'},
+  {id:'A312',cat:"Doces",nome:"Doce Cajuzinho",un:"PT/1",preco:20.74,pok:'A312'},
+  {id:'169',cat:"Doces",nome:"Doce Paçocão",un:"PT/1",preco:20.74,pok:'169'},
   {id:'p45',cat:"Doces",nome:"Doce Cajuzinho Recheado",un:"PT/1",preco:20.74,img:'40',pok:'40'},
   {id:'p46',cat:"Doces",nome:"Doce de Leite c/ Chocolate",un:"PT/1",preco:32.40,img:'188',pok:'188'},
   {id:'p48',cat:"Doces",nome:"Doce Palha Italiana",un:"PT/1",preco:33.80,img:'191',pok:'191'},
@@ -1764,7 +1781,10 @@ const produtosBase=[
   {id:'p62',cat:"Laticínios",nome:"Iogurte 180g Pêssego",un:"UN/1",preco:1.57,img:'1121',pok:'A121'},
   {id:'p63',cat:"Laticínios",nome:"Iogurte 450g Morango",un:"UN/1",preco:3.00,img:'1241',pok:'A241'},
   {id:'p64',cat:"Laticínios",nome:"Iogurte 450g Coco",un:"UN/1",preco:3.00,img:'1242',pok:'A242'},
+  {id:'p66',cat:"Laticínios",nome:"Iogurte 450g Pêssego",un:"UN/1",preco:3.00,pok:'A235'},
   {id:'p65',cat:"Laticínios",nome:"Iogurte 800g Morango",un:"UN/1",preco:4.69,img:'136',pok:'A136'},
+  {id:'p65c',cat:"Laticínios",nome:"Iogurte 800g Coco",un:"UN/1",preco:4.69,pok:'A255'},
+  {id:'p65p',cat:"Laticínios",nome:"Iogurte 800g Pêssego",un:"UN/1",preco:4.69,pok:'A256'},
   {id:'p67',cat:"Laticínios",nome:"Iogurte 1L Morango",un:"UN/1",preco:3.50,img:'147',pok:'A147'},
   {id:'p68',cat:"Laticínios",nome:"Iogurte 1L Pêssego",un:"UN/1",preco:3.50,img:'148',pok:'A148'},
   {id:'p69',cat:"Laticínios",nome:"Iogurte 1L Coco",un:"UN/1",preco:3.50,img:'149',pok:'A149'},
