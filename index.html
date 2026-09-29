@@ -946,6 +946,7 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
             <circle cx="17.5" cy="6.5" r="1.2" fill="#FFC400"/>
           </svg>
         </a>
+        <button class="cat-icon-btn" onclick="logout()" title="Sair" style="font-size:16px;">🚪</button>
       </div>
     </div>
     <div class="cat-user" id="cat-user-name"></div>
@@ -1527,75 +1528,113 @@ async function pedidoOkRequest(path, method, body){
   return { ok: resp.ok, status: resp.status, data: json };
 }
 
+// Calcula próxima data de um dia da semana (1=seg ... 6=sab, 7=dom)
+function proximoDiaEntrega(diaEntregaStr){
+  const dia = parseInt(diaEntregaStr);
+  if(!dia || dia < 1 || dia > 7) return new Date(); // sem dia fixo = hoje
+  // JS: 0=dom,1=seg,...,6=sab — nosso cadastro: 1=seg,...,6=sab,7=dom
+  const jsAlvo = dia === 7 ? 0 : dia;
+  const hoje = new Date();
+  const jsHoje = hoje.getDay();
+  let diff = jsAlvo - jsHoje;
+  if(diff <= 0) diff += 7; // próxima semana se já passou
+  const data = new Date(hoje);
+  data.setDate(hoje.getDate() + diff);
+  return data;
+}
+
+function formatarDataISO(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
 async function enviarPedidoOk(clienteData, itensList, total){
   try {
     const nomeCliente = (clienteData.nome || '').trim();
-    // Usa campo dedicado pedidookCodigo; se vazio, ignora silenciosamente
     const codigoPedidoOk = (clienteData.pedidookCodigo || '').trim();
     console.log('[PedidoOk] Buscando cliente:', nomeCliente, '| Código PedidoOk:', codigoPedidoOk);
 
     if(!codigoPedidoOk){
       console.warn('[PedidoOk] Cliente sem código PedidoOk cadastrado:', nomeCliente);
-      // Não exibe notificação de erro — cliente simplesmente não usa PedidoOk
       return;
     }
 
-    // Busca cliente pelo código (campo "codigo" no PedidoOk)
+    // 1. Busca cliente pelo código
     const buscaCliente = await pedidoOkRequest('/clientes?codigo=' + encodeURIComponent(codigoPedidoOk), 'GET', null);
     console.log('[PedidoOk] Busca cliente:', JSON.stringify(buscaCliente.data).slice(0,300));
-
-    let idCliente = null;
-    // API retorna campo "clientes" ou "registros" dependendo da versão
     const listaClientes = buscaCliente.data.clientes || buscaCliente.data.registros || [];
-    if(buscaCliente.ok && listaClientes.length > 0){
-      idCliente = listaClientes[0].id;
-      console.log('[PedidoOk] Cliente encontrado, id:', idCliente);
-    } else {
-      console.warn('[PedidoOk] Cliente não encontrado. Código:', codigoPedidoOk, '| Resposta:', JSON.stringify(buscaCliente.data).slice(0,200));
+    if(!buscaCliente.ok || listaClientes.length === 0){
+      console.warn('[PedidoOk] Cliente não encontrado. Código:', codigoPedidoOk);
       showNotif('⚠️ PedidoOk: cliente "' + nomeCliente + '" não encontrado (código: ' + codigoPedidoOk + ')');
       return;
     }
+    const idCliente = listaClientes[0].id;
+    console.log('[PedidoOk] Cliente encontrado, id:', idCliente);
 
-    // 2. Busca o primeiro vendedor disponível para usar no pedido
+    // 2. Busca primeiro vendedor disponível
     let idVendedor = null;
+    const buscaVendedor = await pedidoOkRequest('/vendedores', 'GET', null);
+    const listaVendedores = buscaVendedor.data.vendedores || buscaVendedor.data.registros || [];
+    if(listaVendedores.length > 0) idVendedor = listaVendedores[0].id;
+    console.log('[PedidoOk] Vendedor id:', idVendedor);
+    if(!idVendedor){ showNotif('⚠️ PedidoOk: nenhum vendedor cadastrado no app'); return; }
+
+    // 3. Busca condição de pagamento pelo prazo do cliente
+    const prazoCliente = parseInt(clienteData.prazo) || 0;
+    let idCondicaoPagamento = null;
     try {
-      const buscaVendedor = await pedidoOkRequest('/vendedores', 'GET', null);
-      const listaVendedores = buscaVendedor.data.vendedores || buscaVendedor.data.registros || [];
-      if(listaVendedores.length > 0) idVendedor = listaVendedores[0].id;
-      console.log('[PedidoOk] Vendedor id:', idVendedor);
-    } catch(e){ console.warn('[PedidoOk] Erro ao buscar vendedor:', e.message); }
+      const buscaCond = await pedidoOkRequest('/condicoes_pagamento', 'GET', null);
+      const listaCond = buscaCond.data.condicoes_pagamento || buscaCond.data.registros || [];
+      console.log('[PedidoOk] Condições de pagamento:', JSON.stringify(listaCond.map(c=>({id:c.id,nome:c.nome,prazo:c.prazo}))));
+      // Tenta achar condição com prazo igual ao do cliente
+      let cond = listaCond.find(c => parseInt(c.prazo) === prazoCliente);
+      // Se não achar exato, pega à vista (prazo 0 ou 1) para prazo 0, ou a mais próxima
+      if(!cond && listaCond.length > 0){
+        if(prazoCliente === 0) cond = listaCond.find(c => parseInt(c.prazo) <= 1) || listaCond[0];
+        else cond = listaCond.reduce((prev, curr) =>
+          Math.abs(parseInt(curr.prazo) - prazoCliente) < Math.abs(parseInt(prev.prazo) - prazoCliente) ? curr : prev
+        );
+      }
+      if(cond) idCondicaoPagamento = cond.id;
+      console.log('[PedidoOk] Condição de pagamento escolhida:', cond ? cond.nome : 'nenhuma', '| id:', idCondicaoPagamento);
+    } catch(e){ console.warn('[PedidoOk] Erro ao buscar condições de pagamento:', e.message); }
 
-    if(!idVendedor){
-      showNotif('⚠️ PedidoOk: nenhum vendedor cadastrado no app');
-      return;
-    }
-
-    // 3. Cria o pedido com os campos obrigatórios
-    const idParceiro = 'leao-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
+    // 4. Calcula datas inteligentes
     const hoje = new Date();
-    const emissao = hoje.getFullYear() + '-'
-      + String(hoje.getMonth()+1).padStart(2,'0') + '-'
-      + String(hoje.getDate()).padStart(2,'0');
+    const emissao = formatarDataISO(hoje);
+    // Data de entrega = próxima ocorrência do dia fixo do cliente
+    const dataEntrega = proximoDiaEntrega(clienteData.diaEntrega);
+    const faturamento = formatarDataISO(dataEntrega);
+    // Vencimento = data de entrega + prazo em dias
+    const dataVenc = new Date(dataEntrega);
+    dataVenc.setDate(dataVenc.getDate() + prazoCliente);
+    const vencimento = formatarDataISO(dataVenc);
+    console.log('[PedidoOk] Datas → Emissão:', emissao, '| Faturamento/Entrega:', faturamento, '| Vencimento:', vencimento, '| Prazo:', prazoCliente, 'dias');
+
+    // 5. Cria o pedido
+    const idParceiro = 'leao-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
     const payloadPedido = {
       id_parceiro: idParceiro,
       id_cliente: idCliente,
       id_vendedor: idVendedor,
       emissao: emissao,
+      faturamento: faturamento,
+      entrega: faturamento,
       observacao: 'Pedido via catálogo digital - Distribuidora Leão'
     };
+    if(idCondicaoPagamento) payloadPedido.id_condicao_pagamento = idCondicaoPagamento;
     const criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadPedido);
     console.log('[PedidoOk] Criar pedido:', JSON.stringify(criaPedido.data));
 
     if(!criaPedido.ok){
       console.warn('[PedidoOk] Erro ao criar pedido:', JSON.stringify(criaPedido.data));
-      showNotif('⚠️ PedidoOk erro ao criar pedido: ' + JSON.stringify(criaPedido.data).slice(0,100));
+      showNotif('⚠️ PedidoOk erro ao criar pedido: ' + JSON.stringify(criaPedido.data).slice(0,120));
       return;
     }
 
     const idPedido = criaPedido.data.id;
     console.log('[PedidoOk] Pedido criado, id:', idPedido);
 
-    // 3. Adiciona os itens
+    // 6. Adiciona os itens
     for(const item of itensList){
       const payloadItem = {
         id_produto: String(item.id),
