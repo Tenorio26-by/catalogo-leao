@@ -1573,10 +1573,17 @@ async function enviarPedidoOk(clienteData, itensList, total){
     // 2. Busca primeiro vendedor disponível
     let idVendedor = null;
     const buscaVendedor = await pedidoOkRequest('/vendedores', 'GET', null);
+    console.log('[PedidoOk] Resposta vendedores raw:', JSON.stringify(buscaVendedor.data).slice(0,400));
     const listaVendedores = buscaVendedor.data.vendedores || buscaVendedor.data.registros || [];
-    if(listaVendedores.length > 0) idVendedor = listaVendedores[0].id;
-    console.log('[PedidoOk] Vendedor id:', idVendedor);
-    if(!idVendedor){ showNotif('⚠️ PedidoOk: nenhum vendedor cadastrado no app'); return; }
+    if(listaVendedores.length > 0){
+      const v = listaVendedores[0];
+      console.log('[PedidoOk] Primeiro vendedor campos:', JSON.stringify(v));
+      // Tenta diferentes nomes de campo para o id do vendedor
+      idVendedor = v.id_vendedor || v.id || v.codigo || null;
+    }
+    console.log('[PedidoOk] Vendedor id escolhido:', idVendedor);
+    // Se não achou vendedor, continua sem ele (alguns apps PedidoOk não exigem)
+    if(!idVendedor) console.warn('[PedidoOk] Nenhum vendedor encontrado, tentando sem vendedor...');
 
     // 3. Busca condição de pagamento pelo prazo do cliente
     const prazoCliente = parseInt(clienteData.prazo) || 0;
@@ -1615,13 +1622,15 @@ async function enviarPedidoOk(clienteData, itensList, total){
     const payloadPedido = {
       id_parceiro: idParceiro,
       id_cliente: idCliente,
-      id_vendedor: idVendedor,
       emissao: emissao,
       faturamento: faturamento,
       entrega: faturamento,
       observacao: 'Pedido via catálogo digital - Distribuidora Leão'
     };
+    // Só inclui vendedor se achou um ID válido
+    if(idVendedor) payloadPedido.id_vendedor = idVendedor;
     if(idCondicaoPagamento) payloadPedido.id_condicao_pagamento = idCondicaoPagamento;
+    console.log('[PedidoOk] Payload pedido:', JSON.stringify(payloadPedido));
     const criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadPedido);
     console.log('[PedidoOk] Criar pedido:', JSON.stringify(criaPedido.data));
 
