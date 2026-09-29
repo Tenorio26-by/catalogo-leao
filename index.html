@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-09-29-1632 -->
+<!-- v2026-09-29-1643 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1633,8 +1633,9 @@ async function enviarPedidoOk(clienteData, itensList, total){
       entrega: faturamento,
       observacao: 'Pedido via catálogo digital - Distribuidora Leão'
     };
-    if(idVendedor) payloadPedido.id_vendedor = idVendedor;
-    if(idCondicaoPagamento) payloadPedido.id_condicao_pagamento = idCondicaoPagamento;
+    // id_vendedor e id_condicao_pagamento removidos — causavam "Valor do campo inválido [status]"
+    // if(idVendedor) payloadPedido.id_vendedor = idVendedor;
+    // if(idCondicaoPagamento) payloadPedido.id_condicao_pagamento = idCondicaoPagamento;
     console.log('[PedidoOk] Payload pedido:', JSON.stringify(payloadPedido));
     const criaPedido = await pedidoOkRequest('/pedidos', 'POST', payloadPedido);
     console.log('[PedidoOk] Resposta criar pedido:', JSON.stringify(criaPedido.data).slice(0,300));
