@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-09-30-1533 -->
+<!-- v2026-09-30-1540 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1527,6 +1527,10 @@ async function pedidoOkRequest(path, method, body){
   if(!resp.ok) console.error('[PedidoOk] HTTP', resp.status, 'path:', path, '| body enviado:', JSON.stringify(body), '| resposta bruta:', texto.slice(0,500));
   let json = {};
   try { json = JSON.parse(texto); } catch(e){ json = { raw: texto }; }
+  // Worker debug retorna {status, response: "string"} — faz parse do response se necessário
+  if(json.response && typeof json.response === 'string'){
+    try { json = JSON.parse(json.response); } catch(e){}
+  }
   return { ok: resp.ok, status: resp.status, data: json };
 }
 
