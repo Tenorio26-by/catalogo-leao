@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-09-30-1445 -->
+<!-- v2026-09-30-1507 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1793,7 +1793,7 @@ const produtosBase=[
   {id:'p80',cat:"Linguiças",nome:"Baconil",un:"PC/1",preco:32.27,pok:'A10'},
   {id:'p81',cat:"Linguiças",nome:"Bacon Medalhão",un:"PC/1",preco:33.75,pok:'A15'},
   {id:'p82',cat:"Linguiças",nome:"Defumada 500GR",un:"EM/1",preco:12.60,img:'211',pok:'A211'},
-  {id:'p83',cat:"Linguiças",nome:"Costelinha Completa",un:"EM/1",preco:15.12},
+  {id:'p83',cat:"Linguiças",nome:"Costelinha Completa",un:"EM/1",preco:15.12,pok:'A74'},
   {id:'p87',cat:"Linguiças",nome:"Linguiça De Frango 500GR",un:"1/5",preco:56.88,pok:'A295'},
   {id:'p89',cat:"Linguiças",nome:"Linguica Porco 500GR",un:"1/5",preco:48.75,pok:'A294'},
   {id:'p90',cat:"Linguiças",nome:"Linguica Toscana Mista",un:"KL/1",preco:16.80,pok:'A260'},
@@ -1811,6 +1811,37 @@ const produtosBase=[
   {id:'A184',cat:"Pães",nome:"Pão De Hot Dog",un:"EM/1",preco:8.50,pok:'A184'},
   {id:'p105',cat:"Pães",nome:"Pão Sovado",un:"EM/1",preco:8.50,pok:'A182'},
   {id:'A182',cat:"Pães",nome:"Pão Sovado",un:"EM/1",preco:8.50,pok:'A182'},
+  // ---- Produtos do catálogo adicionados ----
+  {id:'fit333',cat:"Doces e Guloseimas",nome:"Sachê Coco 110un",un:"EM/36",preco:36.08,pok:'fit333'},
+  {id:'fit334',cat:"Doces e Guloseimas",nome:"Doce De Leite Sachê",un:"PC/20",preco:30.00,pok:'fit334'},
+  {id:'A324',cat:"Laticínios",nome:"Grego 120gr Morango",un:"EM/1",preco:2.10,pok:'A324'},
+  {id:'A323',cat:"Laticínios",nome:"Grego 120gr Torta De Limão",un:"EM/1",preco:2.10,pok:'A323'},
+  {id:'A325',cat:"Laticínios",nome:"Grego 120gr Tradicional",un:"EM/1",preco:2.10,pok:'A325'},
+  {id:'A317',cat:"Laticínios",nome:"Grego Belinho Maracujá",un:"PT/1",preco:6.63,pok:'A317'},
+  {id:'A316',cat:"Laticínios",nome:"Grego Belinho Morango",un:"PT/1",preco:6.63,pok:'A316'},
+  {id:'A326',cat:"Laticínios",nome:"Iorgurte Misto Sachê 100G",un:"PC/36",preco:36.00,pok:'A326'},
+  {id:'A321',cat:"Bebidas",nome:"Presidente",un:"EM/1",preco:14.37,pok:'A321'},
+  {id:'A373',cat:"Bebidas",nome:"San Marino",un:"CX",preco:30.00,pok:'A373'},
+  {id:'fit330',cat:"Bebidas",nome:"Suco",un:"EM/1",preco:26.00,pok:'fit330'},
+  {id:'A322',cat:"Bebidas",nome:"Vinho Cantina 750ml",un:"EM/1",preco:6.40,pok:'A322'},
+  {id:'A131',cat:"Laticínios",nome:"Iogurte 110gr FD/15",un:"FD/15",preco:12.50,pok:'A131'},
+  {id:'A2356',cat:"Laticínios",nome:"Iogurte 450GR Salada De Fruta",un:"UN/1",preco:3.00,pok:'A2356'},
+  {id:'A262',cat:"Laticínios",nome:"Iogurte Bandeja Lactea",un:"BD/1",preco:3.80,pok:'A262'},
+  {id:'A311',cat:"Laticínios",nome:"Iogurte Natural 170ml",un:"EM/1",preco:1.95,pok:'A311'},
+  {id:'A192',cat:"Laticínios",nome:"Iogurte Leite Fermentando 850gr",un:"UN/6",preco:37.76,pok:'A192'},
+  {id:'A221',cat:"Laticínios",nome:"Iogurte 110gr PC/50",un:"PC/50",preco:39.16,pok:'A221'},
+  {id:'A1146',cat:"Laticínios",nome:"Requeijão Belinho 200gr",un:"PT/1",preco:6.75,pok:'A1146'},
+  {id:'A234',cat:"Laticínios",nome:"Iogurte 180GR Salada De Fruta",un:"UN/1",preco:1.57,pok:'A234'},
+  {id:'A357',cat:"Laticínios",nome:"Iogurte 800GR Salada De Fruta",un:"UN/1",preco:4.69,pok:'A357'},
+  {id:'A122',cat:"Linguiças",nome:"Linguiça Com Alho Poro",un:"PC/5",preco:100.00,pok:'A122'},
+  {id:'A236',cat:"Linguiças",nome:"Linguiça Com Bacon",un:"PC/5",preco:100.00,pok:'A236'},
+  {id:'A14',cat:"Linguiças",nome:"Linguiça Com Pimenta",un:"PC/5",preco:109.09,pok:'A14'},
+  {id:'A306',cat:"Linguiças",nome:"Linguiça Fina Porco 500gr",un:"EM/5",preco:54.21,pok:'A306'},
+  {id:'A277',cat:"Linguiças",nome:"Porco Fina Agranel",un:"EM/1",preco:112.45,pok:'A277'},
+  {id:'A354',cat:"Linguiças",nome:"Linguiça De Frango Agranel",un:"PC/5",preco:111.38,pok:'A354'},
+  {id:'A16',cat:"Linguiças",nome:"Salaminho",un:"KL/5",preco:70.00,pok:'A16'},
+  {id:'A160',cat:"Linguiças",nome:"Salaminho 1KL",un:"KL/5",preco:15.80,pok:'A160'},
+  {id:'A213',cat:"Linguiças",nome:"Salaminho Matoso",un:"EM/5",preco:76.95,pok:'A213'},
 ];
 
 // ===== LOGIN =====
