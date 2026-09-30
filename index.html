@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026-09-30-1507 -->
+<!-- v2026-09-30-1533 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1555,21 +1555,50 @@ async function enviarPedidoOk(clienteData, itensList, total){
     const codigoPedidoOk = (clienteData.pedidookCodigo || '').trim();
     console.log('[PedidoOk] Buscando cliente:', nomeCliente, '| Código PedidoOk:', codigoPedidoOk);
 
-    if(!codigoPedidoOk){
-      console.warn('[PedidoOk] Cliente sem código PedidoOk cadastrado:', nomeCliente);
-      return;
+    // 1. Busca cliente — tenta pelo código primeiro, depois pelo nome
+    let idCliente = null;
+
+    // Helper: extrai id do objeto cliente
+    const extraiId = c => c.id || c.id_cliente || c.codigo_interno || null;
+
+    // Tentativa 1: busca pelo código (se preenchido)
+    if(codigoPedidoOk){
+      const buscaCod = await pedidoOkRequest('/clientes?codigo=' + encodeURIComponent(codigoPedidoOk), 'GET', null);
+      console.log('[PedidoOk] Raw busca código:', JSON.stringify(buscaCod.data).slice(0,400));
+      const listaCod = buscaCod.data.clientes || buscaCod.data.registros || buscaCod.data.data || [];
+      if(listaCod.length > 0) idCliente = extraiId(listaCod[0]);
+      console.log('[PedidoOk] Busca por código:', codigoPedidoOk, '→', idCliente ? 'encontrado id=' + idCliente : 'não encontrado | campos:', listaCod[0] ? Object.keys(listaCod[0]).join(',') : 'lista vazia');
     }
 
-    // 1. Busca cliente pelo código
-    const buscaCliente = await pedidoOkRequest('/clientes?codigo=' + encodeURIComponent(codigoPedidoOk), 'GET', null);
-    console.log('[PedidoOk] Busca cliente:', JSON.stringify(buscaCliente.data).slice(0,300));
-    const listaClientes = buscaCliente.data.clientes || buscaCliente.data.registros || [];
-    if(!buscaCliente.ok || listaClientes.length === 0){
-      console.warn('[PedidoOk] Cliente não encontrado. Código:', codigoPedidoOk);
-      showNotif('⚠️ PedidoOk: cliente "' + nomeCliente + '" não encontrado (código: ' + codigoPedidoOk + ')');
+    // Tentativa 2: busca pelo nome fantasia
+    if(!idCliente){
+      const buscaNome = await pedidoOkRequest('/clientes?fantasia=' + encodeURIComponent(nomeCliente), 'GET', null);
+      console.log('[PedidoOk] Raw busca nome:', JSON.stringify(buscaNome.data).slice(0,400));
+      const listaNome = buscaNome.data.clientes || buscaNome.data.registros || buscaNome.data.data || [];
+      if(listaNome.length > 0){
+        const encontrado = listaNome.find(c =>
+          (c.fantasia||'').toLowerCase().includes(nomeCliente.toLowerCase()) ||
+          (c.razao_social||'').toLowerCase().includes(nomeCliente.toLowerCase()) ||
+          nomeCliente.toLowerCase().includes((c.fantasia||'').toLowerCase())
+        ) || listaNome[0];
+        idCliente = extraiId(encontrado);
+        console.log('[PedidoOk] Busca por nome:', nomeCliente, '→', encontrado.fantasia || encontrado.razao_social, 'id:', idCliente, '| campos:', Object.keys(encontrado).join(','));
+      }
+    }
+
+    // Tentativa 3: busca pelo primeiro nome
+    if(!idCliente){
+      const primeiroNome = nomeCliente.split(' ')[0];
+      const buscaPrim = await pedidoOkRequest('/clientes?fantasia=' + encodeURIComponent(primeiroNome), 'GET', null);
+      const listaPrim = buscaPrim.data.clientes || buscaPrim.data.registros || buscaPrim.data.data || [];
+      if(listaPrim.length > 0){ idCliente = extraiId(listaPrim[0]); console.log('[PedidoOk] Busca por 1º nome:', primeiroNome, '→ id:', idCliente); }
+    }
+
+    if(!idCliente){
+      console.warn('[PedidoOk] Cliente não encontrado:', nomeCliente);
+      showNotif('⚠️ PedidoOk: cliente "' + nomeCliente + '" não encontrado');
       return;
     }
-    const idCliente = listaClientes[0].id;
     console.log('[PedidoOk] Cliente encontrado, id:', idCliente);
 
     // 2. Busca vendedor ativo (não excluído)
