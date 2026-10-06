@@ -1575,6 +1575,13 @@ function formatarDataISO(d){
 
 async function enviarPedidoOk(clienteData, itensList, total){
   try {
+    // Recarrega o cadastro atual do cliente (a sessão salva no celular pode estar desatualizada, sem o código PedidoOk)
+    try {
+      if(currentUser && currentUser.id){
+        const fresh = await db.collection('clientes').doc(currentUser.id).get();
+        if(fresh.exists) clienteData = {...clienteData, ...fresh.data()};
+      }
+    } catch(e){}
     const nomeCliente = (clienteData.nome || '').trim();
     const codigoPedidoOk = (clienteData.pedidookCodigo || '').trim();
     console.log('[PedidoOk] Buscando cliente:', nomeCliente, '| Código PedidoOk:', codigoPedidoOk);
@@ -1621,7 +1628,7 @@ async function enviarPedidoOk(clienteData, itensList, total){
     if(!idCliente){
       console.warn('[PedidoOk] Cliente não encontrado:', nomeCliente);
       showNotif('⚠️ PedidoOk: cliente "' + nomeCliente + '" não encontrado');
-      return;
+      return false;
     }
     console.log('[PedidoOk] Cliente encontrado, id:', idCliente);
 
@@ -1681,7 +1688,7 @@ async function enviarPedidoOk(clienteData, itensList, total){
 
     // Mapeia codigo → {id, qtd_embalagem, embalagem} do produto no PedidoOk
     const mapaIdProduto = {};
-    for(const cod of codigosPok){
+    await Promise.all(codigosPok.map(async cod=>{
       try {
         const resp = await pedidoOkRequest('/produtos?codigo=' + encodeURIComponent(cod), 'GET', null);
         const lista = resp.data.produtos || resp.data.registros || resp.data.data || [];
@@ -1692,12 +1699,11 @@ async function enviarPedidoOk(clienteData, itensList, total){
             qtd_embalagem: encontrado.qtd_embalagem || 1,
             embalagem: encontrado.embalagem || '1'
           };
-          console.log('[PedidoOk] Produto encontrado: código', cod, '→ id', mapaIdProduto[cod].id, '| qtd_emb:', mapaIdProduto[cod].qtd_embalagem, '| emb:', mapaIdProduto[cod].embalagem);
         } else {
-          console.warn('[PedidoOk] Produto código', cod, 'não encontrado. Lista:', lista.map(p=>p.codigo+'='+p.nome));
+          console.warn('[PedidoOk] Produto código', cod, 'não encontrado.');
         }
       } catch(e){ console.warn('[PedidoOk] Erro ao buscar produto código', cod, ':', e.message); }
-    }
+    }));
 
     // Monta array de itens para incluir no POST /pedidos (estratégia: criar pedido com itens embutidos)
     const itensPayload = [];
@@ -1745,7 +1751,7 @@ async function enviarPedidoOk(clienteData, itensList, total){
     if(!criaPedido.ok){
       console.warn('[PedidoOk] Erro ao criar pedido:', JSON.stringify(criaPedido.data));
       showNotif('⚠️ PedidoOk erro ao criar pedido: ' + JSON.stringify(criaPedido.data).slice(0,120));
-      return;
+      return false;
     }
 
     // ID pode estar em data.id ou data.pedido.id
@@ -1755,9 +1761,11 @@ async function enviarPedidoOk(clienteData, itensList, total){
 
     console.log('[PedidoOk] ✅ Pedido completo enviado! id:', idPedido);
     showNotif('✅ Pedido enviado ao PedidoOk!');
+    return true;
 
   } catch(e){
     console.warn('[PedidoOk] Falha:', e.message);
+    return false;
   }
 }
 let currentUser = null;
@@ -3016,6 +3024,11 @@ async function confirmarEnvio(){
   // Fechar sheet antes de abrir WhatsApp
   fecharPedidoSheet();
 
+  // Reserva a aba do WhatsApp AGORA (no clique), senão o celular bloqueia a abertura depois das esperas
+  let _waWin = null;
+  try { _waWin = window.open('', '_blank'); } catch(e){}
+  mostrarEnviandoPedido();
+
   // Monta linhas com o desconto refletido no total final
   const linhasComDesconto = [...linhas];
   if(descontoAplicado > 0){
@@ -3030,8 +3043,25 @@ async function confirmarEnvio(){
 
   // 1. Salva pedido e gera cupons ANTES de montar mensagem
   salvarUltimoPedido(itensSalvar, fmt(total));
-  // Envia pedido automaticamente para o app PedidoOk
-  enviarPedidoOk(currentClientData, itensList, total);
+  // Envia pedido ao PedidoOk e ESPERA terminar (máx. 40s) antes de abrir o WhatsApp
+  let _okPedidoOk = false;
+  try {
+    _okPedidoOk = await Promise.race([
+      enviarPedidoOk(currentClientData, itensList, total),
+      new Promise(res=>setTimeout(()=>res(false), 40000))
+    ]);
+  } catch(e){ _okPedidoOk = false; }
+  if(!_okPedidoOk){
+    // guarda registro para o admin lançar manualmente
+    try {
+      await db.collection('pedidook_falhas').add({
+        clienteId: currentUser.id, clienteNome: currentClientData.nome,
+        itensList: itensList.map(i=>({id:i.id||'',nome:i.nome||'',qty:i.qty||0,unit:i.unit||0,pok:i.pok||''})),
+        total, resolvido:false,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch(e){}
+  }
   const novosCupons = await salvarPedidoComItensRetornaCupons(
     currentUser.id, currentClientData.nome, totalItens, fmt(total), itensList||[], total
   );
@@ -3060,17 +3090,35 @@ async function confirmarEnvio(){
   const texto = encodeURIComponent(todasLinhas.join('\n'));
   const urlWA = 'https://api.whatsapp.com/send?phone='+numero+'&text='+texto;
 
-  const a = document.createElement('a');
-  a.href = urlWA;
-  a.target = '_blank'; // abre em nova aba, não sai do site!
-  a.rel = 'noopener noreferrer';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(()=>a.remove(), 500);
+  esconderEnviandoPedido();
+  if(_waWin && !_waWin.closed){
+    _waWin.location.href = urlWA;
+  } else {
+    const a = document.createElement('a');
+    a.href = urlWA;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>a.remove(), 500);
+  }
 
   // 4. Mostra tela de sucesso com cupons
   mostrarSucesso(fmt(total), totalItens, total, novosCupons||[]);
   _pedidoAtual = null;
+}
+
+function mostrarEnviandoPedido(){
+  esconderEnviandoPedido();
+  const d=document.createElement('div');
+  d.id='enviando-pedido-overlay';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:950;display:flex;align-items:center;justify-content:center;padding:1.5rem;';
+  d.innerHTML='<div style="text-align:center;color:#FAC775;"><div style="font-size:42px;margin-bottom:10px;">⏳</div><div style="font-size:16px;font-weight:700;">Enviando seu pedido...</div><div style="font-size:12px;color:rgba(250,199,117,.7);margin-top:6px;">Não feche esta tela</div></div>';
+  document.body.appendChild(d);
+}
+function esconderEnviandoPedido(){
+  const d=document.getElementById('enviando-pedido-overlay');
+  if(d) d.remove();
 }
 
 function enviarPedido(){ abrirPedidoSheet(); }
