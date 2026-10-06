@@ -556,6 +556,24 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
 .sucesso-btn:hover{opacity:0.9;transform:scale(1.02);}
 
 
+
+/* ===== FORM CLIENTE (estilo da foto) ===== */
+.modal-cli{color:#222;max-width:760px!important;padding:1.25rem 1.5rem;background:#F0F0F0;border-radius:6px;}
+.modal-cli .modal-title{font-size:16px;margin-bottom:10px;}
+.cf-row{display:flex;gap:10px;margin-bottom:10px;align-items:flex-end;}
+.cf-col{flex:1;min-width:0;}
+.cf-lbl{display:block;font-size:12px;color:#333;margin-bottom:3px;font-family:'Segoe UI',Arial,sans-serif;}
+.cf-bold{font-weight:700;}
+.cf-in,.cf-sel{width:100%;height:28px;padding:2px 6px;border:1px solid #AAA;background:#fff;font-size:12px;font-family:'Segoe UI',Arial,sans-serif;border-radius:2px;outline:none;color:#000;}
+.cf-in:focus,.cf-sel:focus{border-color:#4F8BF9;}
+.cf-help{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1px solid #888;border-radius:50%;font-size:11px;color:#555;cursor:help;flex-shrink:0;}
+.cf-dica{font-size:12px;font-weight:700;color:#5B2FD0;text-decoration:underline;cursor:pointer;display:inline-block;margin:6px 0 10px;}
+.cf-btn{height:26px;padding:0 10px;border:1px solid #999;background:linear-gradient(#fff,#ddd);font-size:12px;border-radius:2px;cursor:pointer;font-family:'Segoe UI',Arial,sans-serif;}
+.cf-limite{position:relative;}
+.cf-limite input{text-align:right;padding-right:22px;}
+.cf-limite span{position:absolute;right:6px;top:50%;transform:translateY(-50%);color:#888;cursor:pointer;font-size:12px;}
+.cf-sec{font-size:12px;font-weight:700;color:#412402;margin:14px 0 8px;padding-top:10px;border-top:1px solid #CCC;}
+@media(max-width:600px){.cf-row{flex-wrap:wrap;}.cf-col{flex:1 1 100%!important;}}
 </style>
 </head>
 <body>
@@ -1245,95 +1263,97 @@ body.tema-escuro .no-results,body.tema-escuro .empty-state,body.tema-escuro .loa
   </div>
 <!-- ===== MODAL CLIENTE ===== -->
 <div class="modal-overlay hidden" id="modal-client">
-  <div class="modal" style="max-width:500px;">
+  <div class="modal modal-cli">
     <div class="modal-title" id="modal-title">Novo Cliente</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div class="form-group" style="grid-column:1/-1">
-        <label>Nome do estabelecimento</label>
-        <input type="text" id="m-name" placeholder="Ex: Mercado do João">
-      </div>
-      <div class="form-group">
-        <label>Nome do responsável</label>
-        <input type="text" id="m-responsavel" placeholder="Ex: João Silva">
-      </div>
-      <div class="form-group">
-        <label>CPF / CNPJ</label>
-        <input type="text" id="m-cpfcnpj" placeholder="Ex: 00.000.000/0001-00">
-      </div>
-      <div class="form-group">
-        <label>Código PedidoOk <span style="font-size:11px;color:#888;font-weight:400;">(ex: ft31j30c2)</span></label>
-        <input type="text" id="m-pedidook-codigo" placeholder="Código do cliente no PedidoOk">
-      </div>
-      <div class="form-group">
-        <label>Telefone / WhatsApp</label>
-        <input type="text" id="m-tel" placeholder="Ex: 31 99999-9999">
-      </div>
-      <div class="form-group">
-        <label>CEP</label>
-        <input type="text" id="m-cep" placeholder="Ex: 30000-000">
-      </div>
-      <div class="form-group" style="grid-column:1/-1">
-        <label>Endereço</label>
-        <input type="text" id="m-end" placeholder="Ex: Rua das Flores, 123">
-      </div>
-      <div class="form-group">
-        <label>Bairro</label>
-        <input type="text" id="m-bairro" placeholder="Ex: Centro">
-      </div>
-      <div class="form-group">
-        <label>Cidade</label>
-        <input type="text" id="m-cidade" placeholder="Ex: Belo Horizonte">
-      </div>
-      <div class="form-group">
-        <label>Usuário (login)</label>
-        <input type="text" id="m-user" placeholder="Ex: mercado_joao">
-      </div>
-      <div class="form-group">
-        <label>Senha</label>
-        <input type="text" id="m-pass" placeholder="Ex: 1234">
-      </div>
-      <div class="form-group">
-        <label>Tipo de preço</label>
-        <select class="select-tag" id="m-tag">
-          <option value="Varejo">Varejo</option>
-          <option value="Atacado">Atacado</option>
-          <option value="VIP">VIP</option>
-          <option value="SemPreco">🚫 Sem Preço (não mostra valores)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Prazo de pagamento (dias)</label>
-        <input type="number" id="m-prazo" placeholder="Ex: 7" min="0" max="90">
-      </div>
-      <div class="form-group">
-        <label>🚚 Dia de entrega</label>
-        <select id="m-dia-entrega" class="select-tag">
-          <option value="">Sem dia fixo</option>
-          <option value="1">Segunda-feira</option>
-          <option value="2">Terça-feira</option>
-          <option value="3">Quarta-feira</option>
-          <option value="4">Quinta-feira</option>
-          <option value="5">Sexta-feira</option>
-          <option value="6">Sábado</option>
-          <option value="7">Domingo</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>💵 Saldo de cashback (R$)</label>
-        <input type="number" id="m-cashback" step="0.01" min="0" placeholder="Ex: 52.00">
+
+    <div class="cf-row">
+      <div class="cf-col" style="flex:0 0 190px;">
+        <label class="cf-lbl cf-bold">Código *</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="text" id="m-pedidook-codigo" class="cf-in">
+          <span class="cf-help" title="Código do cliente no PedidoOk">?</span>
+        </div>
       </div>
     </div>
-    <div class="form-group" style="grid-column:1/-1">
-      <label>🤝 Representante (nome e celular)</label>
-      <input type="text" id="m-vendedor-nome" placeholder="Ex: Carlos Oliveira" style="margin-bottom:6px;">
-      <input type="text" id="m-vendedor-cel" placeholder="Ex: 31 99999-9999">
+    <a class="cf-dica" onclick="gerarCodigoAuto()">(DICA: Ative código automático clicando aqui)</a>
+
+    <div class="cf-row">
+      <div class="cf-col" style="flex:1.1;"><label class="cf-lbl cf-bold">Razão social ou Nome *</label><input type="text" id="m-name" class="cf-in"></div>
+      <div class="cf-col"><label class="cf-lbl">Fantasia</label><input type="text" id="m-fantasia" class="cf-in"></div>
     </div>
-    <div class="form-group" style="grid-column:1/-1">
-      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-        <input type="checkbox" id="m-ocultar-preco" style="width:18px;height:18px;cursor:pointer;">
-        <span>🚫 Ocultar preços no catálogo e na notinha para este cliente</span>
-      </label>
+
+    <div class="cf-row">
+      <div class="cf-col" style="flex:0 0 190px;"><label class="cf-lbl">CNPJ ou CPF</label><input type="text" id="m-cpfcnpj" class="cf-in"></div>
     </div>
+
+    <div class="cf-row">
+      <div class="cf-col"><label class="cf-lbl">Inscrição estadual</label><input type="text" id="m-insc-est" class="cf-in"></div>
+      <div class="cf-col"><label class="cf-lbl">Inscrição municipal</label><input type="text" id="m-insc-mun" class="cf-in"></div>
+      <div class="cf-col"><label class="cf-lbl">Inscrição Suframa</label><input type="text" id="m-insc-suf" class="cf-in"></div>
+      <div class="cf-col"><label class="cf-lbl">Limite de crédito R$</label>
+        <div class="cf-limite"><input type="number" step="0.01" min="0" id="m-limite" class="cf-in" placeholder="0,00"><span onclick="document.getElementById('m-limite').value=''">✖</span></div>
+      </div>
+    </div>
+
+    <div class="cf-row">
+      <div class="cf-col" style="flex:1.1;"><label class="cf-lbl">E-mail para cópia do pedido e login no e-commerce</label><input type="email" id="m-email-pedido" class="cf-in"></div>
+      <div class="cf-col"><label class="cf-lbl">E-mail para XML da NFe e Boleto</label><input type="email" id="m-email-nfe" class="cf-in"></div>
+    </div>
+
+    <div class="cf-row">
+      <div class="cf-col"><label class="cf-lbl">Telefone</label><input type="text" id="m-tel" class="cf-in"></div>
+      <div class="cf-col">
+        <label class="cf-lbl">Rota de atendimento</label>
+        <div style="display:flex;align-items:center;gap:8px;"><input type="text" id="m-rota" class="cf-in"><span class="cf-help" title="Rota/região de atendimento do cliente">?</span></div>
+      </div>
+    </div>
+
+    <div class="cf-row">
+      <div class="cf-col" style="flex:0 0 160px;"><label class="cf-lbl">CEP</label><input type="text" id="m-cep" class="cf-in"></div>
+      <div style="flex:0 0 auto;"><button type="button" class="cf-btn" onclick="buscarCep()">Buscar CEP</button></div>
+      <div class="cf-col" style="flex:2;"><label class="cf-lbl">Endereço</label><input type="text" id="m-end" class="cf-in"></div>
+      <div class="cf-col" style="flex:0 0 150px;"><label class="cf-lbl">Número</label><input type="text" id="m-numero" class="cf-in"></div>
+    </div>
+
+    <div class="cf-row">
+      <div class="cf-col"><label class="cf-lbl">Complemento</label><input type="text" id="m-complemento" class="cf-in"></div>
+      <div class="cf-col"><label class="cf-lbl">Bairro</label><input type="text" id="m-bairro" class="cf-in"></div>
+    </div>
+
+    <div class="cf-row">
+      <div class="cf-col" style="flex:0 0 160px;"><label class="cf-lbl">Estado</label><select id="m-estado" class="cf-sel" onchange="carregarCidades(this.value)"></select></div>
+      <div class="cf-col"><label class="cf-lbl">Cidade</label><select id="m-cidade" class="cf-sel"><option value=""></option></select></div>
+    </div>
+
+    <div class="cf-sec">🔑 Acesso ao catálogo</div>
+    <div class="cf-row">
+      <div class="cf-col"><label class="cf-lbl cf-bold">Usuário (login) *</label><input type="text" id="m-user" class="cf-in"></div>
+      <div class="cf-col"><label class="cf-lbl cf-bold">Senha *</label><input type="text" id="m-pass" class="cf-in"></div>
+      <div class="cf-col"><label class="cf-lbl">Tipo de preço</label>
+        <select id="m-tag" class="cf-sel">
+          <option value="Varejo">Varejo</option><option value="Atacado">Atacado</option>
+          <option value="VIP">VIP</option><option value="SemPreco">🚫 Sem Preço</option>
+        </select></div>
+    </div>
+    <div class="cf-row">
+      <div class="cf-col"><label class="cf-lbl">Responsável</label><input type="text" id="m-responsavel" class="cf-in"></div>
+      <div class="cf-col"><label class="cf-lbl">Prazo de pagamento (dias)</label><input type="number" id="m-prazo" min="0" max="90" class="cf-in"></div>
+      <div class="cf-col"><label class="cf-lbl">🚚 Dia de entrega</label>
+        <select id="m-dia-entrega" class="cf-sel">
+          <option value="">Sem dia fixo</option><option value="1">Segunda-feira</option><option value="2">Terça-feira</option>
+          <option value="3">Quarta-feira</option><option value="4">Quinta-feira</option><option value="5">Sexta-feira</option>
+          <option value="6">Sábado</option><option value="7">Domingo</option>
+        </select></div>
+    </div>
+    <div class="cf-row">
+      <div class="cf-col"><label class="cf-lbl">💵 Saldo de cashback (R$)</label><input type="number" id="m-cashback" step="0.01" min="0" class="cf-in"></div>
+      <div class="cf-col"><label class="cf-lbl">🤝 Representante (nome)</label><input type="text" id="m-vendedor-nome" class="cf-in"></div>
+      <div class="cf-col"><label class="cf-lbl">Representante (celular)</label><input type="text" id="m-vendedor-cel" class="cf-in"></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin-top:4px;">
+      <input type="checkbox" id="m-ocultar-preco"> 🚫 Ocultar preços no catálogo e na notinha para este cliente
+    </label>
+
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modal-client')">Cancelar</button>
       <button class="btn-save" onclick="saveClient()">Salvar cliente</button>
@@ -2038,86 +2058,130 @@ async function loadAdminData(){
 
 }
 
+// ===== FORM CLIENTE (estilo da foto) =====
+const UFS=['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+const _cacheCidades={};
+
+function popularEstados(){
+  const sel=document.getElementById('m-estado');
+  if(sel && !sel.options.length){
+    sel.innerHTML='<option value=""></option>'+UFS.map(u=>`<option value="${u}">${u}</option>`).join('');
+  }
+}
+
+async function carregarCidades(uf, cidadeSelecionada){
+  const sel=document.getElementById('m-cidade');
+  if(!uf){ sel.innerHTML='<option value=""></option>'; return; }
+  sel.innerHTML='<option value="">Carregando...</option>';
+  try{
+    if(!_cacheCidades[uf]){
+      const r=await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios?orderBy=nome`);
+      const j=await r.json();
+      _cacheCidades[uf]=j.map(c=>c.nome);
+    }
+    sel.innerHTML='<option value=""></option>'+_cacheCidades[uf].map(n=>`<option value="${n}">${n}</option>`).join('');
+  }catch(e){
+    sel.innerHTML='<option value=""></option>';
+  }
+  if(cidadeSelecionada){
+    if(![...sel.options].some(o=>o.value===cidadeSelecionada)){
+      sel.insertAdjacentHTML('beforeend',`<option value="${cidadeSelecionada}">${cidadeSelecionada}</option>`);
+    }
+    sel.value=cidadeSelecionada;
+  }
+}
+
+async function buscarCep(){
+  const cep=(document.getElementById('m-cep').value||'').replace(/\D/g,'');
+  if(cep.length!==8){ alert('Digite um CEP válido com 8 números.'); return; }
+  try{
+    const r=await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const d=await r.json();
+    if(d.erro){ alert('CEP não encontrado.'); return; }
+    document.getElementById('m-end').value=d.logradouro||'';
+    document.getElementById('m-bairro').value=d.bairro||'';
+    const comp=document.getElementById('m-complemento');
+    comp.value=comp.value||d.complemento||'';
+    document.getElementById('m-estado').value=d.uf||'';
+    await carregarCidades(d.uf, d.localidade);
+  }catch(e){ alert('Não foi possível buscar o CEP.'); }
+}
+
+function gerarCodigoAuto(){
+  document.getElementById('m-pedidook-codigo').value=Date.now().toString(36).slice(-8);
+}
+
+const _CAMPOS_CLIENTE={
+  'm-name':'nome','m-fantasia':'fantasia','m-pedidook-codigo':'pedidookCodigo','m-cpfcnpj':'cpfcnpj',
+  'm-insc-est':'inscEstadual','m-insc-mun':'inscMunicipal','m-insc-suf':'inscSuframa','m-limite':'limiteCredito',
+  'm-email-pedido':'emailPedido','m-email-nfe':'emailNfe','m-tel':'tel','m-rota':'rota',
+  'm-cep':'cep','m-end':'end','m-numero':'numero','m-complemento':'complemento','m-bairro':'bairro',
+  'm-user':'usuario','m-pass':'senha','m-responsavel':'responsavel','m-prazo':'prazo',
+  'm-dia-entrega':'diaEntrega','m-cashback':'cashback','m-vendedor-nome':'vendedorNome','m-vendedor-cel':'vendedorCel'
+};
+
 function openAddClient(){
   editingClientId=null;
+  popularEstados();
   document.getElementById('modal-title').textContent='Novo Cliente';
-  ['m-name','m-user','m-pass','m-responsavel','m-cpfcnpj','m-pedidook-codigo','m-tel','m-cep','m-end','m-bairro','m-cidade','m-prazo','m-cashback'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.value='';
-  });
+  Object.keys(_CAMPOS_CLIENTE).forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('m-tag').value='Varejo';
-  const diaEl = document.getElementById('m-dia-entrega');
-  if(diaEl) diaEl.value='';
-  const ocPrecoElAdd = document.getElementById('m-ocultar-preco');
-  if(ocPrecoElAdd) ocPrecoElAdd.checked = false;
+  document.getElementById('m-estado').value='';
+  document.getElementById('m-cidade').innerHTML='<option value=""></option>';
+  document.getElementById('m-ocultar-preco').checked=false;
   document.getElementById('modal-client').classList.remove('hidden');
 }
 
 async function editClient(id){
-  const docSnap = await db.collection('clientes').doc(id).get();
-  const c = docSnap.data();
-  editingClientId = id;
-  document.getElementById('modal-title').textContent = 'Editar Cliente';
-  document.getElementById('m-name').value = c.nome||'';
-  document.getElementById('m-user').value = c.usuario||'';
-  document.getElementById('m-pass').value = c.senha||'';
-  document.getElementById('m-tag').value = c.tag||'Varejo';
-  // Campos adicionais (corrigido: não estavam sendo pré-preenchidos)
-  const setIfExists = (id,val)=>{ const el=document.getElementById(id); if(el) el.value = val!==undefined&&val!==null?val:''; };
-  setIfExists('m-responsavel', c.responsavel);
-  setIfExists('m-cpfcnpj', c.cpfcnpj);
-  setIfExists('m-pedidook-codigo', c.pedidookCodigo);
-  setIfExists('m-tel', c.tel);
-  setIfExists('m-cep', c.cep);
-  setIfExists('m-end', c.end);
-  setIfExists('m-bairro', c.bairro);
-  setIfExists('m-cidade', c.cidade);
-  setIfExists('m-prazo', c.prazo);
-  setIfExists('m-dia-entrega', c.diaEntrega||'');
-  setIfExists('m-cashback', c.cashback);
-  const ocPrecoEl = document.getElementById('m-ocultar-preco');
-  if(ocPrecoEl) ocPrecoEl.checked = !!c.ocultarPreco;
-  const vendNomeEl = document.getElementById('m-vendedor-nome');
-  const vendCelEl = document.getElementById('m-vendedor-cel');
-  if(vendNomeEl) vendNomeEl.value = c.vendedorNome||'';
-  if(vendCelEl) vendCelEl.value = c.vendedorCel||'';
+  popularEstados();
+  const docSnap=await db.collection('clientes').doc(id).get();
+  const c=docSnap.data();
+  editingClientId=id;
+  document.getElementById('modal-title').textContent='Editar Cliente';
+  Object.entries(_CAMPOS_CLIENTE).forEach(([elId,campo])=>{
+    const el=document.getElementById(elId);
+    if(el) el.value=(c[campo]!==undefined&&c[campo]!==null)?c[campo]:'';
+  });
+  document.getElementById('m-tag').value=c.tag||'Varejo';
+  document.getElementById('m-ocultar-preco').checked=!!c.ocultarPreco;
+  document.getElementById('m-estado').value=c.estado||'';
   document.getElementById('modal-client').classList.remove('hidden');
+  await carregarCidades(c.estado||'', c.cidade||'');
 }
 
 async function saveClient(){
-  const nome=document.getElementById('m-name').value.trim();
-  const responsavel=document.getElementById('m-responsavel').value.trim();
-  const cpfcnpj=document.getElementById('m-cpfcnpj').value.trim();
-  const tel=document.getElementById('m-tel').value.trim();
-  const cep=document.getElementById('m-cep').value.trim();
-  const end=document.getElementById('m-end').value.trim();
-  const bairro=document.getElementById('m-bairro').value.trim();
-  const cidade=document.getElementById('m-cidade').value.trim();
-  const usuario=document.getElementById('m-user').value.trim();
-  const senha=document.getElementById('m-pass').value.trim();
+  const v=id=>(document.getElementById(id).value||'').trim();
+  const nome=v('m-name'), usuario=v('m-user'), senha=v('m-pass'), codigo=v('m-pedidook-codigo');
+  if(!nome||!usuario||!senha){alert('Preencha Razão social/Nome, usuário e senha!');return;}
   const tag=document.getElementById('m-tag').value;
-  const prazo=parseInt(document.getElementById('m-prazo').value)||0;
-  const diaEntrega=document.getElementById('m-dia-entrega').value||'';
-  if(!nome||!usuario||!senha){alert('Preencha nome, usuário e senha!');return;}
-  const ocultarPreco = document.getElementById('m-ocultar-preco').checked;
-  const cashbackEl = document.getElementById('m-cashback');
-  const cashback = cashbackEl && cashbackEl.value !== '' ? parseFloat(cashbackEl.value) : 0;
-  const vendedorNome = (document.getElementById('m-vendedor-nome')||{}).value||'';
-  const vendedorCel = (document.getElementById('m-vendedor-cel')||{}).value||'';
-  const pedidookCodigoEl = document.getElementById('m-pedidook-codigo');
-  const pedidookCodigo = pedidookCodigoEl ? pedidookCodigoEl.value.trim() : '';
-  const data={nome,responsavel,cpfcnpj,pedidookCodigo,tel,cep,end,bairro,cidade,usuario,senha,tag,prazo,diaEntrega,ocultarPreco,cashback,vendedorNome,vendedorCel,bloqueado:false};
-  try {
+  const limiteStr=v('m-limite'), cashStr=v('m-cashback');
+  const data={
+    nome, fantasia:v('m-fantasia'), pedidookCodigo:codigo, cpfcnpj:v('m-cpfcnpj'),
+    inscEstadual:v('m-insc-est'), inscMunicipal:v('m-insc-mun'), inscSuframa:v('m-insc-suf'),
+    limiteCredito: limiteStr!==''?parseFloat(limiteStr):0,
+    emailPedido:v('m-email-pedido'), emailNfe:v('m-email-nfe'),
+    tel:v('m-tel'), rota:v('m-rota'),
+    cep:v('m-cep'), end:v('m-end'), numero:v('m-numero'), complemento:v('m-complemento'),
+    bairro:v('m-bairro'), estado:document.getElementById('m-estado').value,
+    cidade:document.getElementById('m-cidade').value,
+    usuario, senha, tag, responsavel:v('m-responsavel'),
+    prazo:parseInt(v('m-prazo'))||0,
+    diaEntrega:document.getElementById('m-dia-entrega').value||'',
+    ocultarPreco:document.getElementById('m-ocultar-preco').checked,
+    cashback: cashStr!==''?parseFloat(cashStr):0,
+    vendedorNome:v('m-vendedor-nome'), vendedorCel:v('m-vendedor-cel')
+  };
+  try{
     if(editingClientId){
-      const existing = await db.collection('clientes').doc(editingClientId).get();
-      const bloqueado = existing.exists ? (existing.data().bloqueado||false) : false;
-      await db.collection('clientes').doc(editingClientId).set({...data, bloqueado});
+      const existing=await db.collection('clientes').doc(editingClientId).get();
+      const bloqueado=existing.exists?(existing.data().bloqueado||false):false;
+      await db.collection('clientes').doc(editingClientId).set({...data,bloqueado});
     } else {
-      await db.collection('clientes').add(data);
+      await db.collection('clientes').add({...data,bloqueado:false});
     }
     closeModal('modal-client');
     loadAdminData();
-  } catch(e){alert('Erro: '+e.message);}
+  }catch(e){alert('Erro: '+e.message);}
 }
 
 async function bloquearCliente(id, bloqueado){
@@ -3725,7 +3789,7 @@ function gerarImpressao(formato){
     infoCli = '<div class="sec"><b>' + (cli.nome||'') + '</b>' +
       (cli.responsavel ? ' | ' + cli.responsavel : '') +
       (cli.cpfcnpj ? '<br>' + cli.cpfcnpj : '') +
-      (cli.end ? '<br>' + cli.end + (cli.bairro?', '+cli.bairro:'') + (cli.cidade?' - '+cli.cidade:'') : '') +
+      (cli.end ? '<br>' + cli.end + (cli.numero?', '+cli.numero:'') + (cli.bairro?', '+cli.bairro:'') + (cli.cidade?' - '+cli.cidade:'') : '') +
     '</div>';
   } else {
     infoCli = '<div class="grid2" style="margin-bottom:10px;">' +
@@ -3733,7 +3797,7 @@ function gerarImpressao(formato){
       '<div class="ii"><div class="lb">Responsável</div><div class="vl">' + (cli.responsavel||'-') + '</div></div>' +
       '<div class="ii"><div class="lb">CPF/CNPJ</div><div class="vl">' + (cli.cpfcnpj||'-') + '</div></div>' +
       '<div class="ii"><div class="lb">Telefone</div><div class="vl">' + (cli.tel||'-') + '</div></div>' +
-      '<div class="ii" style="grid-column:1/-1"><div class="lb">Endereço</div><div class="vl">' + ([cli.end,cli.bairro,cli.cidade].filter(Boolean).join(', ')||'-') + '</div></div>' +
+      '<div class="ii" style="grid-column:1/-1"><div class="lb">Endereço</div><div class="vl">' + ([cli.end&&cli.numero?cli.end+', '+cli.numero:cli.end,cli.bairro,cli.cidade].filter(Boolean).join(', ')||'-') + '</div></div>' +
     '</div>';
   }
 
